@@ -7,8 +7,8 @@ ALLTESTS=\
   test026.idl test027.idl test028.idl test029.idl test030.idl \
   test031.idl test032.idl test033.idl test034.idl test035.idl
 
-CAMLIDL=../../camlidl
-CAMLC=ocamlc -I ../..
+CAMLIDL=../../compiler/camlidl
+CAMLC=ocamlc -I ../../lib
 CC=gcc
 CFLAGS=-I../.. -I/usr/local/lib/ocaml -Wall
 

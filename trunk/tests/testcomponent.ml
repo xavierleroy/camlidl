@@ -29,14 +29,14 @@ class my_iy =
 let make_test() =
   let c = Component.create_instance() in
   begin try
-    test_ix (Component.use_iX (Com.queryInterface c Component.iid_iX))
-  with Com.Error s ->
+    test_ix (Component.use_iX (Com.query_interface c Component.iid_iX))
+  with Com.Error(_, _, s) ->
     print_string "Lookup of IX interface failed: ";
     print_string s; print_newline()
   end;
   begin try
-    test_iy (Component.use_iY (Com.queryInterface c Component.iid_iY))
-  with Com.Error s ->
+    test_iy (Component.use_iY (Com.query_interface c Component.iid_iY))
+  with Com.Error(_, _, s) ->
     print_string "Lookup of IY interface failed: ";
     print_string s; print_newline()
   end;
