@@ -4,13 +4,16 @@
 \usepackage{alltt}
 \usepackage{fullpage}
 \usepackage{syntaxdef}
-\usepackage{html}
+\usepackage{hevea}
 
 \newif\ifpdf\pdffalse
 \newif\ifplaintext\plaintextfalse
-
+\ifhevea
+\input{macros.hva}
+\else
 \input{macros.tex}
 \def\index#1{}
+\fi
 
 \title{Camlidl user's manual \\ Version 1.01}
 \author{Xavier Leroy \\
@@ -20,6 +23,6 @@
 
 \maketitle
 
-\input manual.tex
+\input{manual.tex}
 
 \end{document}
