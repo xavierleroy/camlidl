@@ -10,7 +10,7 @@ OBJS=utils.cmo cvttyp.cmo variables.cmo \
   structdecl.cmo enumdecl.cmo uniondecl.cmo \
   typedef.cmo funct.cmo constdecl.cmo intf.cmo \
   file.cmo \
-  parser_simple.cmo lexer_simple.cmo normalize.cmo \
+  parser_midl.cmo lexer_midl.cmo normalize.cmo \
   main.cmo
 
 COBJS=camlidlruntime.o
@@ -27,21 +27,21 @@ libcamlidl.a: $(COBJS)
 	rm -f libcamlidl.a
 	ar rc libcamlidl.a $(COBJS)
 
-parser_simple.ml parser_simple.mli: parser_simple.mly
-	$(OCAMLYACC) parser_simple.mly
+parser_midl.ml parser_midl.mli: parser_midl.mly
+	$(OCAMLYACC) parser_midl.mly
 
 clean::
-	rm -f parser_simple.ml parser_simple.mli parser_simple.output
+	rm -f parser_midl.ml parser_midl.mli parser_midl.output
 
-beforedepend:: parser_simple.ml parser_simple.mli
+beforedepend:: parser_midl.ml parser_midl.mli
 
-lexer_simple.ml: lexer_simple.mll
-	$(OCAMLLEX) lexer_simple.mll
+lexer_midl.ml: lexer_midl.mll
+	$(OCAMLLEX) lexer_midl.mll
 
 clean::
-	rm -f lexer_simple.ml
+	rm -f lexer_midl.ml
 
-beforedepend:: lexer_simple.ml
+beforedepend:: lexer_midl.ml
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 

@@ -15,8 +15,10 @@ let integer_type = function
   | USmall -> "unsigned char"
   | UShort -> "unsigned short"
   | UChar -> "unsigned char"
+  | SChar -> "signed char"
   | Byte -> "unsigned char"
   | Boolean -> "int"
+  | WChar -> "wchar_t"
 
 let rec out_c_decl oc (id, ty) =
   match ty with
@@ -91,7 +93,7 @@ let rec out_ml_type oc ty =
         Ref -> out_ml_type oc ty
       | Unique -> fprintf oc "%a option" out_ml_type ty
       | Ptr -> fprintf oc "%a Com.opaque" out_ml_type ty
-      | Ignore -> assert false
+      | _ -> assert false
       end
   | Type_array(attr, ty) ->
       if attr.is_string
@@ -111,7 +113,11 @@ let out_ml_types oc sep types =
 
 (* Output a reference to a restricted expression *)
 
-let string_of_restr_expr = function Var s -> s | Deref s -> "*" ^ s
+let string_of_restr_expr pref re =
+  match re with
+    Var s -> pref ^ s
+  | Deref s -> "*" ^ pref ^ s
 
-let out_restr_expr oc e = output_string oc (string_of_restr_expr e)
+let out_restr_expr oc (pref, re) =
+  output_string oc (string_of_restr_expr pref re)
 

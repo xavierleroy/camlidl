@@ -50,10 +50,10 @@ let rec ml_to_c oc onstack pref ty v c =
   | Type_union(ud, attr) ->
       if ud.ud_name = "" then
         Union.union_ml_to_c ml_to_c oc onstack ud v c
-                            (pref ^ string_of_restr_expr attr.discriminant)
+                            (string_of_restr_expr pref attr.discriminant)
       else begin
-        iprintf oc "%s%a = camlidl_ml2c_%s_union_%s(%s, &%s, _arena);\n"
-                   pref out_restr_expr attr.discriminant
+        iprintf oc "%a = camlidl_ml2c_%s_union_%s(%s, &%s, _arena);\n"
+                   out_restr_expr (pref, attr.discriminant)
                    ud.ud_mod ud.ud_name v c;
         need_deallocation := true
       end
@@ -88,7 +88,7 @@ let rec ml_to_c oc onstack pref ty v c =
       iprintf oc "}\n"
   | Type_pointer(Ptr, ty_elt) ->
       iprintf oc "%s = (%a) Field(%s, 0);\n" c out_c_type ty v
-  | Type_pointer(Ignore, ty_elt) ->
+  | Type_pointer(_, ty_elt) ->
       iprintf oc "%s = NULL;\n" c
   | Type_array(attr, ty_elt) ->
       Array.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c
@@ -118,10 +118,10 @@ let rec c_to_ml oc pref ty c v =
   | Type_union(ud, attr) ->
       if ud.ud_name = ""
       then Union.union_c_to_ml c_to_ml oc ud c v
-                               (pref ^ string_of_restr_expr attr.discriminant)
-      else iprintf oc "%s = camlidl_c2ml_%s_union_%s(%s%a, &%s);\n"
-                      v ud.ud_mod ud.ud_name pref
-                      out_restr_expr attr.discriminant c
+                               (string_of_restr_expr pref attr.discriminant)
+      else iprintf oc "%s = camlidl_c2ml_%s_union_%s(%a, &%s);\n"
+                      v ud.ud_mod ud.ud_name
+                      out_restr_expr (pref, attr.discriminant) c
   | Type_enum(en, attr) ->
       if attr.bitset then
         Enum.enumset_c_to_ml c_to_ml oc en c v
@@ -156,7 +156,7 @@ let rec c_to_ml oc pref ty c v =
   | Type_pointer(Ptr, ty_elt) ->
       iprintf oc "%s = camlidl_alloc_small(1, Abstract_tag);\n" v;
       iprintf oc "Field(%s, 0) = (value) %s;\n" v c
-  | Type_pointer(Ignore, ty_elt) ->
+  | Type_pointer(_, ty_elt) ->
       ()
   | Type_array(attr, ty_elt) ->
       Array.array_c_to_ml c_to_ml oc pref attr ty_elt c v

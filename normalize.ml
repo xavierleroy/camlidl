@@ -28,6 +28,12 @@ let currstamp = ref 0
 
 let newstamp () = incr currstamp; !currstamp
 
+let pointer_default = ref Default
+
+let normalize_ptr = function
+    Default -> !pointer_default
+  | kind -> kind
+
 let in_fundecl = ref false
 
 let error_if_fundecl kind =
@@ -36,7 +42,7 @@ let error_if_fundecl kind =
 
 let rec normalize_type = function
     Type_pointer(kind, ty_elt) ->
-      Type_pointer(kind, normalize_type ty_elt)
+      Type_pointer(normalize_ptr kind, normalize_type ty_elt)
   | Type_array(attr, ty_elt) ->
       Type_array(attr, normalize_type ty_elt)
   | Type_struct {sd_fields = []; sd_name = name} ->
@@ -208,7 +214,7 @@ let read_file filename =
   let ic = open_in filename in
   let lb = Lexing.from_channel ic in
   try
-    let res = Parser_simple.file Lexer_simple.token lb in
+    let res = Parser_midl.file Lexer_midl.token lb in
     close_in ic;
     res
   with Parsing.Parse_error ->
@@ -225,11 +231,21 @@ let rec normalize_file name =
     with Not_found ->
       eprintf "Cannot find file %s\n" name;
       raise Error in
-  let (imports, comps) = read_file filename in
+  let intflist = read_file filename in
   let pref =
     if Filename.check_suffix name ".idl"
     then Filename.chop_suffix name ".idl"
     else name in
+  (* Process all interfaces *)
+  module_name := Filename.basename pref;
+  all_type_decls := [];
+  currstamp := 0;
+  let (comps, imports) = List.split (List.map normalize_intf intflist) in
+  let decls = !all_type_decls in
+  all_type_decls := [];
+  (List.concat comps, List.concat imports, decls)
+
+and normalize_intf i =
   (* Recursively process the imports *)
   let importlist =
     List.map
@@ -238,15 +254,41 @@ let rec normalize_file name =
           let (comps, imports, decls) = normalize_file name in
           imports @ comps
         end)
-      imports in
-  (* Normalize the components and collect all type definitions *)
-  module_name := Filename.basename pref;
-  all_type_decls := [];
-  currstamp := 0;
+      i.iif_imports in
+  (* Determine the list of components to normalize *)
+  let comps =
+    if not i.iif_obj then
+      (* This is a regular interface: just extract its components *)
+      i.iif_comps
+    else begin
+      (* This is an object interface: split into methods and other definitions,
+         lift the definitions out, build an interface from the methods *)
+      let rec split_comps = function
+          [] -> ([], [])
+        | Comp_fundecl fd :: rem ->
+            let (m, o) = split_comps rem in (fd :: m, o)
+        | comp :: rem ->
+            let (m, o) = split_comps rem in (m, comp :: o) in
+      let (methods, others) =
+        split_comps i.iif_comps in
+      let rec super = (* dummy super interface, only intf_name is used *)
+        { intf_name = i.iif_super; intf_mod = ""; intf_super = super;
+          intf_methods = []; intf_uid = "" } in
+      let intf_forward =
+        { intf_name = i.iif_name; intf_mod = ""; intf_super = super;
+          intf_methods = []; intf_uid = "" } in
+      let intf =
+        { intf_name = i.iif_name; intf_mod = ""; intf_super = super;
+          intf_methods = methods; intf_uid = i.iif_uid } in
+      Comp_interface intf_forward :: others @ [Comp_interface intf]
+    end in
+  (* Normalize the components *)
+  let old_default = !pointer_default in
+  pointer_default := i.iif_ptr_default;
   let comps' = List.map normalize_component comps in
-  let decls = !all_type_decls in
-  all_type_decls := [];
-  (comps', List.concat importlist, decls)
+  pointer_default := old_default;
+  (* Return normalized components + import list *)
+  (comps', List.concat importlist)
 
 let process_file f =
   imports_read := StringSet.empty;
