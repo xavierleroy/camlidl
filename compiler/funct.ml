@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.28 2002-04-22 09:02:17 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.29 2002-05-01 15:25:39 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -34,18 +34,21 @@ type function_decl =
     fun_dealloc: string option }
 
 (* Remove dependent parameters (parameters that are size_is, length_is,
-   or switch_is of another in or inout parameter).
+   or switch_is of another parameter).
+   Note: an "in" parameter that is size_is of an "out" parameter
+   cannot be removed.
    Also remove ignored pointers. *)
 
-let is_dependent_parameter name params =
-  List.exists (function (_, Out, _) -> false
-                      | (_, _, ty) -> Lexpr.is_dependent name ty)
-              params
+let is_dependent_parameter name mode params =
+  List.exists
+    (fun (_, mode', ty) ->
+      Lexpr.is_dependent name ty && (mode' <> Out || mode = Out))
+    params
 
 let remove_dependent_parameters params =
   list_filter
-    (fun (name, _, ty) ->
-      not (is_dependent_parameter name params || is_ignored ty))
+    (fun (name, mode, ty) ->
+      not (is_dependent_parameter name mode params || is_ignored ty))
     params
 
 (* Split parameters into in parameters and out parameters.
@@ -194,7 +197,7 @@ let emit_function oc fundecl ins outs locals emit_call =
   List.iter
     (function (name, (In|InOut),
                (Type_pointer(_, ty_arg) | Type_const(Type_pointer(_, ty_arg))))
-              when is_dependent_parameter name fundecl.fun_params ->
+              when is_dependent_parameter name In fundecl.fun_params ->
                   let c = new_c_variable ty_arg in
                   iprintf pc "%s = &%s;\n" name c
             | _ -> ())
