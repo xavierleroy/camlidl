@@ -13,7 +13,7 @@
 #*                                                                     *
 #***********************************************************************
 
-#* $Id: camlidldll.tpl,v 1.4 2000-08-21 12:55:02 xleroy Exp $
+#* $Id: camlidldll.tpl,v 1.5 2002-04-22 09:23:54 xleroy Exp $
 
 # Automates the creation of a DLL for a Caml component
 
@@ -23,6 +23,7 @@ linkopts=''
 camlopts=''
 linkobjs=''
 camlobjs=''
+camlnativeobjs=''
 camlobjfile="caml$$.obj"
 resourcefile="caml$$.rc"
 resfile=''
@@ -42,7 +43,8 @@ while : ; do
 # ocamlc options
     -cc|-ccopt|-I|-w)
         camlopts="$camlopts $1 $2"; shift;;
-    -cclib) lib=`echo $2 | sed -e 's/^-l\(.*\)$/lib\1.lib/'`
+    -cclib)
+        lib=`echo $2 | sed -e 's/^-l\(.*\)$/lib\1.lib/'`
         linkobjs="$linkobjs $lib"
         shift;;
     -linkall|-verbose)
@@ -52,6 +54,8 @@ while : ; do
 # files
     *.cm[oa])
         camlobjs="$camlobjs $1";;
+    *.cmx|*.cmxa)
+        camlnativeobjs="$camlnativeobjs $1";;
     *.obj|*.lib)
         linkobjs="$linkobjs $1";;
     *.tlb)
@@ -62,6 +66,11 @@ while : ; do
   shift
 done
 
+if test -n "$camlobjs" -a -n "$camlnativeobjs"; then
+  echo "Both bytecode object files and native object files given, cannot proceed" 1>&2
+  exit 2
+fi
+
 if test $tlbcounter -ne 0; then
   echo "1 num_typelibs { $tlbcounter }" >> $resourcefile
   resfile="caml$$.res"
@@ -69,17 +78,30 @@ if test $tlbcounter -ne 0; then
   rm -f $resourcefile
 fi
 
-ocamlc -custom -output-obj -o $camlobjfile $camlopts com.cma $camlobjs && \
-link /nologo /incremental:no /dll /machine:ix86 \
-  /out:${output} /libpath:$camllib \
-  /export:DllGetClassObject,@2,PRIVATE \
-  /export:DllCanUnloadNow,@3,PRIVATE \
-  /export:DllRegisterServer,@4,PRIVATE \
-  /export:DllUnregisterServer,@5,PRIVATE \
-  $resfile \
-  $linkopts $camlobjfile $linkobjs \
-  ${camllib}\\cfactory.obj libcamlidl.lib \
-  libcamlrun.lib advapi32.lib ole32.lib oleaut32.lib
-exitcode=$?
+if test -z "$camlnativeobjs"; then
+  ocamlc -custom -output-obj -o $camlobjfile $camlopts com.cma $camlobjs
+  exitcode=$?
+  runtimelib=libcamlrun.lib
+else
+  ocamlopt -output-obj -o $camlobjfile $camlopts com.cmxa $camlnativeobjs
+  exitcode=$?
+  runtimelib=libasmrun.lib
+fi
+
+if test "$exitcode" -eq 0; then
+  link /nologo /incremental:no /dll /machine:ix86 \
+    /out:${output} /libpath:$camllib \
+    /export:DllGetClassObject,@2,PRIVATE \
+    /export:DllCanUnloadNow,@3,PRIVATE \
+    /export:DllRegisterServer,@4,PRIVATE \
+    /export:DllUnregisterServer,@5,PRIVATE \
+    $resfile \
+    $linkopts $camlobjfile $linkobjs \
+    ${camllib}\\cfactory.obj libcamlidl.lib \
+    $runtimelib \
+    advapi32.lib ole32.lib oleaut32.lib
+  exitcode=$?
+fi
+
 rm -f $resfile $camlobjfile
 exit $exitcode
