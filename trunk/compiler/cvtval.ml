@@ -88,7 +88,7 @@ let rec ml_to_c oc onstack pref ty v c =
       iprintf oc "}\n"
   | Type_pointer(Ptr, ty_elt) ->
       iprintf oc "%s = (%a) Field(%s, 0);\n" c out_c_type ty v
-  | Type_pointer(_, ty_elt) ->
+  | Type_pointer(Ignore, ty_elt) ->
       iprintf oc "%s = NULL;\n" c
   | Type_array(attr, ty_elt) ->
       Array.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c
@@ -156,7 +156,7 @@ let rec c_to_ml oc pref ty c v =
   | Type_pointer(Ptr, ty_elt) ->
       iprintf oc "%s = camlidl_alloc_small(1, Abstract_tag);\n" v;
       iprintf oc "Field(%s, 0) = (value) %s;\n" v c
-  | Type_pointer(_, ty_elt) ->
+  | Type_pointer(Ignore, ty_elt) ->
       ()
   | Type_array(attr, ty_elt) ->
       Array.array_c_to_ml c_to_ml oc pref attr ty_elt c v

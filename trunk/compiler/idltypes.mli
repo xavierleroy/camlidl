@@ -5,9 +5,9 @@ type restricted_expr =
 type integer_kind =
     Int | Long | Small | Short | Char
   | UInt | ULong | USmall | UShort | UChar
-  | SChar | Byte | Boolean | WChar
+  | SChar | Byte | Boolean
 
-type pointer_kind = Ref | Unique | Ptr | Ignore | Default
+type pointer_kind = Ref | Unique | Ptr | Ignore
 
 type array_attributes =
   { bound: int option;
