@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvtval.ml,v 1.24 2002-01-16 09:42:01 xleroy Exp $ *)
+(* $Id: cvtval.ml,v 1.25 2004-07-08 10:10:18 xleroy Exp $ *)
 
 open Printf
 open Utils
@@ -158,7 +158,9 @@ let rec ml_to_c oc onstack pref ty v c =
 
 let rec c_to_ml oc pref ty c v =
   match ty with
-    Type_int(kind, repr) ->
+  | Type_int((Char | SChar), repr) ->
+      iprintf oc "%s = Val_int((unsigned char)(%s));\n" v c
+  | Type_int(kind, repr) ->
       let conv =
         match repr with
           Iunboxed ->
