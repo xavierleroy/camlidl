@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: parser_midl.mly,v 1.11 1999-03-15 15:21:38 xleroy Exp $ */
+/* $Id: parser_midl.mly,v 1.12 1999-03-16 15:40:54 xleroy Exp $ */
 
 /* Parser for Microsoft IDL */
 
@@ -400,7 +400,9 @@ attributes:
 ;
 attribute_list:
     attribute                                           { [$1] }
+  | /*empty*/                                           { [] }
   | attribute_list COMMA attribute                      { $3 :: $1 }
+  | attribute_list COMMA                                { $1 }
 ;
 attribute:
     ident

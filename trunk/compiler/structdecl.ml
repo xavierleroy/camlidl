@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: structdecl.ml,v 1.12 1999-03-09 16:27:02 xleroy Exp $ *)
+(* $Id: structdecl.ml,v 1.13 1999-03-16 15:40:54 xleroy Exp $ *)
 
 (* Handling of structure declarations *)
 
@@ -35,7 +35,8 @@ let ml_declaration oc sd =
       List.iter
         (fun f ->
           fprintf oc "  %s: %a;\n"
-                  (String.uncapitalize f.field_name) out_ml_type f.field_typ)
+                  (String.uncapitalize f.field_mlname)
+                  out_ml_type f.field_typ)
         fields;
       fprintf oc "}\n"
 

@@ -9,15 +9,8 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: clflags.ml,v 1.4 1999-03-16 15:40:51 xleroy Exp $ *)
+(* $Id: fixlabels.mli,v 1.1 1999-03-16 15:40:52 xleroy Exp $ *)
 
-(* Command-line flags *)
+(* Prefix record labels with struct/typedef name *)
 
-let search_path = ref [Filename.current_dir_name] (* -I *)
-let include_header = ref true   (* -no-include *)
-let gen_header = ref false      (* -make-header *)
-let prepro_defines = ref ["CAMLIDL"] (* -D *)
-let use_cpp = ref true (* -cpp / -nocpp *)
-let preprocessor = ref Config.cpp (* -prepro *)
-let prefix_all_labels = ref false     (* -prefix-all-labels *)
-let keep_labels = ref false           (* -keep-labels *)
+val prefix_file: File.components -> File.components

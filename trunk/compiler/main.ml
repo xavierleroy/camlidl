@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: main.ml,v 1.13 1999-02-19 14:33:33 xleroy Exp $ *)
+(* $Id: main.ml,v 1.14 1999-03-16 15:40:53 xleroy Exp $ *)
 
 open Printf
 open Clflags
@@ -72,6 +72,10 @@ let _ =
          "  Generate a .h file containing all type definitions";
        "-no-include", Arg.Clear include_header,
          "  Do not #include the .h file in the generated .c file";
+       "-prefix-all-labels", Arg.Set prefix_all_labels,
+         "  Prefix all ML name of record labels with name of enclosing struct";
+       "-keep-labels", Arg.Set keep_labels,
+         "  Do not prefix ML names of record labels, even if ambiguous"
       ]
       process_file
       "Usage: camlidl [options]<.idl file> ... <.idl file>\nOptions are:\n"

@@ -7,7 +7,7 @@ OBJS=config.cmo utils.cmo clflags.cmo \
   typedef.cmo funct.cmo constdecl.cmo intf.cmo \
   file.cmo predef.cmo \
   parse_aux.cmo parser_midl.cmo lexer_midl.cmo linenum.cmo parse.cmo \
-  normalize.cmo \
+  fixlabels.cmo normalize.cmo \
   main.cmo
 
 PROG=camlidl$(EXE)
