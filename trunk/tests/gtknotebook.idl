@@ -4,9 +4,11 @@ typedef GtkNotebookClass * GtkNotebookClass_ptr;
 typedef GtkNotebookPage * GtkNotebookPage_ptr;
 |}
 
+typedef [abstract, mltype(gtk_object)] GtkWidget * GtkWidget_ptr;
 typedef [abstract, mltype(gtk_object)] GtkNotebook * GtkNotebook_ptr;
 typedef [abstract, mltype(gtk_object)] GtkNotebookClass * GtkNotebookClass_ptr;
 typedef [abstract, mltype(gtk_object)] GtkNotebookPage * GtkNotebookPage_ptr;
+typedef int GtkPositionType;
 
 // replace \(Gtk[a-zA-z]*\) +\* by \1_ptr 
 // replace guint by unsigned int
