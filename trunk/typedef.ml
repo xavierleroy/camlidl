@@ -10,19 +10,14 @@ open Cvtval
 (* Generate the ML type definition corresponding to the typedef *)
 
 let ml_declaration oc td =
-  if td.td_abstract then
-    fprintf oc "%s\n" (String.uncapitalize td.td_name)
-  else
-    fprintf oc "%s = %a\n"
-            (String.uncapitalize td.td_name) out_ml_type td.td_type
-
-(* Forward declaration of the translation functions *)
-
-let declare_transl oc td =
-  fprintf oc "void _camlidl_ml2c_%s_%s(value, %s *);\n"
-             !module_name td.td_name td.td_name;
-  fprintf oc "value _camlidl_c2ml_%s_%s(%s *);\n"
-             !module_name td.td_name td.td_name
+  match td with
+    {td_mltype = Some s} ->
+      fprintf oc "%s = %s\n" (String.uncapitalize td.td_name) s
+  | {td_abstract = true} ->
+      fprintf oc "%s\n" (String.uncapitalize td.td_name)
+  | _ ->
+      fprintf oc "%s = %a\n"
+              (String.uncapitalize td.td_name) out_ml_type td.td_type
 
 (* Translation function from the ML type to the C type *)
 
@@ -42,6 +37,7 @@ let transl_ml_to_c oc td =
   output_variable_declarations oc;
   end_diversion oc;
   fprintf oc "}\n\n";
+  check_no_deallocates "typedef";
   current_function := ""
 
 (* Translation function from the C type to the ML type *)
@@ -72,7 +68,17 @@ let transl_c_to_ml oc td =
 (* Emit the translation functions *)
 
 let emit_transl oc td =
-  transl_ml_to_c oc td;
-  transl_c_to_ml oc td
+  begin match td.td_ml2c with
+    Some s ->
+      fprintf oc "#define _camlidl_ml2c_%s_%s %s\n\n" !module_name td.td_name s
+  | None ->
+      transl_ml_to_c oc td
+  end;
+  begin match td.td_c2ml with
+    Some s ->
+      fprintf oc "#define _camlidl_c2ml_%s_%s %s\n\n" !module_name td.td_name s
+  | None ->
+      transl_c_to_ml oc td
+  end
 
 

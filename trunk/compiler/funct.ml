@@ -135,15 +135,24 @@ let emit_wrapper oc fundecl =
             | _ -> ())
     fundecl.fun_params;
   (* Generate call to C function *)
-  if fundecl.fun_res = Type_void then iprintf pc "" else iprintf pc "_res = ";
-  fprintf pc "%s(" fundecl.fun_name;
-  begin match fundecl.fun_params with
-    [] -> ()
-  | (name1, _,_) :: rem ->
-      fprintf pc "%s" name1;
-      List.iter (fun (name, _, _) -> fprintf pc ", %s" name) rem
+  begin match fundecl.fun_ccall with
+    Some s ->
+      iprintf pc "/* begin user-supplied calling sequence */\n";
+      output_string pc s;
+      iprintf pc "/* end user-supplied calling sequence */\n"
+  | None ->
+      if fundecl.fun_res = Type_void
+      then iprintf pc ""
+      else iprintf pc "_res = ";
+      fprintf pc "%s(" fundecl.fun_name;
+      begin match fundecl.fun_params with
+        [] -> ()
+      | (name1, _,_) :: rem ->
+          fprintf pc "%s" name1;
+          List.iter (fun (name, _, _) -> fprintf pc ", %s" name) rem
+      end;
+      fprintf pc ");\n"
   end;
-  fprintf pc ");\n";
   (* Convert outs from C to ML *)
   begin match outs with
     [] ->

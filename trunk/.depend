@@ -1,3 +1,4 @@
+array.cmi: idltypes.cmi 
 cvttyp.cmi: idltypes.cmi 
 cvtval.cmi: idltypes.cmi 
 enum.cmi: idltypes.cmi 
@@ -16,6 +17,8 @@ uniondecl.cmi: idltypes.cmi
 variables.cmi: idltypes.cmi 
 all.cmo: idltypes.cmi 
 all.cmx: idltypes.cmi 
+array.cmo: cvttyp.cmi idltypes.cmi utils.cmi variables.cmi array.cmi 
+array.cmx: cvttyp.cmx idltypes.cmi utils.cmx variables.cmx array.cmi 
 cvttyp.cmo: idltypes.cmi cvttyp.cmi 
 cvttyp.cmx: idltypes.cmi cvttyp.cmi 
 cvtval.cmo: cvttyp.cmi enum.cmi idltypes.cmi struct.cmi union.cmi utils.cmi \

@@ -43,6 +43,7 @@ let transl_ml_to_c oc sd =
   output_variable_declarations oc;
   end_diversion oc;
   fprintf oc "}\n\n";
+  check_no_deallocates "struct";
   current_function := ""
 
 (* Translation function from a C struct to an ML record *)

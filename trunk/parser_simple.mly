@@ -7,7 +7,9 @@ open Idltypes
 
 let null_attr_var = Var ""
 
-let no_bounds = { bound = None; size = None; length = None; is_string = false }
+let no_bounds =
+  { bound = None; size = None; length = None;
+    is_string = false; null_terminated = false }
 
 let one_bound n = { no_bounds with bound = Some n }
 
@@ -42,6 +44,10 @@ let apply_type_attribute ty attr =
       Type_array({attr with is_string = true}, ty_elt)
   | (("string", _), Type_pointer(attr, (Type_int(Char|UChar|Byte) as ty_elt))) ->
       Type_array({no_bounds with is_string = true}, ty_elt)
+  | (("null_terminated", _), Type_array(attr, ty_elt))->
+      Type_array({attr with null_terminated = true}, ty_elt)
+  | (("null_terminated", _), Type_pointer(attr, ty_elt)) ->
+      Type_array({no_bounds with null_terminated = true}, ty_elt)
   | (("size_is", rexps), Type_array(_, _)) ->
       merge_array_attr (fun attr re -> {attr with size = Some re})
                        rexps ty
@@ -82,10 +88,11 @@ let make_param attrs tybase decl =
       merge_attributes mode (apply_type_attribute ty attr) rem in
   merge_attributes None ty attrs
 
-let make_op_declaration attrs ty_res name params =
+let make_op_declaration attrs ty_res name params diversion =
   { fun_name = name;
     fun_res = apply_type_attributes ty_res attrs;
-    fun_params = params }
+    fun_params = params;
+    fun_ccall = diversion }
 
 let make_fields attrs tybase decls =
   List.map
@@ -99,17 +106,26 @@ let make_field attrs tybase decl =
   { field_name = name; field_typ = apply_type_attributes ty attrs }
 
 let make_typedef attrs tybase decls =
-  let rec merge_attributes ty abstract = function
-    [] -> (ty, abstract)
+  let rec merge_attributes ty td = function
+    [] -> (ty, td)
   | ("abstract", _) :: rem ->
-      merge_attributes ty true rem
+      merge_attributes ty {td with td_abstract = true} rem
+  | ("c2ml", [Var f]) :: rem ->
+      merge_attributes ty {td with td_c2ml = Some f} rem
+  | ("ml2c", [Var f]) :: rem ->
+      merge_attributes ty {td with td_ml2c = Some f} rem
+  | ("mltype", [Var f]) :: rem ->
+      merge_attributes ty {td with td_mltype = Some f} rem
   | attr :: rem ->
-      merge_attributes (apply_type_attribute ty attr) abstract rem in
+      merge_attributes (apply_type_attribute ty attr) td rem in
   List.map
     (fun decl ->
       let (name, ty) = decl tybase in
-      let (ty', abstract) = merge_attributes ty false attrs in
-      {td_name = name; td_type = ty'; td_abstract = abstract})
+      let td = {td_name = name; td_type = Type_void; (* dummy *)
+                td_abstract = false; td_mltype = None;
+                td_c2ml = None; td_ml2c = None} in
+      let (ty', td') = merge_attributes ty td attrs in
+      {td' with td_type = ty'})
     decls
 
 (* Apply an "unsigned" modifier to an integer type *)
@@ -201,19 +217,13 @@ let make_unsigned = function
 /* Start symbol */
 
 %start file
-%type <string * Idltypes.interface> file
+%type <Idltypes.interface> file
 
 %%
 
 /* Main entry point */
 
-file: opt_diversion interface_components EOF    { ($1, List.rev $2) }
-;
-
-/* Initial C text */
-opt_diversion:
-    DIVERSION                                   { $1 }
-  | /*empty*/                                   { "" }
+file: interface_components EOF                  { List.rev $1 }
 ;
 
 /* Components */
@@ -228,6 +238,7 @@ interface_component:
   | union_declarator SEMI                       { [Comp_uniondecl $1] }
   | enum_declarator SEMI                        { [Comp_enumdecl $1] }
   | op_declarator SEMI                          { [Comp_fundecl $1] }
+  | DIVERSION                                   { [Comp_diversion $1] }
 ;
 
 /* Type declaration */
@@ -383,8 +394,12 @@ attr_var:
 
 op_declarator:
     attributes simple_type_spec pointer_opt IDENT
-    LPAREN param_list_declarator RPAREN
-      { make_op_declaration $1 ($3 $2) $4 $6 }
+    LPAREN param_list_declarator RPAREN opt_diversion
+      { make_op_declaration $1 ($3 $2) $4 $6 $8 }
+;
+opt_diversion:
+    DIVERSION                                   { Some $1 }
+  | /*empty*/                                   { None }
 ;
 
 /* Parameter lists */

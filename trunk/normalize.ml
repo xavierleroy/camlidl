@@ -14,6 +14,12 @@ let currstamp = ref 0
 
 let newstamp () = incr currstamp; !currstamp
 
+let in_fundecl = ref false
+
+let error_if_fundecl kind =
+  if !in_fundecl then
+    error (sprintf "anonymous %s in function parameters or result type" kind)
+
 let rec normalize_type = function
     Type_pointer(kind, ty_elt) ->
       Type_pointer(kind, normalize_type ty_elt)
@@ -54,38 +60,75 @@ and normalize_case c =
   | Some f -> {c with case_field = Some(normalize_field f)}
 
 and enter_struct sd =
-  let sd' =
-    { sd_name = sd.sd_name;
-      sd_stamp = newstamp();
-      sd_fields = List.map normalize_field sd.sd_fields } in
-  if sd.sd_name <> "" then Hashtbl.add structs sd.sd_name sd';
-  all_type_decls := Comp_structdecl sd' :: !all_type_decls;
-  sd'
+  if sd.sd_fields = [] then begin
+    let sd' = { sd_name = sd.sd_name; sd_stamp = 0; sd_fields = [] } in
+    Hashtbl.add structs sd.sd_name sd';
+    sd
+  end else begin
+    let sd' =
+      try
+        Hashtbl.find structs sd.sd_name
+      with Not_found ->
+        let sd' = { sd_name = sd.sd_name; sd_stamp = 0; sd_fields = [] } in
+        if sd.sd_name <> "" then Hashtbl.add structs sd.sd_name sd';
+        sd' in
+    sd'.sd_stamp <- newstamp();
+    sd'.sd_fields <- List.map normalize_field sd.sd_fields;
+    all_type_decls := Comp_structdecl sd' :: !all_type_decls;
+    sd'
+  end
 
 and enter_union ud =
-  let ud' =
-    { ud_name = ud.ud_name;
-      ud_stamp = newstamp();
-      ud_cases = List.map normalize_case ud.ud_cases } in
-  if ud.ud_name <> "" then Hashtbl.add unions ud.ud_name ud';
-  all_type_decls := Comp_uniondecl ud' :: !all_type_decls;
-  ud'
+  if ud.ud_cases = [] then begin
+    let ud' = { ud_name = ud.ud_name; ud_stamp = 0; ud_cases = [] } in
+    Hashtbl.add unions ud.ud_name ud';
+    ud
+  end else begin
+    let ud' =
+      try
+        Hashtbl.find unions ud.ud_name
+      with Not_found ->
+        let ud' = { ud_name = ud.ud_name; ud_stamp = 0; ud_cases = [] } in
+        if ud.ud_name <> "" then Hashtbl.add unions ud.ud_name ud';
+        ud' in
+    ud'.ud_stamp <- newstamp();
+    ud'.ud_cases <- List.map normalize_case ud.ud_cases;
+    all_type_decls := Comp_uniondecl ud' :: !all_type_decls;
+    ud'
+  end
 
 and enter_enum en =
-  let en' =
-    { en_name = en.en_name;
-      en_stamp = newstamp();
-      en_consts = en.en_consts } in
-  if en.en_name <> "" then Hashtbl.add enums en.en_name en';
-  all_type_decls := Comp_enumdecl en' :: !all_type_decls;
-  en'
+  if en.en_consts = [] then begin
+    let en' = { en_name = en.en_name; en_stamp = 0; en_consts = [] } in
+    Hashtbl.add enums en.en_name en';
+    en
+  end else begin
+    let en' =
+      try
+        Hashtbl.find enums en.en_name
+      with Not_found ->
+        let en' = { en_name = en.en_name; en_stamp = 0; en_consts = [] } in
+        if en.en_name <> "" then Hashtbl.add enums en.en_name en';
+        en' in
+    en'.en_stamp <- newstamp();
+    en'.en_consts <- en.en_consts;
+    all_type_decls := Comp_enumdecl en' :: !all_type_decls;
+    en'
+  end
 
 let normalize_fundecl fd =
-  { fun_name = fd.fun_name;
-    fun_res = normalize_type fd.fun_res;
-    fun_params =
-      List.map (fun (n, io, ty) -> (n,io, normalize_type ty)) fd.fun_params }
-
+  current_function := fd.fun_name;
+  in_fundecl := true;
+  let res =
+    { fd with 
+      fun_res = normalize_type fd.fun_res;
+      fun_params =
+        List.map (fun (n, io, ty) -> (n,io, normalize_type ty)) fd.fun_params }
+  in
+  in_fundecl := false;
+  current_function := "";
+  res
+  
 let enter_typedecl td =
   let td' = { td with td_type = normalize_type td.td_type } in
   all_type_decls := Comp_typedecl td' :: !all_type_decls;
@@ -97,6 +140,7 @@ let normalize_component = function
   | Comp_uniondecl ud -> Comp_uniondecl(enter_union ud)
   | Comp_enumdecl en -> Comp_enumdecl(enter_enum en)
   | Comp_fundecl fd -> Comp_fundecl(normalize_fundecl fd)
+  | Comp_diversion s -> Comp_diversion s
 
 let interface intf =
   let intf' = List.map normalize_component intf in

@@ -4,7 +4,7 @@ OCAMLYACC=ocamlyacc
 OCAMLLEX=ocamllex
 
 OBJS=utils.cmo cvttyp.cmo variables.cmo \
-  struct.cmo enum.cmo union.cmo cvtval.cmo \
+  array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
   funct.cmo structdecl.cmo enumdecl.cmo uniondecl.cmo typedef.cmo \
   intfgen.cmo stubgen.cmo \
   parser_simple.cmo lexer_simple.cmo normalize.cmo \
