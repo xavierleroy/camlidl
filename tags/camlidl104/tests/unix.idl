@@ -1,0 +1,186 @@
+/* Parts of the Unix library */
+
+quote(C,"#include <stdlib.h>")
+quote(C,"#include <stdio.h>")
+quote(C,"#include <sys/types.h>")
+quote(C,"#include <sys/wait.h>")
+quote(C,"#include <dirent.h>")
+quote(C,"#include <unistd.h>")
+quote(C,"#include <sys/stat.h>")
+quote(C,"#include <sys/time.h>")
+quote(C,"#include <fcntl.h>")
+
+quote (C, "
+  /* Wrapping of return code for wait */
+
+  union process_status { int code; };
+
+  enum { WEXITED, WSIGNALED, WSTOPPED };
+
+  static void decode_status(int status, int * kind, union process_status * p)
+  {
+    if (WIFEXITED(status)) {
+      *kind = WEXITED; p->code = WEXITSTATUS(status);
+    } else if (WIFSIGNALED(status)) {
+      *kind = WSIGNALED; p->code = WTERMSIG(status);
+    } else {
+      *kind = WSTOPPED; p->code = WSTOPSIG(status);
+    }
+  }
+
+  int read2(int fd, int len, int * rd, char * buf)
+  {
+    int retcode = read(fd, buf, len);
+    if (retcode != -1) { *rd = retcode; retcode = 0; }
+    return retcode;
+  }
+
+  typedef DIR * dir_handle;
+  typedef struct dirent dirent;
+  typedef fd_set * file_descr_set;
+
+  extern char ** environ;
+")
+
+[string*, null_terminated] char ** environment(void)
+   quote(call, "_res = environ;");
+
+[string] char * getenv([in,string] char * varname);
+
+void putenv([in,string] char * name_val);
+
+int execv([in,string] char * path,
+          [in,null_terminated,string*] char ** argv);
+
+int execve([in,string] char * path, 
+           [in,null_terminated,string*] char ** argv,
+           [in,null_terminated,string*] char ** env);
+
+int fork(void);
+
+union process_status {
+  case WEXITED: int code;
+  case WSIGNALED: int code;
+  case WSTOPPED: int code;
+};
+
+int wait([out] int * kind,
+         [out,switch_is(*kind)] union process_status * p)
+  quote(call,
+    " { int status;
+        _res = wait(&status);
+        if (_res != -1) decode_status(status, kind, p); }");
+
+void system([in,string] char * cmd,
+            [out] int * kind,
+            [out,switch_is(*kind)] union process_status * p)
+  quote(call,
+    "  { int ret = system(cmd);
+         decode_status(ret, kind, p); } ");
+
+int getpid(void);
+int getppid(void);
+int nice(int pid);
+
+enum open_flags {
+  O_RDONLY, O_WRONLY, O_RDWR, O_CREAT,
+  O_EXCL, O_TRUNC, O_APPEND, O_NONBLOCK
+};
+
+int openfile([in,string] char * name,
+             [in,set] enum open_flags flags,
+             [in] int perms)
+  quote(call, " _res = open(name, flags, perms); ");
+
+int close([in] int fd);
+
+/* read in place */
+int read([in] int fd, [in,string,size_is(len)] char * buf, [in] int len);
+
+/* read with copy */
+void read2([in] int fd, [in] int len, [out] int *rd,
+          [out,string,size_is(len),length_is(*rd)] char * buf)
+  quote(call,
+    " *rd = read(fd, buf, len);
+      if (*rd == -1) failwith(\"read2\"); ");
+
+/* write */
+int write([in] int fd, [in,string,size_is(len)] char * buf, [in] int len);
+
+/* seeking */
+enum seek_command { SEEK_SET, SEEK_CUR, SEEK_END };
+
+int lseek(int fd, int ofs, enum seek_command cmd);
+
+int truncate([string] char * filename, int size);
+
+int ftruncate(int fd, int size);
+
+/* stats */
+/* Note: the types given are not the C representation types, */
+/* but just the conversion types.  So it's OK to say st_dev is an int */
+/* even if actually it's a short.  We can even claim that st_?time */
+/* are doubles while actually they are integers! */
+struct stat {
+  int st_dev, st_ino;
+  int st_mode;
+  int st_nlink;
+  int st_uid, st_gid;
+  int st_rdev;
+  int st_size;
+  long st_blksize, st_blocks;
+  double st_atime, st_mtime, st_ctime;
+};
+
+int stat([string] char * filename, [out] struct stat * st);
+int lstat([string] char * filename, [out] struct stat * st);
+int fstat(int fd, [out] struct stat * st);
+
+/* Operations on file names */
+
+int unlink([string] char * filename);
+int rename([string] char * filename, [string] char * newname);
+int link([string] char * filename, [string] char * newname);
+
+/* Directories */
+
+typedef [abstract,ptr] void * dir_handle;
+
+dir_handle opendir([string] char * filename)
+  quote(call,
+    " _res = opendir(filename);
+      if (_res == NULL) failwith(\"opendir\"); ");
+
+typedef struct {
+  [string] char d_name[256];   // NAME_MAX in fact
+} dirent;
+
+[unique] dirent * readdir(dir_handle d);
+
+void rewinddir(dir_handle d);
+void closedir(dir_handle d);
+
+/* pipes */
+
+int pipe([out] int fds[2]);
+
+/* select */
+
+typedef [abstract] void * file_descr_set;
+
+void FD_ZERO(file_descr_set s);
+void FD_SET(int fd, file_descr_set s);
+void FD_CLR(int fd, file_descr_set s);
+boolean FD_ISSET(int fd, file_descr_set s);
+
+struct timeval {
+  int tv_sec;
+  int tv_usec;
+};
+
+int select(int n,
+           file_descr_set read,
+           file_descr_set write,
+           file_descr_set except,
+           [unique] struct timeval * timeout);
+

@@ -1,0 +1,9 @@
+//!!! testing precedences + constant size array marshalling.
+
+
+[object, uuid(00020405-0000-0000-C000-000000000046), pointer_default(unique)]
+interface IBoo : IUnknown {
+	IBoo* meth([in]int* Len,
+		   [in,string]char* str
+		  );
+}

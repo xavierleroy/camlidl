@@ -1,0 +1,6 @@
+
+typedef struct _pt {
+   int x;
+   int y;
+} point;
+typedef point* ppoint;

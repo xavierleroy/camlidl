@@ -1,0 +1,13 @@
+// !! Basic interface definition
+
+
+
+[object] interface IFoo 
+{
+   void f([in] int x);
+}
+
+[object] interface IBar : IFoo
+{
+   void g([in] int x);
+}

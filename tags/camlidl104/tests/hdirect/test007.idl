@@ -1,0 +1,3 @@
+//!! Enumerations
+
+typedef enum _rgb { red,green=2,blue=-1 } rgb;

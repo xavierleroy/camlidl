@@ -1,0 +1,8 @@
+// --!! Simpl toplevel typedefs
+
+
+typedef int foo;
+typedef foo bar;
+typedef foo baz;
+
+
