@@ -7,6 +7,8 @@ struct s1 {
   long l[3];
 };
 
+int foo0([in] struct s1 s);
+
 int foo1([in] struct s1 * s);
 
 void foo2([out] struct s1 * s);
