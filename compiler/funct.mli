@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.mli,v 1.10 2000-08-19 11:04:56 xleroy Exp $ *)
+(* $Id: funct.mli,v 1.11 2004-07-08 09:50:23 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -24,8 +24,10 @@ type function_decl =
     fun_mod: string;
     fun_res: idltype;
     fun_params: (string * in_out * idltype) list;
+    fun_mlname: string option;
     fun_call: string option;
-    fun_dealloc: string option }
+    fun_dealloc: string option;
+    fun_blocking: bool }
 
 val ml_view :
       function_decl -> (string * idltype) list * (string * idltype) list
