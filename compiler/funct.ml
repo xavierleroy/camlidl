@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.25 2001-06-17 10:50:25 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.26 2001-07-30 14:33:34 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -114,7 +114,7 @@ let out_inout oc = function
 (* Generate the C declaration for a function *)
 
 let c_declaration oc fundecl =
-  fprintf oc "extern %a(" out_c_decl (fundecl.fun_name, fundecl.fun_res);
+  fprintf oc "_CAMLIDL_EXTERN_C %a(" out_c_decl (fundecl.fun_name, fundecl.fun_res);
   begin match fundecl.fun_params with
     [] -> fprintf oc "void"
   | p1 :: pl ->
