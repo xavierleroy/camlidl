@@ -15,7 +15,7 @@ type function_decl =
   { fun_name: string;
     fun_res: idltype;
     fun_params: (string * in_out * idltype) list;
-    fun_call: out_channel -> function_decl -> unit }
+    fun_call: string option }
 
 (* Remove dependent parameters (parameters that are size_is, length_is,
    or switch_is of another parameter).  Also remove ignored pointers. *)
@@ -125,34 +125,10 @@ let rec call_error_check oc name ty =
       call_error_check oc ("*" ^ name) ty_elt
   | _ -> ()
 
-(* Print a standard call *)
+(* Shared code between emit_wrapper and emit_method_wrapper *)
 
-let emit_standard_call oc fundecl =
-  if fundecl.fun_res = Type_void
-  then iprintf oc ""
-  else iprintf oc "_res = ";
-  fprintf oc "%s(" fundecl.fun_name;
-  begin match fundecl.fun_params with
-    [] -> ()
-  | (name1, _,_) :: rem ->
-      fprintf oc "%s" name1;
-      List.iter (fun (name, _, _) -> fprintf oc ", %s" name) rem
-  end;
-  fprintf oc ");\n"
-
-(* Print a custom call *)
-
-let emit_custom_call s oc fundecl =
-  iprintf oc "/* begin user-supplied calling sequence */\n";
-  output_string oc s;
-  iprintf oc "/* end user-supplied calling sequence */\n"
-
-(* Generate the wrapper for calling a C function from ML *)
-
-let emit_wrapper oc fundecl =
-  current_function := fundecl.fun_name;
+let emit_function oc fundecl ins outs locals emit_call =
   need_deallocation := false;
-  let (ins, outs) = ml_view fundecl in
   (* Emit function header *)
   fprintf oc "value camlidl_%s_%s(" !module_name fundecl.fun_name;
   begin match ins with
@@ -170,7 +146,7 @@ let emit_wrapper oc fundecl =
   List.iter
     (fun (name, inout, ty) ->
       fprintf oc "  %a; /*%a*/\n" out_c_decl (name, ty) out_inout inout)
-    fundecl.fun_params;
+    locals;
   if fundecl.fun_res <> Type_void then
     fprintf oc "  %a;\n" out_c_decl ("_res", fundecl.fun_res);
   let pc = divert_output() in
@@ -196,7 +172,7 @@ let emit_wrapper oc fundecl =
             | _ -> ())
     fundecl.fun_params;
   (* Generate the call to C function *)
-  fundecl.fun_call oc fundecl;
+  emit_call pc fundecl;
   (* Call error checking functions on result and out parameters
      that need it *)
   call_error_check pc "_res" fundecl.fun_res;
@@ -252,7 +228,62 @@ let emit_wrapper oc fundecl =
     done;
     fprintf oc ");\n";
     fprintf oc "}\n\n"
-  end;
+  end
+
+(* Emit wrapper function for C function *)
+
+let emit_standard_call oc fundecl =
+  match fundecl.fun_call with
+    Some s ->
+      iprintf oc "/* begin user-supplied calling sequence */\n";
+      output_string oc s;
+      iprintf oc "/* end user-supplied calling sequence */\n"
+  | None ->
+    if fundecl.fun_res = Type_void
+    then iprintf oc ""
+    else iprintf oc "_res = ";
+    fprintf oc "%s(" fundecl.fun_name;
+    begin match fundecl.fun_params with
+      [] -> ()
+    | (name1, _,_) :: rem ->
+        fprintf oc "%s" name1;
+        List.iter (fun (name, _, _) -> fprintf oc ", %s" name) rem
+    end;
+    fprintf oc ");\n"
+
+let emit_wrapper oc fundecl =
+  current_function := fundecl.fun_name;
+  let (ins, outs) = ml_view fundecl in
+  emit_function oc fundecl ins outs fundecl.fun_params emit_standard_call;
   current_function := ""
 
+(* Emit wrapper function for COM method *)
 
+let emit_method_call intfname methname oc fundecl =
+  (* Extract "this" parameter *)
+  iprintf oc "this = camlidl_unpack_interface(_v_this);\n";
+  match fundecl.fun_call with
+    Some s ->
+      iprintf oc "/* begin user-supplied calling sequence */\n";
+      output_string oc s;
+      iprintf oc "/* end user-supplied calling sequence */\n"
+  | None ->
+    if fundecl.fun_res = Type_void
+    then iprintf oc ""
+    else iprintf oc "_res = ";
+    fprintf oc "this->lpVtbl->%s(this" methname;
+    List.iter (fun (name, _, _) -> fprintf oc ", %s" name) fundecl.fun_params;
+    fprintf oc ");\n"
+
+let emit_method_wrapper oc intf_name meth =
+  current_function := sprintf "%s %s" intf_name meth.fun_name;
+  let fundecl =
+    {meth with fun_name = sprintf "%s_%s" intf_name meth.fun_name} in
+  let (ins1, outs) = ml_view fundecl in
+  (* Add an ML parameter and a C local for "this" *)
+  let intf_type = Type_pointer(Ignore, Type_interface intf_name) in
+  let ins = ("this", intf_type) :: ins1 in
+  let locals = ("this", In, intf_type) :: fundecl.fun_params in
+  emit_function oc fundecl ins outs locals
+                   (emit_method_call intf_name meth.fun_name);
+  current_function := ""

@@ -6,8 +6,6 @@
 value camlidl_find_enum(int n, int *flags, int nflags, char *errmsg);
 value camlidl_alloc_flag_list (int n, int *flags, int nflags);
 mlsize_t camlidl_ptrarray_size(void ** array);
-void * camlidl_temp_alloc(size_t size);
-void camlidl_temp_free(void);
 
 #if defined(CAMLVERSION) && CAMLVERSION < 201
 value camlidl_alloc(mlsize_t size, tag_t tag);
@@ -16,4 +14,26 @@ value camlidl_alloc(mlsize_t size, tag_t tag);
 #define camlidl_alloc alloc
 #define camlidl_alloc_small alloc_small
 #endif
+
+struct camlidl_block_list { void * block; struct camlidl_block_list * next; };
+
+typedef struct camlidl_block_list * camlidl_arena;
+
+void * camlidl_malloc(size_t sz, camlidl_arena * arena);
+void * camlidl_free(camlidl_arena arena);
+
+void * camlidl_unpack_interface(value vintf);
+value camlidl_pack_interface(void * intf);
+
+value camlidl_lookup_method(char * name);
+
+struct camlidl_intf {
+  void * vtbl;
+  value caml_object;
+  int refcount;
+  IID * iid;
+};
+
+void * camlidl_make_interface(void * vtbl, value caml_object,
+                              IID * iid, camlidl_arena * arena);
 
