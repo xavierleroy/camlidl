@@ -1,0 +1,15 @@
+///!!! checking the assignment of pointer attributes
+// !!! in struct declarations.
+
+interface foo {
+  const int x = (1>=2) ? 2 : 1;
+  typedef [ptr]int* baz;
+  typedef struct _foo {
+	int* p1;         // default is unique
+	[ptr]int* p2;    // ptr
+	[unique]int* p3; // unique
+	[ref]int* p4;    // ref
+	baz p5;          // ptr
+	[ref]baz p6;     // ref
+  } bar;
+}

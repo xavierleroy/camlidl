@@ -1,0 +1,7 @@
+//!!! testing precedences + constant size array marshalling.
+
+typedef struct tagPALETTEENTRY {
+    [ref**]int*	       foo[34][42];
+    [unique**]int*       bar[34][42];
+    [ptr**]int*          baz[34][42];
+} PALETTEENTRY;

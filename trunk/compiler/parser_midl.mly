@@ -149,12 +149,12 @@ component:
                            ud_stamp = 0; ud_cases = []}] }
   | fun_decl SEMI
         { [Comp_fundecl $1] }
-  | attributes INTERFACE ident opt_superinterface
+  | attributes INTERFACE tydef_ident opt_superinterface
     LBRACE component_list RBRACE
     /* Valid MIDL attributes: object uuid local endpoint version
            pointer_default implicit_handle auto_handle */
         { make_interface $3 $1 $4 $6 }
-  | attributes INTERFACE ident SEMI
+  | attributes INTERFACE tydef_ident SEMI
         { [make_forward_interface $3] }
   | IMPORT STRING SEMI
         { read_import $2 }
@@ -538,6 +538,13 @@ ident:
         { $1 }
   | TYPEIDENT
         { $1 }
+;
+
+/* An ident that becomes a type name */
+
+tydef_ident:
+    ident
+        { type_names := StringSet.add $1 !type_names; $1 }
 ;
 
 /* Quotes (diversions) */
