@@ -75,9 +75,7 @@ let rec iter_index f i = function
 
 (* Path searching *)
 
-let search_path = ref (["."] : string list)
-
-let find_in_path name =
+let find_in_path path name =
   if not (Filename.is_implicit name) then
     if Sys.file_exists name then name else raise Not_found
   else begin
@@ -86,7 +84,7 @@ let find_in_path name =
     | dir::rem ->
         let fullname = Filename.concat dir name in
         if Sys.file_exists fullname then fullname else try_dir rem
-    in try_dir !search_path
+    in try_dir path
   end
 
 (* Discard result *)

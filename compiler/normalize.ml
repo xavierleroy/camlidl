@@ -182,33 +182,18 @@ let normalize_component = function
       all_comps := Comp_diversion(ty, s) :: !all_comps
   | Comp_interface intf -> ignore(enter_interface intf)
 
+
+(* Read and normalize a file, recursively processing the imports *)
+
 module StringSet = Set.Make(struct type t = string let compare = compare end)
 
 let imports_read = ref StringSet.empty
-
-let read_file filename =
-  let ic = open_in filename in
-  let lb = Lexing.from_channel ic in
-  try
-    let res = Parser_midl.file Lexer_midl.token lb in
-    close_in ic;
-    res
-  with Parsing.Parse_error ->
-         close_in ic;
-         eprintf "File %s, character %d: syntax error\n"
-                 filename (Lexing.lexeme_start lb);
-         raise Error
-     | Lexer_midl.Lex_error msg ->
-         close_in ic;
-         eprintf "File %s, character %d: %s\n"
-                 filename (Lexing.lexeme_start lb) msg;
-         raise Error
 
 let rec normalize_file name =
   imports_read := StringSet.add name !imports_read;
   let filename =
     try
-      find_in_path name
+      find_in_path !Clflags.search_path name
     with Not_found ->
       eprintf "Cannot find file %s\n" name;
       raise Error in
@@ -217,7 +202,7 @@ let rec normalize_file name =
     then Filename.chop_suffix name ".idl"
     else name in
   module_name := Filename.basename pref;
-  let (imports, comps) = read_file filename in
+  let (imports, comps) = Parse.read_file filename in
   (* Recursively process the imports *)
   let importlist =
     List.map

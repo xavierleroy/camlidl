@@ -40,8 +40,11 @@ let make_test() =
     print_string "Lookup of IY interface failed: ";
     print_string s; print_newline()
   end;
-  Component.test_ix (Component.make_iX (new my_ix));
-  Component.test_iy (Component.make_iY (new my_iy))
+  let cx = Component.make_iX (new my_ix)
+  and cy = Component.make_iY (new my_iy) in
+  Component.test_ix cx;
+  Component.test_iy cy;
+  Component.test_component(Com.iUnknown_of(Com.aggregate cx cy))
 
 let _ =
   make_test();
