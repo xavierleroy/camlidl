@@ -1,4 +1,4 @@
-OBJS=idlalloc.o comintf.o cfactory.o comerror.o
+OBJS=idlalloc.o comintf.o comerror.o
 
 all: libcamlidl.a
 
