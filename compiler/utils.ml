@@ -52,4 +52,19 @@ let error msg =
   eprintf ": %s\n" msg;
   raise Error
 
+(* List hacking *)
 
+let rec list_filter pred = function
+    [] -> []
+  | hd :: tl ->
+      if pred hd then hd :: list_filter pred tl else list_filter pred tl
+
+let rec list_partition pred = function
+    [] -> ([], [])
+  | hd :: tl ->
+      let (p1, p2) = list_partition pred tl in
+      if pred hd then (hd :: p1, p2) else (p1, hd :: p2)
+
+let rec map_index f i = function
+    [] -> []
+  | hd :: tl -> f i hd :: map_index f (i + 1) tl

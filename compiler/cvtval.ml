@@ -23,7 +23,7 @@ let rec no_allocation_type = function
     Type_int _ -> true
   | Type_float -> true
   | Type_double -> true
-  | Type_pointer(attr, ty) -> attr.ptrkind = Ref && no_allocation_type ty
+  | Type_pointer(kind, ty) -> kind = Ref && no_allocation_type ty
   | Type_enum _ -> true
   | _ -> false  
 
@@ -52,8 +52,8 @@ let rec ml_to_c oc pref ty v c =
               !module_name s v c
   | Type_named s ->
       iprintf oc "_camlidl_ml2c_%s_%s(%s, &%s);\n" !module_name s v c
-  | Type_pointer(attr, ty_elt) ->
-      begin match attr.ptrkind with
+  | Type_pointer(kind, ty_elt) ->
+      begin match kind with
         Ref ->
           let c' = new_c_variable ty_elt in
           ml_to_c oc pref ty_elt v c';
@@ -74,6 +74,8 @@ let rec ml_to_c oc pref ty v c =
           iprintf oc "}\n"
       | Ptr ->
           iprintf oc "%s = (%a) Field(%s, 0);\n" c out_c_type ty v
+      | Ignore ->
+          iprintf oc "%s = NULL;\n" c
       end
   | Type_array(attr, ty_elt) ->
       if attr.is_string then begin
@@ -159,8 +161,8 @@ let rec c_to_ml oc pref ty c v =
               v !module_name s c
   | Type_named s ->
       iprintf oc "%s = _camlidl_c2ml_%s_%s(&%s);\n" v !module_name s c
-  | Type_pointer(attr, ty_elt) ->
-      begin match attr.ptrkind with
+  | Type_pointer(kind, ty_elt) ->
+      begin match kind with
         Ref ->
           c_to_ml oc pref ty_elt (sprintf "*%s" c) v;
       | Unique ->
@@ -183,6 +185,8 @@ let rec c_to_ml oc pref ty c v =
       | Ptr ->
           iprintf oc "%s = alloc(1, Abstract_tag);\n" v;
           iprintf oc "Field(%s, 0) = (value) %s;\n" v c
+      | Ignore ->
+          ()
       end
   | Type_array(attr, ty_elt) ->
       if attr.is_string then
