@@ -30,8 +30,11 @@ let rec out_c_decl oc (id, ty) =
       assert (ud.ud_name <> "");
       fprintf oc "union %s %s" ud.ud_name id
   | Type_enum en ->
-      assert (en.en_name <> "");
-      fprintf oc "enum %s %s" en.en_name id
+      fprintf oc "int %s" id
+      (* Alternatively, one could do:
+           assert (en.en_name <> "");
+           fprintf oc "enum %s %s" en.en_name id
+         but this forces the enum to be declared beforehand on the C side *)
   | Type_named s ->
       fprintf oc "%s %s" s id
   | Type_pointer(attr, (Type_array(_, _) as ty)) ->
