@@ -65,16 +65,17 @@ let ml_class_declaration oc intf =
 let rec declare_vtbl oc self intf =
   if intf.intf_name = "IUnknown" then begin
     iprintf oc "DECLARE_VTBL_PADDING\n";
-    iprintf oc "HRESULT (*QueryInterface)(struct %s * self, IID *, void **);\n"
+    iprintf oc "HRESULT (STDMETHODCALLTYPE *QueryInterface)(struct %s * self, IID *, void **);\n"
                self;
-    iprintf oc "ULONG (*AddRef)(struct %s * self);\n" self;
-    iprintf oc "ULONG (*Release)(struct %s * self);\n" self
+    iprintf oc "ULONG (STDMETHODCALLTYPE *AddRef)(struct %s * self);\n" self;
+    iprintf oc "ULONG (STDMETHODCALLTYPE *Release)(struct %s * self);\n" self
   end else begin
     declare_vtbl oc self intf.intf_super;
     List.iter
       (fun m ->
         iprintf oc "%a(struct %s * self"
-                   out_c_decl (sprintf "(*%s)" m.fun_name, m.fun_res)
+                   out_c_decl (sprintf "(STDMETHODCALLTYPE *%s)" m.fun_name,
+                               m.fun_res)
                    self;
         List.iter
           (fun (name, inout, ty) ->
@@ -106,8 +107,8 @@ let ml_class_definition oc intf =
   let supername = String.uncapitalize intf.intf_super.intf_name in
   (* Define the IID *)
   if intf.intf_uid <> "" then
-    fprintf oc "let iid_%s = (Obj.magic \"%s\" : %s Com.iid)\n"
-               intfname (String.escaped intf.intf_uid) intfname;
+    fprintf oc "let iid_%s = Com._parse_iid \"%s\"\n"
+               intfname intf.intf_uid;
   (* Define the coercion function to the super class *)
   fprintf oc "let %s_of_%s (intf : %s Com.interface) = (Obj.magic intf : %a Com.interface)\n\n"
              supername intfname intfname
@@ -151,7 +152,7 @@ let ml_class_definition oc intf =
 let output_context before after =
   if !need_context then begin
     fprintf before
-      "  struct camlidl_ctx _ctxs = { CAMLIDL_ADDREF, NULL };\n";
+      "  struct camlidl_ctx_struct _ctxs = { CAMLIDL_ADDREF, NULL };\n";
     fprintf before "  camlidl_ctx _ctx = &_ctxs;\n"
   end
 
@@ -200,13 +201,20 @@ let emit_callback_wrapper oc intf meth =
   iprintf pc "_vres = callbackN_exn(Lookup(_varg[0], _vlabel), %d, _varg);\n"
              (num_ins + 1);
   (* Check if exception occurred *)
-  iprintf pc "if (Is_exception_result(_vres))\n";
   begin match meth.fun_res with
     Type_named(_, "HRESULT") ->
+      iprintf pc "if (Is_exception_result(_vres))\n";
+      iprintf pc "  return camlidl_result_exception(\"%s.%s\", \
+                             Extract_exception(_vres));\n"
+                 !module_name !current_function;
+      iprintf pc "_res = S_OK;\n"
+  | Type_named(_, ("HRESULT_int" | "HRESULT_bool")) ->
+      iprintf pc "if (Is_exception_result(_vres))\n";
       iprintf pc "  return camlidl_result_exception(\"%s.%s\", \
                              Extract_exception(_vres));\n"
                  !module_name !current_function
   | _ ->
+      iprintf pc "if (Is_exception_result(_vres))\n";
       iprintf pc "  camlidl_uncaught_exception(\"%s\", \
                              Extract_exception(_vres));\n"
                  !current_function

@@ -25,8 +25,8 @@ static void camlidl_raise_error(HRESULT errcode, char * who, char * msg)
     bucket = alloc_small(4, 0);
     Field(bucket, 0) = *com_error_exn;
     Field(bucket, 1) = Val_long(errcode);
-    Field(bucket, 3) = vwho;
-    Field(bucket, 2) = vmsg;
+    Field(bucket, 2) = vwho;
+    Field(bucket, 3) = vmsg;
   End_roots();
   mlraise(bucket);
 }
@@ -143,7 +143,7 @@ HRESULT camlidl_result_exception(char * methname, value exn_bucket)
     if (SUCCEEDED(createrr->lpVtbl->QueryInterface(createrr,
                                                    &IID_IErrorInfo,
                                                    (void **) &errinfo))) {
-      SeetErrorInfo(0L, errinfo);
+      SetErrorInfo(0L, errinfo);
       errinfo->lpVtbl->Release(errinfo);
     }
     createrr->lpVtbl->Release(createrr);

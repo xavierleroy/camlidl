@@ -86,13 +86,11 @@ public:
 
 // The class factory server
 
-#define CLSID_val(v) (*((CLSID *) Bp_val(v)))
-
 STDAPI DllGetClassObject(const CLSID & clsid, const IID & iid, void ** object)
 {
   struct camlidl_comp * c;
   for (c = camlidl_registered_components; c != NULL; c = c->next) {
-    if (clsid == CLSID_val(Field(c->compdata, COMPDATA_CLSID))) {
+    if (clsid == GUID_val(Field(c->compdata, COMPDATA_CLSID))) {
       // Create class factory
       camlidl_factory * f = new camlidl_factory(c);
       if (f == NULL) return E_OUTOFMEMORY;
@@ -118,7 +116,7 @@ STDAPI DllRegisterServer()
     HRESULT retcode =
       RegisterServer(
         camlidl_module_handle,
-        CLSID_val(Field(c->compdata, COMPDATA_CLSID)),
+        GUID_val(Field(c->compdata, COMPDATA_CLSID)),
         String_val(Field(c->compdata, COMPDATA_FRIENDLY_NAME)),
         String_val(Field(c->compdata, COMPDATA_VER_IND_PROG_ID)),
         String_val(Field(c->compdata, COMPDATA_PROG_ID)));
@@ -136,7 +134,7 @@ STDAPI DllUnregisterserver()
   for (c = camlidl_registered_components; c != NULL; c = c->next) {
     HRESULT retcode =
       UnregisterServer(
-        CLSID_val(Field(c->compdata, COMPDATA_CLSID)),
+        GUID_val(Field(c->compdata, COMPDATA_CLSID)),
         String_val(Field(c->compdata, COMPDATA_VER_IND_PROG_ID)),
         String_val(Field(c->compdata, COMPDATA_PROG_ID)));
     if (FAILED(retcode)) return retcode;

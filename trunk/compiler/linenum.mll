@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: linenum.mll,v 1.1 1999-02-11 19:23:05 xleroy Exp $ *)
+(* $Id: linenum.mll,v 1.2 1999-02-18 17:45:44 xleroy Exp $ *)
 
 (* An auxiliary lexer for determining the line number corresponding to
    a file position, honoring the directives # linenum "filename" *)
@@ -37,7 +37,7 @@ let parse_sharp_line s =
 }
 
 rule skip_line = parse
-    "#" [' ' '\t']*
+    "#" ("line")? [' ' '\t']*
     ['0'-'9']+ [' ' '\t']*
     "\"" [^ '\n' '\r' '"' (* '"' *) ] * "\""
     [^ '\n' '\r'] *

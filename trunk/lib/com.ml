@@ -1,35 +1,44 @@
 (* Run-time library for COM components *)
 
-type 'a opaque
-
 type 'a interface
 
 type 'a iid
 
-exception Error of string
+type 'a opaque
 
-external prim_queryInterface: 'a interface -> 'b iid -> 'b interface =
+type clsid = string
+
+exception Error of int * string * string
+
+external initialize : unit -> unit = "camlidl_com_initialize"
+external uninitialize : unit -> unit = "camlidl_com_uninitialize"
+
+external query_interface: 'a interface -> 'b iid -> 'b interface =
   "camlidl_com_queryInterface"
-
-let queryInterface intf iid =
-  try
-    prim_queryInterface intf iid
-  with Failure s ->
-    raise (Error s)
 
 type iUnknown
 
 let iUnknown_of (intf : 'a interface) = (Obj.magic intf : iUnknown interface)
 
 let _ =
-  Callback.register "Oo.new_method" Oo.new_method
+  Callback.register "Oo.new_method" Oo.new_method;
+  Callback.register_exception "Com.Error" (Error(0, "", ""))
 
-external prim_combine: 'a interface -> 'b interface -> 'a interface =
+external combine: 'a interface -> 'b interface -> 'a interface =
   "camlidl_com_combine"
 
-let combine i1 i2 =
-  try
-    prim_combine i1 i2
-  with Failure s ->
-    raise (Error s)
+external clsid: string -> clsid = "camlidl_com_parse_uid"
+external _parse_iid: string -> 'a iid = "camlidl_com_parse_uid"
 
+external create_instance : clsid -> 'a iid -> 'a interface
+    = "camlidl_com_create_instance"
+  
+type 'a component_factory =
+  { create : unit -> 'a interface;
+    clsid : clsid;
+    friendly_name : string;
+    ver_ind_prog_id : string;
+    prog_id : string }
+
+external register_factory : 'a component_factory -> unit
+    = "camlidl_com_register_factory"

@@ -44,7 +44,6 @@ let _ =
 
 let string_buffer = Ebuff.create 80
 let diversion_buffer = Ebuff.create 256
-let uuid_buffer = Ebuff.create 16
 
 (* To translate escape sequences *)
 
@@ -85,7 +84,7 @@ rule token = parse
       { comment lexbuf }
   | "//" [ ^ '\n' ] * eol
       { token lexbuf }
-  | "#" [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] * eol
+  | "#" ("line")? [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] * eol
       (* # linenum "filename" flags \n *)
       { token lexbuf }
   | identstart identchar *
@@ -143,9 +142,8 @@ rule token = parse
   | "-" { MINUS }
   | "?" { QUESTIONMARK }
   | '(' hex8 '-' hex4 '-' hex4 '-' hex4 '-' hex12 ')'
-        { Ebuff.reset uuid_buffer;
-          scan_uuid (Lexing.from_string (Lexing.lexeme lexbuf));
-          UUID(Ebuff.get_stored uuid_buffer) }
+        { let s = Lexing.lexeme lexbuf in
+          UUID(String.sub s 1 (String.length s - 2)) }
   | eof { EOF }
   | _   { raise (Lex_error ("Illegal character " ^
                             Char.escaped(Lexing.lexeme_char lexbuf 0))) }
@@ -173,12 +171,3 @@ and string = parse
       { Ebuff.add_char string_buffer (Lexing.lexeme_char lexbuf 0);
         string lexbuf }
 
-and scan_uuid = parse
-    eof
-      { () }
-  | hex hex
-      { let n = int_of_string ("0x" ^ Lexing.lexeme lexbuf) in
-        Ebuff.add_char uuid_buffer (Char.chr n);
-        scan_uuid lexbuf }
-  | _
-      { scan_uuid lexbuf }

@@ -110,7 +110,7 @@ let c_declaration oc fundecl =
 let output_context before after =
   if !need_context then begin
     fprintf before
-      "  struct camlidl_ctx _ctxs = { CAMLIDL_TRANSIENT, NULL };\n";
+      "  struct camlidl_ctx_struct _ctxs = { CAMLIDL_TRANSIENT, NULL };\n";
     fprintf before "  camlidl_ctx _ctx = &_ctxs;\n";
     iprintf after "camlidl_free(_ctx);\n"
   end
@@ -119,8 +119,8 @@ let output_context before after =
 
 let rec call_error_check oc name ty =
   match ty with
-    Type_named(modl, name) ->
-      begin match !Typedef.find name with
+    Type_named(modl, ty_name) ->
+      begin match !Typedef.find ty_name with
         {td_errorcheck = Some fn} -> iprintf oc "%s(%s);\n" fn name
       | _ -> ()
       end
