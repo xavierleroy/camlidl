@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: file.ml,v 1.17 2001-07-30 14:33:34 xleroy Exp $ *)
+(* $Id: file.ml,v 1.18 2002-04-19 13:24:29 xleroy Exp $ *)
 
 (* Handling of interfaces *)
 
@@ -174,6 +174,7 @@ let gen_c_stub oc intf =
     #include <caml/fail.h>\n\
     #include <caml/callback.h>\n\
     #ifdef Custom_tag\n\
+    #include <caml/custom.h>\n\
     #include <caml/bigarray.h>\n\
     #endif\n\
     #include <caml/camlidlruntime.h>\n\n";
