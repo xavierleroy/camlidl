@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexpr.ml,v 1.4 1999-03-04 16:21:43 xleroy Exp $ *)
+(* $Id: lexpr.ml,v 1.5 2000-08-11 13:25:46 xleroy Exp $ *)
 
 (* Evaluation and pretty-printing of limited expressions *)
 
@@ -201,8 +201,8 @@ let tostr pref e =
     | e -> ts5 e
 
   and ts5 = function
-      Expr_plus(e1, e2) -> ts5 e1; add_string b " + "; ts5 e1
-    | Expr_minus(e1, e2) -> ts5 e1; add_string b " + "; ts6 e1
+      Expr_plus(e1, e2) -> ts5 e1; add_string b " + "; ts5 e2
+    | Expr_minus(e1, e2) -> ts5 e1; add_string b " - "; ts6 e2
     | e -> ts6 e
 
   and ts6 = function
@@ -248,7 +248,7 @@ let tostr pref e =
     | e ->
         add_char b '('; ts e; add_char b ')'
 
-  in ts e
+  in ts7 e
 
 let tostring pref e =
   Buffer.clear b; tostr pref e;
