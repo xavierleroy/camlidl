@@ -1,3 +1,13 @@
+CamlIDL 1.04:
+-------------
+
+* Fixed silly bug in abstract typedefs, introduced in 1.03.
+* Strings, arrays and bigarrays are now non-NULL if "unique" is not specified,
+  even if the pointer default is "unique".
+* "out" parameters dependent on "out" parameters are now removed from
+  the Caml view of a function.
+* Removed spurious warning on the "mlname" attribute.
+
 CamlIDL 1.03:
 -------------
 
@@ -11,6 +21,7 @@ CamlIDL 1.03:
   to associate user-provided finalization, comparison or hashing functions
   to typedefs.
 * Fixed some oddities with the "const" qualifier.
+
 
 CamlIDL 1.02:
 -------------
