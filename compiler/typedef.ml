@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: typedef.ml,v 1.16 2002-04-19 13:24:30 xleroy Exp $ *)
+(* $Id: typedef.ml,v 1.17 2002-05-01 15:23:15 xleroy Exp $ *)
 
 (* Handling of typedefs *)
 
@@ -121,10 +121,10 @@ let transl_ml_to_c oc td =
   increase_indent();
   if td.td_abstract then
     if is_custom_block td then begin
-      iprintf pc "*%s = *((%s *) Bp_val(%s));\n" c td.td_name v
-    end else begin
       iprintf pc "*%s = *((%s *) Data_custom_val(%s));\n"
                  c td.td_name v
+    end else begin
+      iprintf pc "*%s = *((%s *) Bp_val(%s));\n" c td.td_name v
     end
   else begin
     ml_to_c pc false Prefix.empty td.td_type v (sprintf "(*%s)" c);
