@@ -4,12 +4,38 @@ open Idltypes
 open Variables
 open Cvttyp
 
+(* Allocate space to hold a C value of type [ty], and store a pointer to
+   this space in [c].
+   If [!on_stack] is true, the space is allocated on stack.
+   Otherwise, it is allocated in the heap. *)
+
+let allocate_space oc onstack ty c =
+  let repr_ty =
+    match ty with
+      Type_interface _ -> Type_named "struct camlidl_intf"
+    | _ -> ty in
+  if onstack then begin
+    let c' = new_c_variable repr_ty in
+    if repr_ty = ty
+    then iprintf oc "%s = &%s;\n" c c'
+    else iprintf oc "%s = (%a) &%s;\n" c out_c_type ty c';
+    c'
+  end else begin
+    iprintf oc "%s = (%a) camlidl_malloc(_arena, sizeof(%a));\n"
+            c out_c_type ty out_c_type repr_ty;
+    "*" ^ c
+  end
+
 (* Translate the ML value [v] and store it into the C lvalue [c].
    [ty] is the IDL type of the value being converted.
    [pref] is the access prefix for the dependent parameters (size,
-   discriminants, etc) to be updated. *)
+   discriminants, etc) to be updated.
+   [onstack] is true if C structures should be allocated on stack
+   (their lifetime is that of the current function).
+   [onstack] is false if C structures should be heap-allocated
+   (they may be returned by the current function). *)
 
-let rec ml_to_c oc pref ty v c =
+let rec ml_to_c oc onstack pref ty v c =
   match ty with
     Type_int(Long | ULong) ->
       iprintf oc "%s = Long_val(%s);\n" c v
@@ -21,18 +47,18 @@ let rec ml_to_c oc pref ty v c =
       ()
   | Type_struct sd ->
       if sd.sd_name = "" then
-        Struct.struct_ml_to_c ml_to_c oc sd v c
+        Struct.struct_ml_to_c ml_to_c oc onstack sd v c
       else begin
-        iprintf oc "camlidl_ml2c_%s_struct_%s(%s, &%s);\n"
+        iprintf oc "camlidl_ml2c_%s_struct_%s(%s, &%s, _arena);\n"
                    !module_name sd.sd_name v c;
         need_deallocation := true
       end
   | Type_union(ud, attr) ->
       if ud.ud_name = "" then
-        Union.union_ml_to_c ml_to_c oc ud v c
+        Union.union_ml_to_c ml_to_c oc onstack ud v c
                             (pref ^ string_of_restr_expr attr.discriminant)
       else begin
-        iprintf oc "%s%a = camlidl_ml2c_%s_union_%s(%s, &%s);\n"
+        iprintf oc "%s%a = camlidl_ml2c_%s_union_%s(%s, &%s, _arena);\n"
                    pref out_restr_expr attr.discriminant
                    !module_name ud.ud_name v c;
         need_deallocation := true
@@ -46,26 +72,24 @@ let rec ml_to_c oc pref ty v c =
         iprintf oc "%s = camlidl_ml2c_%s_enum_%s(%s);\n"
                    c !module_name en.en_name v
   | Type_named s ->
-      iprintf oc "camlidl_ml2c_%s_%s(%s, &%s);\n" !module_name s v c;
+      iprintf oc "camlidl_ml2c_%s_%s(%s, &%s, _arena);\n" !module_name s v c;
       need_deallocation := true
   | Type_pointer(kind, ty_elt) ->
       begin match kind with
         Ref ->
-          let c' = new_c_variable ty_elt in
-          ml_to_c oc pref ty_elt v c';
-          iprintf oc "%s = &%s;\n" c c'
+          let c' = allocate_space oc onstack ty c in
+          ml_to_c oc onstack pref ty_elt v c'
       | Unique ->
-          let v' = new_ml_variable() in
-          let c' = new_c_variable ty_elt in
           iprintf oc "if (%s == Val_int(0)) {\n" v;
           increase_indent();
           iprintf oc "%s = NULL;\n" c;
           decrease_indent();
           iprintf oc "} else {\n";
           increase_indent();
+          let v' = new_ml_variable() in
+          let c' = allocate_space oc onstack ty c in
           iprintf oc "%s = Field(%s, 0);\n" v' v;
-          ml_to_c oc pref ty_elt v' c';
-          iprintf oc "%s = &%s;\n" c c';
+          ml_to_c oc onstack pref ty_elt v' c';
           decrease_indent();
           iprintf oc "}\n"
       | Ptr ->
@@ -74,7 +98,11 @@ let rec ml_to_c oc pref ty v c =
           iprintf oc "%s = NULL;\n" c
       end
   | Type_array(attr, ty_elt) ->
-      Array.array_ml_to_c ml_to_c oc pref attr ty_elt v c
+      Array.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c
+  | Type_interface s ->
+      iprintf oc "camlidl_ml2c_%s_interface_%s(%s, (struct camlidl_intf *) &%s, _arena);\n"
+        !module_name s v c;
+      need_deallocation := true
 
 (* Translate the C value [c] and store it into the ML variable [v].
    [ty] is the IDL type of the value being converted.
@@ -142,3 +170,6 @@ let rec c_to_ml oc pref ty c v =
       end
   | Type_array(attr, ty_elt) ->
       Array.array_c_to_ml c_to_ml oc pref attr ty_elt c v
+  | Type_interface intf_name ->
+      iprintf oc "%s = camlidl_c2ml_%s_interface_%s(&%s);\n"
+              v !module_name intf_name c

@@ -33,6 +33,7 @@ type idltype =
   | Type_union of union_decl * union_attributes
   | Type_enum of enum_decl * enum_attributes
   | Type_named of string
+  | Type_interface of string
 
 and field =
   { field_name: string; field_typ: idltype }

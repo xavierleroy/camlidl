@@ -103,10 +103,13 @@ let out_inout oc = function
   | Out -> fprintf oc "[out]"
   | InOut -> fprintf oc "[in,out]"
 
-let output_deallocate oc =
+(* If heap allocation is needed, set up allocation arena *)
+
+let output_deallocate before after =
   if !need_deallocation then begin
-    iprintf oc "camlidl_temp_free();\n";
-    need_deallocation := false
+    fprintf before "  camlidl_arena _fun_arena = NULL;\n";
+    fprintf before "  camlidl_arena * _arena = &_fun_arena;\n";
+    iprintf after "camlidl_free(_fun_arena);\n"
   end
 
 (* Call an error checking function if needed *)
@@ -148,6 +151,7 @@ let emit_custom_call s oc fundecl =
 
 let emit_wrapper oc fundecl =
   current_function := fundecl.fun_name;
+  need_deallocation := false;
   let (ins, outs) = ml_view fundecl in
   (* Emit function header *)
   fprintf oc "value camlidl_%s_%s(" !module_name fundecl.fun_name;
@@ -181,7 +185,7 @@ let emit_wrapper oc fundecl =
     fundecl.fun_params;
   (* Convert ins from ML to C *)
   List.iter
-    (fun (name, ty) -> ml_to_c pc "" ty (sprintf "_v_%s" name) name)
+    (fun (name, ty) -> ml_to_c pc true "" ty (sprintf "_v_%s" name) name)
     ins;
   (* Initialize outs that are pointers so that they point
      to suitable storage *)
@@ -204,13 +208,13 @@ let emit_wrapper oc fundecl =
   begin match outs with
     [] ->
       output_variable_declarations oc;
-      output_deallocate pc;
+      output_deallocate oc pc;
       iprintf pc "return Val_unit;\n"
   | [name, ty] ->
       c_to_ml pc "" ty name "_vres";
       output_variable_declarations oc;
       fprintf oc "  value _vres;\n\n";
-      output_deallocate pc;
+      output_deallocate oc pc;
       iprintf pc "return _vres;\n";
   | _ ->
       let num_outs = List.length outs in
@@ -226,7 +230,7 @@ let emit_wrapper oc fundecl =
       copy_values_to_block pc "_vres" "_vresult" num_outs;
       decrease_indent();
       iprintf pc "End_roots()\n";
-      output_deallocate pc;
+      output_deallocate oc pc;
       iprintf pc "return _vresult;\n";
       output_variable_declarations oc;
       fprintf oc "  value _vresult;\n";

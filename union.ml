@@ -9,7 +9,7 @@ open Cvttyp
 (* Translate an ML datatype [v] and store its argument in the C union [c]
    and its discriminant in the C integer [discr]. *)
 
-let union_ml_to_c ml_to_c oc ud v c discr =
+let union_ml_to_c ml_to_c oc onstack ud v c discr =
   let tag_constant = ref 0
   and tag_constr = ref 0 in
   let emit_case = function
@@ -26,7 +26,7 @@ let union_ml_to_c ml_to_c oc ud v c discr =
       iprintf oc "%s = Int_val(Field(%s, 0));\n" discr v;
       let v' = new_ml_variable() in
       iprintf oc "%s = Field(%s, 1);\n" v' v;
-      ml_to_c oc "_badprefix." ty v' (sprintf "%s.%s" c n);
+      ml_to_c oc onstack "_badprefix." ty v' (sprintf "%s.%s" c n);
       iprintf oc "break;\n";
       decrease_indent()
   | {case_field = None; case_label = Some lbl} -> (* named case, no args *)
@@ -42,7 +42,7 @@ let union_ml_to_c ml_to_c oc ud v c discr =
       iprintf oc "%s = %s;\n" discr lbl;
       let v' = new_ml_variable() in
       iprintf oc "%s = Field(%s, 0);\n" v' v;
-      ml_to_c oc "_badprefix." ty v' (sprintf "%s.%s" c n);
+      ml_to_c oc onstack "_badprefix." ty v' (sprintf "%s.%s" c n);
       iprintf oc "break;\n";
       decrease_indent() in
   let (constant_cases, constr_cases) =

@@ -3,8 +3,9 @@
 open Printf
 open Utils
 open Idltypes
+open Intf
 
-type diversion_type = Div_c | Div_ml
+type diversion_type = Div_c | Div_ml | Div_mli | Div_ml_mli
 
 type component =
     Comp_typedecl of Typedef.type_decl
@@ -14,6 +15,7 @@ type component =
   | Comp_fundecl of Funct.function_decl
   | Comp_constdecl of Constdecl.constant_decl
   | Comp_diversion of diversion_type * string
+  | Comp_interface of Intf.interface
 
 type idl_file = component list
 
@@ -34,7 +36,7 @@ let gen_type_def oc all_type_decls =
     | Comp_interface i -> start_decl(); Intf.ml_declaration oc i
     | _ -> () in
   List.iter emit_typedef all_type_decls;
-  fprintf oc "\n";
+  fprintf oc "\n"
 
 (* Generate the .mli file *)
 

@@ -25,7 +25,7 @@ let rec no_allocation_type = function
 
 (* Translation from an ML array [v] to a C array [c] *)
 
-let array_ml_to_c ml_to_c oc pref attr ty_elt v c =
+let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
   if attr.is_string then begin
     begin match attr.bound with
       None ->
@@ -50,7 +50,7 @@ let array_ml_to_c ml_to_c oc pref attr ty_elt v c =
     begin match attr.bound with
       None ->
         (* Allocate C array of same size as ML array *)
-        iprintf oc "%s = camlidl_temp_alloc(" c;
+        iprintf oc "%s = camlidl_malloc(_arena, " c;
         if attr.null_terminated
         then fprintf oc "(%s + 1)" size
         else fprintf oc "%s" size;
@@ -78,7 +78,7 @@ let array_ml_to_c ml_to_c oc pref attr ty_elt v c =
     else begin
       let v' = new_ml_variable() in
       iprintf oc "%s = Field(%s, %s);\n" v' v idx;
-      ml_to_c oc pref ty_elt v' (sprintf "%s[%s]" c idx)
+      ml_to_c oc onstack pref ty_elt v' (sprintf "%s[%s]" c idx)
     end;
     decrease_indent();
     iprintf oc "}\n";

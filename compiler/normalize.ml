@@ -6,11 +6,17 @@ open Idltypes
 open Typedef
 open Funct
 open Constdecl
+open Intf
 open File
 
 let structs = (Hashtbl.create 13 : (string, struct_decl) Hashtbl.t)
 let unions =  (Hashtbl.create 13 : (string, union_decl) Hashtbl.t)
 let enums =   (Hashtbl.create 13 : (string, enum_decl) Hashtbl.t)
+let intfs =   (Hashtbl.create 13 : (string, interface) Hashtbl.t)
+
+module StringSet = Set.Make(struct type t = string let compare = compare end)
+
+let intf_names = ref StringSet.empty
 
 let all_type_decls = ref ([] : component list)
 
@@ -53,6 +59,8 @@ let rec normalize_type = function
       end
   | Type_enum (en, attr) ->
       Type_enum(enter_enum en, attr)
+  | Type_named s ->
+      if StringSet.mem s !intf_names then Type_interface s else Type_named s
   | ty -> ty
 
 and normalize_field f =
@@ -142,6 +150,27 @@ let enter_typedecl td =
   Typedef.record td';
   td'
 
+let normalize_interface i =
+  intf_names := StringSet.add i.intf_name !intf_names;
+  match i.intf_methods with
+    [] -> i
+  | _  ->
+      let super =
+        match i.intf_super with
+          None -> None
+        | Some s ->
+            try
+              Some(Hashtbl.find intfs s.intf_name)
+            with Not_found ->
+              error (sprintf "unknown interface %s as super-interface of %s"
+                             s.intf_name i.intf_name) in
+      let methods =
+        List.map normalize_fundecl i.intf_methods in
+      let i' =
+        {i with intf_super = super; intf_methods = methods} in
+      Hashtbl.add intfs i.intf_name i';
+      i'
+
 let normalize_component = function
     Comp_typedecl td -> Comp_typedecl(enter_typedecl td)
   | Comp_structdecl sd -> Comp_structdecl(enter_struct sd)
@@ -150,14 +179,16 @@ let normalize_component = function
   | Comp_fundecl fd -> Comp_fundecl(normalize_fundecl fd)
   | Comp_constdecl cd -> Comp_constdecl cd
   | Comp_diversion(ty, s) -> Comp_diversion(ty, s)
+  | Comp_interface intf -> Comp_interface(normalize_interface intf)
 
-let interface intf =
-  let intf' = List.map normalize_component intf in
+let file f =
+  let f' = List.map normalize_component f in
   let alldecls = List.rev !all_type_decls in
   Hashtbl.clear structs;
   Hashtbl.clear unions;
   Hashtbl.clear enums;
+  Hashtbl.clear intfs;
   all_type_decls := [];
-  (intf', alldecls)
+  (f', alldecls)
 
   
