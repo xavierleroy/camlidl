@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.27 2002-01-16 09:42:01 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.28 2002-04-22 09:02:17 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -182,10 +182,11 @@ let emit_function oc fundecl ins outs locals emit_call =
   (* Declare C local variables to hold parameters and result *)
   List.iter
     (fun (name, inout, ty) ->
-      fprintf oc "  %a; /*%a*/\n" out_c_decl (name, ty) out_inout inout)
+      fprintf oc "  %a; /*%a*/\n"
+              out_c_decl (name, scrape_const ty) out_inout inout)
     locals;
   if fundecl.fun_res <> Type_void then
-    fprintf oc "  %a;\n" out_c_decl ("_res", fundecl.fun_res);
+    fprintf oc "  %a;\n" out_c_decl ("_res", scrape_const fundecl.fun_res);
   let pc = divert_output() in
   increase_indent();
   (* Initialize dependent parameters that are pointers so that they
