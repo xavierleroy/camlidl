@@ -15,8 +15,8 @@ $(NATIVELIB): $(NATIVEOBJS)
 	$(OCAMLOPT) -a -o $(NATIVELIB) $(NATIVEOBJS)
 
 install:
-	cp $(INTERFACES) $(BYTELIB) $(NATIVELIB) $(NATIVELIB:.cmxa=.a) $(OCAMLLIB)
-	cd $(OCAMLLIB); $(RANLIB) $(NATIVELIB:.cmxa=.a)
+	cp $(INTERFACES) $(BYTELIB) $(NATIVELIB) $(NATIVELIB:.cmxa=$(LIB)) $(OCAMLLIB)
+	cd $(OCAMLLIB); $(RANLIB) $(NATIVELIB:.cmxa=$(LIB))
 
 .SUFFIXES: .mli .ml .cmi .cmo .cmx
 

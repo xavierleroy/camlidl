@@ -32,3 +32,5 @@ OCAMLDEP=ocamldep
 # Extra flags to pass to the C compiler
 CFLAGS=-g
 
+# Extension for lib files (do not change)
+LIB=.a
