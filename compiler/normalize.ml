@@ -3,12 +3,16 @@
 open Printf
 open Utils
 open Idltypes
+open Typedef
+open Funct
+open Constdecl
+open File
 
 let structs = (Hashtbl.create 13 : (string, struct_decl) Hashtbl.t)
 let unions =  (Hashtbl.create 13 : (string, union_decl) Hashtbl.t)
 let enums =   (Hashtbl.create 13 : (string, enum_decl) Hashtbl.t)
 
-let all_type_decls = ref ([] : interface_component list)
+let all_type_decls = ref ([] : component list)
 
 let currstamp = ref 0
 
@@ -135,6 +139,7 @@ let enter_typedecl td =
     then td
     else { td with td_type = normalize_type td.td_type } in
   all_type_decls := Comp_typedecl td' :: !all_type_decls;
+  Typedef.record td';
   td'
 
 let normalize_component = function

@@ -7,6 +7,29 @@ open Idltypes
 open Cvttyp
 open Cvtval
 
+type type_decl =
+  { td_name: string;
+    td_type: idltype;
+    td_abstract: bool;
+    td_c2ml: string option;
+    td_ml2c: string option;
+    td_errorcode: bool;
+    td_errorcheck: string option;
+    td_mltype: string option }
+
+(* Record typedefs by name *)
+
+let all_typedefs = (Hashtbl.create 13 : (string, type_decl) Hashtbl.t)
+
+let record td =
+  Hashtbl.add all_typedefs td.td_name td
+
+let find name =
+  try
+    Hashtbl.find all_typedefs name
+  with Not_found ->
+    error (sprintf "unknown typedef %s" name)
+
 (* Generate the ML type definition corresponding to the typedef *)
 
 let ml_declaration oc td =

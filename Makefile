@@ -7,9 +7,8 @@ CFLAGS=-O -Wall -I/usr/local/lib/ocaml
 
 OBJS=utils.cmo cvttyp.cmo variables.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
-  funct.cmo structdecl.cmo enumdecl.cmo uniondecl.cmo \
-  typedef.cmo constdecl.cmo \
-  intfgen.cmo stubgen.cmo \
+  structdecl.cmo enumdecl.cmo uniondecl.cmo \
+  typedef.cmo funct.cmo constdecl.cmo file.cmo \
   parser_simple.cmo lexer_simple.cmo normalize.cmo \
   main.cmo
 

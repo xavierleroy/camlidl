@@ -1,8 +1,7 @@
 open Printf
 open Utils
 open Idltypes
-open Intfgen
-open Stubgen
+open File
 
 let process_file name =
   let pref =

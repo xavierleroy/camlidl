@@ -4,8 +4,18 @@ open Printf
 open Utils
 open Variables
 open Idltypes
+open Typedef
 open Cvttyp
 open Cvtval
+
+type in_out =
+    In | Out | InOut
+
+type function_decl =
+  { fun_name: string;
+    fun_res: idltype;
+    fun_params: (string * in_out * idltype) list;
+    fun_ccall: string option }
 
 (* Remove dependent parameters (parameters that are size_is, length_is,
    or switch_is of another parameter).  Also remove ignored pointers. *)
@@ -50,18 +60,28 @@ let rec split_in_out = function
       | Out -> (ins, (name, ty) :: outs)
       | InOut -> ((name, ty) :: ins, (name, ty) :: outs)
 
+(* Determine if a typedef represents an error code *)
+
+let rec is_errorcode = function
+    Type_named s -> (Typedef.find s).td_errorcode
+  | Type_pointer(kind, ty) -> is_errorcode ty
+  | _ -> false
+
 (* Convert the C view of parameters and result into the ML view:
     - remove dependent parameters
     - turn out and in/out parameters into extra results
-    - remove void return value *)
+    - remove void and errorcode return values *)
 
 let ml_view fundecl =
   let true_params = remove_dependent_parameters fundecl.fun_params in
   let (ins, outs) = split_in_out true_params in
   (* Add return value as an out if it's not void *)
-  match fundecl.fun_res with
-      Type_void -> (ins, outs)
-    | ty -> (ins, ("_res", ty) :: outs)
+  let outs2 =
+    if fundecl.fun_res = Type_void
+    then outs
+    else ("_res", fundecl.fun_res) :: outs in
+  (* Remove out parameters that are error codes *)
+  (ins, list_filter (fun (name, ty) -> not(is_errorcode ty)) outs2)
 
 (* Generate the ML declaration for a function *)
 
@@ -95,6 +115,19 @@ let output_deallocate oc =
     iprintf oc "camlidl_temp_free();\n";
     need_deallocation := false
   end
+
+(* Call an error checking function if needed *)
+
+let rec call_error_check oc name ty =
+  match ty with
+    Type_named s ->
+      begin match Typedef.find s with
+        {td_errorcheck = Some fn} -> iprintf oc "%s(%s);\n" fn name
+      | _ -> ()
+      end
+  | Type_pointer(kind, ty_elt) ->
+      call_error_check oc ("*" ^ name) ty_elt
+  | _ -> ()
 
 (* Generate the wrapper for calling a C function from ML *)
 
@@ -162,6 +195,13 @@ let emit_wrapper oc fundecl =
       end;
       fprintf pc ");\n"
   end;
+  (* Call error checking functions on result and out parameters
+     that need it *)
+  call_error_check pc "_res" fundecl.fun_res;
+  List.iter
+    (fun (name, mode, ty) ->
+        if mode = Out || mode = InOut then call_error_check pc name ty)
+    fundecl.fun_params;
   (* Convert outs from C to ML *)
   begin match outs with
     [] ->

@@ -4,6 +4,11 @@ open Printf
 open Utils
 open Idltypes
 
+type constant_value = Cst_int of int | Cst_string of string
+
+type constant_decl =
+  { cd_name: string; cd_type: idltype; cd_value: constant_value }
+
 (* Generate the ML let binding corresponding to the constant declaration *)
 
 let ml_declaration oc c =

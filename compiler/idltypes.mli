@@ -49,37 +49,3 @@ and union_decl =
 and enum_decl =
   { en_name: string; mutable en_stamp: int; mutable en_consts: string list }
 
-type in_out =
-    In | Out | InOut
-
-type function_decl =
-  { fun_name: string;
-    fun_res: idltype;
-    fun_params: (string * in_out * idltype) list;
-    fun_ccall: string option }
-
-type type_decl =
-  { td_name: string;
-    td_type: idltype;
-    td_abstract: bool;
-    td_c2ml: string option;
-    td_ml2c: string option;
-    td_mltype: string option }
-
-type constant_value = Cst_int of int | Cst_string of string
-
-type constant_decl =
-  { cd_name: string; cd_type: idltype; cd_value: constant_value }
-
-type interface_component =
-    Comp_typedecl of type_decl
-  | Comp_structdecl of struct_decl
-  | Comp_uniondecl of union_decl
-  | Comp_enumdecl of enum_decl
-  | Comp_fundecl of function_decl
-  | Comp_constdecl of constant_decl
-  | Comp_diversion of diversion_type * string
-
-and diversion_type = Div_c | Div_ml
-
-type interface = interface_component list
