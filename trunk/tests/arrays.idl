@@ -2,6 +2,7 @@
 #include <stdio.h>
 |}
 
+interface Arrays {
 /* Strings */
 
 [string] char * str1([in,string] unsigned char * s);
@@ -18,3 +19,4 @@ void array4([in] int n, [out] int * m, [in, out, size_is(n), length_is(*m)] int 
 
 void array5([in,out] int *n, [in, out, size_is(*n), length_is(*n)] int t[]);
 
+}

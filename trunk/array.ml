@@ -40,8 +40,8 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
     end;
     begin match attr.size with
       None -> ()
-    | Some re -> iprintf oc "%s%a = string_length(%s);\n" 
-                         pref out_restr_expr re v
+    | Some re -> iprintf oc "%a = string_length(%s);\n" 
+                         out_restr_expr (pref, re) v
     end
   end else begin
     (* Determine actual size of ML array *)
@@ -89,7 +89,7 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
     (* Update dependent size variable *)
     begin match attr.size with
       None -> ()
-    | Some re -> iprintf oc "%s%a = %s;\n" pref out_restr_expr re size
+    | Some re -> iprintf oc "%a = %s;\n" out_restr_expr (pref, re) size
     end
   end
 
@@ -103,9 +103,9 @@ let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
     let (nsize, size) =
       match attr with
         {length = Some re} ->
-          (max_int, pref ^ string_of_restr_expr re)
+          (max_int, string_of_restr_expr pref re)
       | {size = Some re} ->
-          (max_int, pref ^ string_of_restr_expr re)
+          (max_int, string_of_restr_expr pref re)
       | {bound = Some n} ->
           (n, string_of_int n)
       | {null_terminated = true} ->

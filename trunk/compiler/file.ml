@@ -17,7 +17,16 @@ type component =
   | Comp_diversion of diversion_type * string
   | Comp_interface of Intf.interface
 
-type idl_file = component list
+type components = component list
+
+type idl_intf =
+  { iif_name: string;
+    iif_imports: string list;
+    iif_comps: components;
+    iif_super: string;
+    iif_obj: bool;
+    iif_uid: string;
+    iif_ptr_default: Idltypes.pointer_kind }
 
 (* Generate the ML interface *)
 

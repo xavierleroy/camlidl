@@ -1,4 +1,4 @@
-(* Handling of interfaces *)
+(* Handling of files *)
 
 open Idltypes
 
@@ -14,8 +14,17 @@ type component =
   | Comp_diversion of diversion_type * string
   | Comp_interface of Intf.interface
 
-type idl_file = component list
+type components = component list
 
-val gen_mli_file: out_channel -> idl_file -> idl_file -> unit
-val gen_ml_file: out_channel -> idl_file -> idl_file -> unit
-val gen_c_stub: out_channel -> idl_file -> idl_file -> unit
+type idl_intf =
+  { iif_name: string;
+    iif_imports: string list;
+    iif_comps: components;
+    iif_super: string;
+    iif_obj: bool;
+    iif_uid: string;
+    iif_ptr_default: pointer_kind }
+
+val gen_mli_file: out_channel -> components -> components -> unit
+val gen_ml_file: out_channel -> components -> components -> unit
+val gen_c_stub: out_channel -> components -> components -> unit
