@@ -1,3 +1,16 @@
+(***********************************************************************)
+(*                                                                     *)
+(*                              CamlIDL                                *)
+(*                                                                     *)
+(*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
+(*                                                                     *)
+(*  Copyright 1999 Institut National de Recherche en Informatique et   *)
+(*  en Automatique.  Distributed only by permission.                   *)
+(*                                                                     *)
+(***********************************************************************)
+
+(* $Id: tests.ml,v 1.2 1999-02-19 14:33:41 xleroy Exp $ *)
+
 let f1 = { fun_name = "f1"; fun_res = Type_int Int;
            fun_params = ["x", In, Type_int Int] };;
 let f2 = { fun_name = "f2"; fun_res = Type_int Int;

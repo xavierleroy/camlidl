@@ -1,3 +1,16 @@
+/***********************************************************************/
+/*                                                                     */
+/*                              CamlIDL                                */
+/*                                                                     */
+/*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         */
+/*                                                                     */
+/*  Copyright 1999 Institut National de Recherche en Informatique et   */
+/*  en Automatique.  Distributed only by permission.                   */
+/*                                                                     */
+/***********************************************************************/
+
+/* $Id: comstuff.h,v 1.7 1999-02-19 14:33:46 xleroy Exp $ */
+
 /* Load or emulate COM-related includes */
 
 #ifdef _WIN32
