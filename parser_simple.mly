@@ -280,6 +280,7 @@ type_spec:
                                      no_enum_attr) }
   | enum_declarator      { Type_enum($1, no_enum_attr) }
 ;
+
 simple_type_spec:
     FLOAT                                       { Type_float }
   | DOUBLE                                      { Type_double }
@@ -294,6 +295,7 @@ simple_type_spec:
   | BYTE                                        { Type_int Byte }
   | VOID                                        { Type_void }
   | IDENT                                       { Type_named $1 }
+  | LPAREN type_spec RPAREN                     { $2 }
 ;
 integer_size:
     LONG                                        { Type_int Long }
@@ -408,6 +410,7 @@ attr_vars:
 ;
 attr_var:
     IDENT                                       { Var $1 }
+  | STRING                                      { Var $1 }
   | STAR IDENT                                  { Deref $2 }
   | /*nothing*/                                 { null_attr_var }
 ;

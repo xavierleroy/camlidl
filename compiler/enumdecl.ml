@@ -10,7 +10,9 @@ open Enum
 (* Convert and IDL enum declaration to an ML record declaration *)
 
 let ml_declaration oc en =
-  fprintf oc "%s =\n" en.en_name;
+  if en.en_name = ""
+  then fprintf oc "enum_%d =\n" en.en_stamp
+  else fprintf oc "%s =\n" en.en_name;
   List.iter
     (fun c -> fprintf oc "  | %s\n" (String.capitalize c))
     en.en_consts
