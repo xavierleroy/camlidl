@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: enumdecl.ml,v 1.8 1999-02-19 14:33:29 xleroy Exp $ *)
+(* $Id: enumdecl.ml,v 1.9 1999-02-22 09:59:55 xleroy Exp $ *)
 
 (* Generation of converters for enums *)
 
@@ -61,11 +61,13 @@ let transl_ml_to_c oc en =
              en.en_mod en.en_name v;
   fprintf oc "{\n";
   let pc = divert_output() in
+  increase_indent();
   let c = new_c_variable (Type_int Int) in
   enum_ml_to_c ml_to_c pc en v c;
   iprintf pc "return %s;\n" c;
   output_variable_declarations oc;
   end_diversion oc;
+  decrease_indent();
   fprintf oc "}\n\n";
   current_function := ""
 
@@ -78,11 +80,13 @@ let transl_c_to_ml oc en =
              en.en_mod en.en_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
+  increase_indent();
   let v = new_ml_variable() in
   enum_c_to_ml c_to_ml pc en c v;
   iprintf pc "return %s;\n" v;
   output_variable_declarations oc;
   end_diversion oc;
+  decrease_indent();
   fprintf oc "}\n\n";
   current_function := ""
 

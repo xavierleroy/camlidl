@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: intf.ml,v 1.15 1999-02-19 14:33:30 xleroy Exp $ *)
+(* $Id: intf.ml,v 1.16 1999-02-22 09:59:55 xleroy Exp $ *)
 
 (* Handling of COM-style interfaces *)
 
@@ -53,7 +53,7 @@ let ml_class_declaration oc intf =
   fprintf oc "  %s Com.interface ->\n" mlintf;
   fprintf oc "    object\n";
   if intf.intf_super.intf_name <> "IUnknown"
-  then fprintf oc "    inherit %s_class\n" mlsuper;
+  then fprintf oc "      inherit %s_class\n" mlsuper;
   List.iter
     (fun meth ->
       fprintf oc "      method %s: %a\n"
@@ -92,7 +92,29 @@ let rec declare_vtbl oc self intf =
                    self;
         List.iter
           (fun (name, inout, ty) ->
-            fprintf oc ", /*%a*/ %a" out_inout inout out_c_decl (name, ty))
+            fprintf oc ",\n\t\t/*%a*/ %a" out_inout inout out_c_decl (name, ty))
+          m.fun_params;
+        fprintf oc ");\n")
+      intf.intf_methods
+  end
+
+let rec declare_class oc self intf =
+  if intf.intf_name = "IUnknown" then begin
+    iprintf oc "HRESULT STDMETHODCALLTYPE QueryInterface(IID *, void **);\n";
+    iprintf oc "ULONG STDMETHODCALLTYPE AddRef();\n";
+    iprintf oc "ULONG STDMETHODCALLTYPE Release();\n"
+  end else begin
+    declare_class oc self intf.intf_super;
+    List.iter
+      (fun m ->
+        iprintf oc "%a("
+                   out_c_decl (sprintf "(STDMETHODCALLTYPE *%s)" m.fun_name,
+                               m.fun_res);
+        let first = ref true in
+        List.iter
+          (fun (name, inout, ty) ->
+            if !first then first := false else fprintf oc ",\n\t\t";
+            fprintf oc "/*%a*/ %a" out_inout inout out_c_decl (name, ty))
           m.fun_params;
         fprintf oc ");\n")
       intf.intf_methods
@@ -102,6 +124,12 @@ let c_declaration oc intf =
   if intf.intf_methods = [] then begin
     fprintf oc "struct %s;\n" intf.intf_name
   end else begin
+    fprintf oc "#ifdef __cplusplus\n";
+    fprintf oc "struct %s {\n" intf.intf_name;
+    increase_indent();
+    declare_class oc intf.intf_name intf;
+    decrease_indent();
+    fprintf oc "};\n#else\n";
     fprintf oc "struct %sVtbl {\n" intf.intf_name;
     increase_indent();
     declare_vtbl oc intf.intf_name intf;
@@ -110,6 +138,7 @@ let c_declaration oc intf =
     fprintf oc "struct %s {\n" intf.intf_name;
     fprintf oc "  struct %sVtbl * lpVtbl;\n" intf.intf_name;
     fprintf oc "};\n";
+    fprintf oc "#endif\n";
     fprintf oc "extern IID IID_%s;\n\n" intf.intf_name
   end
 
@@ -180,7 +209,7 @@ let emit_callback_wrapper oc intf meth =
     sprintf "camlidl_%s_%s_%s_callback"
             !module_name intf.intf_name meth.fun_name in
   fprintf oc "%a(" out_c_decl ("STDMETHODCALLTYPE " ^ fun_name, meth.fun_res);
-  fprintf oc "\n\tinterface %s * this" intf.intf_name;
+  fprintf oc "\n\tstruct %s * this" intf.intf_name;
   List.iter
     (fun (name, inout, ty) ->
     fprintf oc ",\n\t/* %a */ %a" out_inout inout out_c_decl (name, ty))
@@ -197,6 +226,7 @@ let emit_callback_wrapper oc intf meth =
     fprintf oc "  %a;\n" out_c_decl ("_res", meth.fun_res);
   (* Convert inputs from C to Caml *)
   let pc = divert_output() in
+  increase_indent();
   iprintf pc "Begin_roots_block(_varg, %d)\n" (num_ins + 1);
   increase_indent();
   iprintf pc
@@ -254,6 +284,7 @@ let emit_callback_wrapper oc intf meth =
   if meth.fun_res <> Type_void then
     iprintf pc "return _res;\n";
   output_variable_declarations oc;
+  decrease_indent();
   end_diversion oc;
   fprintf oc "}\n\n"
 
@@ -266,7 +297,7 @@ let declare_callback_wrapper oc intf meth =
     sprintf "camlidl_%s_%s_%s_callback"
             !module_name intf.intf_name meth.fun_name in
   fprintf oc "extern %a(" out_c_decl (fun_name, meth.fun_res);
-  fprintf oc "\n\tinterface %s * this" intf.intf_name;
+  fprintf oc "\n\tstruct %s * this" intf.intf_name;
   List.iter
     (fun (name, inout, ty) ->
     fprintf oc ",\n\t/* %a */ %a" out_inout inout out_c_decl (name, ty))

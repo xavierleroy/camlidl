@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.19 1999-02-19 14:33:30 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.20 1999-02-22 09:59:55 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -35,7 +35,7 @@ type function_decl =
    or switch_is of another parameter).  Also remove ignored pointers. *)
 
 let is_dependent_parameter name params =
-  List.exists (fun (name, inout, ty) -> Lexpr.is_dependent name ty) params
+  List.exists (fun (_, _, ty) -> Lexpr.is_dependent name ty) params
 
 let is_ignored =
   function Type_pointer(Ignore, _) -> true | _ -> false
@@ -73,13 +73,13 @@ let rec is_errorcode = function
 let ml_view fundecl =
   let true_params = remove_dependent_parameters fundecl.fun_params in
   let (ins, outs) = split_in_out true_params in
-  (* Add return value as an out if it's not void *)
+  (* Add return value as an out if it's not void and not an error code *)
   let outs2 =
-    if fundecl.fun_res = Type_void
+    if fundecl.fun_res = Type_void || is_errorcode fundecl.fun_res
     then outs
     else ("_res", fundecl.fun_res) :: outs in
   (* Remove out parameters that are error codes *)
-  (ins, list_filter (fun (name, ty) -> not(is_errorcode ty)) outs2)
+  (ins, outs2)
 
 (* Generate the ML declaration for a function *)
 
@@ -166,6 +166,7 @@ let emit_function oc fundecl ins outs locals emit_call =
   if fundecl.fun_res <> Type_void then
     fprintf oc "  %a;\n" out_c_decl ("_res", fundecl.fun_res);
   let pc = divert_output() in
+  increase_indent();
   (* Initialize dependent parameters that are pointers so that they
      point to suitable storage *)
   List.iter
@@ -231,6 +232,7 @@ let emit_function oc fundecl ins outs locals emit_call =
       fprintf oc "};\n\n"
   end;
   end_diversion oc;
+  decrease_indent();
   fprintf oc "}\n\n";
   (* If more than 5 arguments, create an extra wrapper for the bytecode
      interface *)
@@ -253,6 +255,7 @@ let emit_standard_call oc fundecl =
     Some s ->
       iprintf oc "/* begin user-supplied calling sequence */\n";
       output_string oc s;
+      output_char oc '\n';
       iprintf oc "/* end user-supplied calling sequence */\n"
   | None ->
     if fundecl.fun_res = Type_void
