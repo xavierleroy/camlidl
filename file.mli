@@ -16,15 +16,6 @@ type component =
 
 type components = component list
 
-type idl_intf =
-  { iif_name: string;
-    iif_imports: string list;
-    iif_comps: components;
-    iif_super: string;
-    iif_obj: bool;
-    iif_uid: string;
-    iif_ptr_default: pointer_kind }
-
 val gen_mli_file: out_channel -> components -> components -> unit
 val gen_ml_file: out_channel -> components -> components -> unit
 val gen_c_stub: out_channel -> components -> components -> unit

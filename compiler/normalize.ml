@@ -28,21 +28,39 @@ let currstamp = ref 0
 
 let newstamp () = incr currstamp; !currstamp
 
-let pointer_default = ref Default
-
-let normalize_ptr = function
-    Default -> !pointer_default
-  | kind -> kind
-
 let in_fundecl = ref false
 
 let error_if_fundecl kind =
   if !in_fundecl then
     error (sprintf "anonymous %s in function parameters or result type" kind)
 
+(* Generic function to handle declarations and definitions of struct,
+   unions, enums and interfaces *)
+
+let process_declarator tbl name contents make_decl update_decl =
+  if contents = [] then begin
+    try
+      Hashtbl.find tbl name
+    with Not_found ->
+      Hashtbl.add tbl name (make_decl ());
+      make_decl ()
+  end else begin
+    let decl =
+      try
+        Hashtbl.find tbl name
+      with Not_found ->
+        let newdecl = make_decl() in
+        if name <> "" then Hashtbl.add tbl name newdecl;
+        newdecl in
+    update_decl decl;
+    decl
+  end
+
+(* Normalize types and declarators *)
+
 let rec normalize_type = function
     Type_pointer(kind, ty_elt) ->
-      Type_pointer(normalize_ptr kind, normalize_type ty_elt)
+      Type_pointer(kind, normalize_type ty_elt)
   | Type_array(attr, ty_elt) ->
       Type_array(attr, normalize_type ty_elt)
   | Type_struct {sd_fields = []; sd_name = name} ->
@@ -91,67 +109,34 @@ and normalize_case c =
   | Some f -> {c with case_field = Some(normalize_field f)}
 
 and enter_struct sd =
-  if sd.sd_fields = [] then begin
-    let sd' = { sd_name = sd.sd_name; sd_mod = !module_name;
-                sd_stamp = 0; sd_fields = [] } in
-    Hashtbl.add structs sd.sd_name sd';
-    sd
-  end else begin
-    let sd' =
-      try
-        Hashtbl.find structs sd.sd_name
-      with Not_found ->
-        let sd' = { sd_name = sd.sd_name; sd_mod = !module_name;
-                    sd_stamp = 0; sd_fields = [] } in
-        if sd.sd_name <> "" then Hashtbl.add structs sd.sd_name sd';
-        sd' in
-    sd'.sd_stamp <- newstamp();
-    sd'.sd_fields <- List.map normalize_field sd.sd_fields;
-    all_type_decls := Comp_structdecl sd' :: !all_type_decls;
-    sd'
-  end
+  process_declarator structs sd.sd_name sd.sd_fields
+    (fun () ->
+      { sd_name = sd.sd_name; sd_mod = !module_name;
+        sd_stamp = 0; sd_fields = [] })
+    (fun sd' ->
+      sd'.sd_stamp <- newstamp();
+      sd'.sd_fields <- List.map normalize_field sd.sd_fields;
+      all_type_decls := Comp_structdecl sd' :: !all_type_decls)
 
 and enter_union ud =
-  if ud.ud_cases = [] then begin
-    let ud' = { ud_name = ud.ud_name; ud_mod = !module_name;
-                ud_stamp = 0; ud_cases = [] } in
-    Hashtbl.add unions ud.ud_name ud';
-    ud
-  end else begin
-    let ud' =
-      try
-        Hashtbl.find unions ud.ud_name
-      with Not_found ->
-        let ud' = { ud_name = ud.ud_name; ud_mod = !module_name;
-                    ud_stamp = 0; ud_cases = [] } in
-        if ud.ud_name <> "" then Hashtbl.add unions ud.ud_name ud';
-        ud' in
-    ud'.ud_stamp <- newstamp();
-    ud'.ud_cases <- List.map normalize_case ud.ud_cases;
-    all_type_decls := Comp_uniondecl ud' :: !all_type_decls;
-    ud'
-  end
+  process_declarator unions ud.ud_name ud.ud_cases
+    (fun () ->
+      { ud_name = ud.ud_name; ud_mod = !module_name;
+        ud_stamp = 0; ud_cases = [] })
+    (fun ud' ->
+      ud'.ud_stamp <- newstamp();
+      ud'.ud_cases <- List.map normalize_case ud.ud_cases;
+      all_type_decls := Comp_uniondecl ud' :: !all_type_decls)
 
 and enter_enum en =
-  if en.en_consts = [] then begin
-    let en' = { en_name = en.en_name; en_mod = !module_name;
-                en_stamp = 0; en_consts = [] } in
-    Hashtbl.add enums en.en_name en';
-    en
-  end else begin
-    let en' =
-      try
-        Hashtbl.find enums en.en_name
-      with Not_found ->
-        let en' = { en_name = en.en_name; en_mod = !module_name;
-                    en_stamp = 0; en_consts = [] } in
-        if en.en_name <> "" then Hashtbl.add enums en.en_name en';
-        en' in
-    en'.en_stamp <- newstamp();
-    en'.en_consts <- en.en_consts;
-    all_type_decls := Comp_enumdecl en' :: !all_type_decls;
-    en'
-  end
+  process_declarator enums en.en_name en.en_consts
+    (fun () ->
+      { en_name = en.en_name; en_mod = !module_name;
+        en_stamp = 0; en_consts = [] })
+    (fun en' ->
+      en'.en_stamp <- newstamp();
+      en'.en_consts <- en.en_consts;
+      all_type_decls := Comp_enumdecl en' :: !all_type_decls)
 
 let normalize_fundecl fd =
   current_function := fd.fun_name;
@@ -178,23 +163,21 @@ let enter_typedecl td =
   td'
 
 let normalize_interface i =
-  match i.intf_methods with
-    [] ->
-      {i with intf_mod = !module_name}
-  | _  ->
+  process_declarator intfs i.intf_name i.intf_methods
+    (fun () ->
+      { intf_name = i.intf_name; intf_mod = !module_name;
+        intf_super = i.intf_super; intf_methods = []; intf_uid = "" })
+    (fun i' ->
       let super =
         try
           Hashtbl.find intfs i.intf_super.intf_name
         with Not_found ->
           error (sprintf "unknown interface %s as super-interface of %s"
                          i.intf_super.intf_name i.intf_name) in
-      let i' =
-        {i with intf_mod = !module_name; intf_super = super;
-                intf_methods = []} in
-      Hashtbl.add intfs i.intf_name i';
+      i'.intf_uid <- i.intf_uid;
+      i'.intf_super <- super;
       i'.intf_methods <- List.map normalize_fundecl i.intf_methods;
-      all_type_decls := Comp_interface i' :: !all_type_decls;
-      i'
+      all_type_decls := Comp_interface i' :: !all_type_decls)
 
 let normalize_component = function
     Comp_typedecl td -> Comp_typedecl(enter_typedecl td)
@@ -231,21 +214,11 @@ let rec normalize_file name =
     with Not_found ->
       eprintf "Cannot find file %s\n" name;
       raise Error in
-  let intflist = read_file filename in
+  let (imports, comps) = read_file filename in
   let pref =
     if Filename.check_suffix name ".idl"
     then Filename.chop_suffix name ".idl"
     else name in
-  (* Process all interfaces *)
-  module_name := Filename.basename pref;
-  all_type_decls := [];
-  currstamp := 0;
-  let (comps, imports) = List.split (List.map normalize_intf intflist) in
-  let decls = !all_type_decls in
-  all_type_decls := [];
-  (List.concat comps, List.concat imports, decls)
-
-and normalize_intf i =
   (* Recursively process the imports *)
   let importlist =
     List.map
@@ -254,41 +227,15 @@ and normalize_intf i =
           let (comps, imports, decls) = normalize_file name in
           imports @ comps
         end)
-      i.iif_imports in
-  (* Determine the list of components to normalize *)
-  let comps =
-    if not i.iif_obj then
-      (* This is a regular interface: just extract its components *)
-      i.iif_comps
-    else begin
-      (* This is an object interface: split into methods and other definitions,
-         lift the definitions out, build an interface from the methods *)
-      let rec split_comps = function
-          [] -> ([], [])
-        | Comp_fundecl fd :: rem ->
-            let (m, o) = split_comps rem in (fd :: m, o)
-        | comp :: rem ->
-            let (m, o) = split_comps rem in (m, comp :: o) in
-      let (methods, others) =
-        split_comps i.iif_comps in
-      let rec super = (* dummy super interface, only intf_name is used *)
-        { intf_name = i.iif_super; intf_mod = ""; intf_super = super;
-          intf_methods = []; intf_uid = "" } in
-      let intf_forward =
-        { intf_name = i.iif_name; intf_mod = ""; intf_super = super;
-          intf_methods = []; intf_uid = "" } in
-      let intf =
-        { intf_name = i.iif_name; intf_mod = ""; intf_super = super;
-          intf_methods = methods; intf_uid = i.iif_uid } in
-      Comp_interface intf_forward :: others @ [Comp_interface intf]
-    end in
-  (* Normalize the components *)
-  let old_default = !pointer_default in
-  pointer_default := i.iif_ptr_default;
+      imports in
+  (* Normalize the components and collect all type definitions *)
+  module_name := Filename.basename pref;
+  all_type_decls := [];
+  currstamp := 0;
   let comps' = List.map normalize_component comps in
-  pointer_default := old_default;
-  (* Return normalized components + import list *)
-  (comps', List.concat importlist)
+  let decls = !all_type_decls in
+  all_type_decls := [];
+  (comps', List.concat importlist, decls)
 
 let process_file f =
   imports_read := StringSet.empty;

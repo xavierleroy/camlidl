@@ -18,7 +18,6 @@ let integer_type = function
   | SChar -> "signed char"
   | Byte -> "unsigned char"
   | Boolean -> "int"
-  | WChar -> "wchar_t"
 
 let rec out_c_decl oc (id, ty) =
   match ty with
@@ -76,7 +75,7 @@ let out_mltype_stamp oc kind modl name stamp =
 let rec out_ml_type oc ty =
   match ty with
     Type_int Boolean -> output_string oc "bool"
-  | Type_int (Char | UChar) -> output_string oc "char"
+  | Type_int (Char | UChar | SChar) -> output_string oc "char"
   | Type_int kind -> output_string oc "int"
   | Type_float | Type_double -> output_string oc "float"
   | Type_void -> output_string oc "void"
@@ -93,7 +92,7 @@ let rec out_ml_type oc ty =
         Ref -> out_ml_type oc ty
       | Unique -> fprintf oc "%a option" out_ml_type ty
       | Ptr -> fprintf oc "%a Com.opaque" out_ml_type ty
-      | _ -> assert false
+      | Ignore -> assert false
       end
   | Type_array(attr, ty) ->
       if attr.is_string

@@ -19,15 +19,6 @@ type component =
 
 type components = component list
 
-type idl_intf =
-  { iif_name: string;
-    iif_imports: string list;
-    iif_comps: components;
-    iif_super: string;
-    iif_obj: bool;
-    iif_uid: string;
-    iif_ptr_default: Idltypes.pointer_kind }
-
 (* Generate the ML interface *)
 
 (* Generate the type definitions common to the .ml and the .mli *)
@@ -57,7 +48,8 @@ let gen_mli_file oc intf all_type_decls =
       Comp_fundecl fd -> Funct.ml_declaration oc fd
     | Comp_constdecl cd -> Constdecl.ml_declaration oc cd
     | Comp_diversion((Div_mli | Div_ml_mli), txt) -> output_string oc txt
-    | Comp_interface i -> Intf.ml_class_declaration oc i
+    | Comp_interface i ->
+        if i.intf_methods <> [] then Intf.ml_class_declaration oc i
     | _ -> () in
   List.iter emit_fundecl intf
 
@@ -71,7 +63,8 @@ let gen_ml_file oc intf all_type_decls =
       Comp_fundecl fd -> Funct.ml_declaration oc fd
     | Comp_constdecl cd -> Constdecl.ml_definition oc cd
     | Comp_diversion((Div_ml | Div_ml_mli), txt) -> output_string oc txt
-    | Comp_interface i -> Intf.ml_class_definition oc i
+    | Comp_interface i ->
+        if i.intf_methods <> [] then Intf.ml_class_definition oc i
     | _ -> () in
   List.iter emit_fundecl intf
 

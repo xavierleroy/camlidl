@@ -22,14 +22,25 @@ let no_switch = { discriminant = null_attr_var }
 
 let no_enum_attr = { bitset = false }
 
+let default_ptrkind = Unique (* as per the MIDL specs *)
+
+let pointer_default = ref default_ptrkind
+
 (* Apply a type-related attribute to a type *)
 
 let rec merge_array_attr merge_fun rexps ty =
   match (rexps, ty) with
     ([], _) -> ty
   | (re :: rem, Type_array(attr, ty_elt)) ->
-      let attr' = if re == null_attr_var then attr else merge_fun attr re in
+      let attr' =
+        if re == null_attr_var then attr else merge_fun attr re in
       Type_array(attr', merge_array_attr merge_fun rem ty_elt)
+  | (re :: rem, Type_pointer(kind, ty_elt)) ->
+      if re == null_attr_var then
+        Type_pointer(kind, merge_array_attr merge_fun rem ty_elt)
+      else
+        Type_array(merge_fun no_bounds re,
+                   merge_array_attr merge_fun rem ty_elt)
   | (_, _) ->
       eprintf "Warning: size_is or length_is attribute applied to \
                non-array, ignored.\n";
@@ -56,10 +67,10 @@ let rec apply_type_attribute ty attr =
       Type_array({attr with null_terminated = true}, ty_elt)
   | (("null_terminated", _), Type_pointer(attr, ty_elt)) ->
       Type_array({no_bounds with null_terminated = true}, ty_elt)
-  | (("size_is", rexps), Type_array(_, _)) ->
+  | (("size_is", rexps), (Type_array(_, _) | Type_pointer(_, _))) ->
       merge_array_attr (fun attr re -> {attr with size = Some re})
                        rexps ty
-  | (("length_is", rexps), Type_array(_, _)) ->
+  | (("length_is", rexps), (Type_array(_, _) | Type_pointer(_, _))) ->
       merge_array_attr (fun attr re -> {attr with length = Some re})
                        rexps ty
   | (("switch_is", [rexp]), Type_union(name, attr)) ->
@@ -168,16 +179,22 @@ let make_typedef attrs tybase decls =
       {td' with td_type = ty'})
     decls
 
+let update_pointer_default attrs =
+  List.iter
+    (function
+        ("pointer_default", [Var "ref"]) -> pointer_default := Ref
+      | ("pointer_default", [Var "unique"]) -> pointer_default := Unique
+      | ("pointer_default", [Var "ptr"]) -> pointer_default := Ptr
+      | _ -> ())
+    attrs
+
 let make_interface name attrs superintf imports comps =
   let obj = ref false in
   let uid = ref "" in
-  let ptrdef = ref Unique in
   let parse_attr = function
     ("object", _) -> obj := true
   | ("uuid", [Var u]) -> uid := u
-  | ("pointer_default", [Var "ref"]) -> ptrdef := Ref
-  | ("pointer_default", [Var "unique"]) -> ptrdef := Unique
-  | ("pointer_default", [Var "ptr"]) -> ptrdef := Ptr
+  | ("pointer_default", _) -> () (*treated elsewhere*)
   | ("local", _) -> () (*ignored*)
   | ("endpoint", _) -> () (*ignored*)
   | ("version", _) -> () (*ignored*)
@@ -203,13 +220,38 @@ let make_interface name attrs superintf imports comps =
                   name s;
           ""
         end in
-  { iif_name = name;
-    iif_imports = imports;
-    iif_comps = comps;
-    iif_super = supername;
-    iif_obj = !obj;
-    iif_uid = !uid;
-    iif_ptr_default = !ptrdef }  
+  pointer_default := default_ptrkind;
+  if not !obj then
+    (imports, comps)
+  else begin
+    (* This is an object interface: split into methods and other definitions,
+       lift the definitions out, build an interface from the methods *)
+    let rec split_comps = function
+        [] -> ([], [])
+      | Comp_fundecl fd :: rem ->
+          let (m, o) = split_comps rem in (fd :: m, o)
+      | comp :: rem ->
+          let (m, o) = split_comps rem in (m, comp :: o) in
+    let (methods, others) =
+      split_comps comps in
+    let rec super = (* dummy super interface, only intf_name is used *)
+      { intf_name = supername; intf_mod = ""; intf_super = super;
+        intf_methods = []; intf_uid = "" } in
+    let intf_forward =
+      { intf_name = name; intf_mod = ""; intf_super = super;
+        intf_methods = []; intf_uid = "" } in
+    let intf =
+      { intf_name = name; intf_mod = ""; intf_super = super;
+        intf_methods = methods; intf_uid = !uid } in
+    (imports,
+     Comp_interface intf :: others @ [Comp_interface intf_forward])
+  end
+
+let make_forward_interface name =
+  let rec intf =
+    { intf_name = name; intf_mod = ""; intf_super = intf;
+      intf_methods = []; intf_uid = "" } in
+  Comp_interface intf
 
 let make_diversion (id, txt) =
   let kind =
@@ -249,6 +291,12 @@ let handle_t_type() =
 let hyper_type() =
   eprintf "Warning: type `hyper' unsupported, treating as `long'.\n";
   Long
+
+(* Warn about the wchar_t type *)
+
+let wchar_t_type() =
+  eprintf "Warning: type `wchar_t' unsupported, treating as `char'.\n";
+  Type_int Char
 
 (* Apply a "star" modifier to an attribute *)
 
@@ -345,84 +393,54 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 /* Start symbol */
 
 %start file
-%type <File.idl_intf list> file
+%type <string list * File.components> file
 
 %%
 
 /* Main entry point */
 
-file: interface_list EOF
-        { List.rev $1 }
+file: component_list EOF
+        { let (i, c) = $1 in (List.rev i, List.rev c) }
 ;
 
-interface_list:
-    /*empty*/
-        { [] }
-  | interface_list interface
-        { $2 :: $1 }
-;
-
-interface:
-    /* Valid MIDL attributes: object uuid local endpoint version
-       pointer_default implicit_handle auto_handle */
-    attributes INTERFACE IDENT opt_superinterface
-    LBRACE import_list component_list RBRACE
-        { make_interface $3 $1 $4 (List.rev $6) (List.rev $7) }
-  | attributes INTERFACE IDENT SEMI
-        { make_interface $3 $1 None [] [] }
-;
-
-opt_superinterface:
-    /*empty*/
-        { None }
-  | COLON IDENT
-        { Some $2 }
-;
-
-/* Import list */
-
-import_list:
-    /* empty */
-        { [] }
-  | import_list IMPORT name_list SEMI
-        { $3 @ $1 }
-;
-
-name_list:
-    STRING
-        { [$1] }
-  | name_list COMMA STRING
-        { $3 :: $1 }
-;
-
-/* Interface components */
+/* Components */
 
 component_list:
     /*empty*/
-        { [] }
+        { [], [] }
   | component_list component
-        { $2 @ $1 }
+        { let (il, cl) = $1 and (i, c) = $2 in (i @ il, c @ cl) }
 ;
 
 component:
     CPP_QUOTE LPAREN STRING RPAREN
-        { [] }
+        { [], [] }
   | const_decl SEMI
-        { [Comp_constdecl $1] }
+        { [], [Comp_constdecl $1] }
   | type_decl SEMI
-        { List.map (fun td -> Comp_typedecl td) $1 }
+        { [], List.map (fun td -> Comp_typedecl td) $1 }
   | attributes struct_declarator SEMI
         /* Attributes are ignored, they are allowed just to avoid a
            parsing ambiguity with fun_decl */
-        { [Comp_structdecl $2] }
+        { [], [Comp_structdecl $2] }
   | attributes union_declarator SEMI
-        { [Comp_uniondecl $2] }
+        { [], [Comp_uniondecl $2] }
   | attributes enum_declarator SEMI
-        { [Comp_enumdecl $2] }
+        { [], [Comp_enumdecl $2] }
   | fun_decl SEMI
-        { [Comp_fundecl $1] }
+        { [], [Comp_fundecl $1] }
+  | attributes INTERFACE IDENT opt_superinterface
+    LBRACE component_list RBRACE
+    /* Valid MIDL attributes: object uuid local endpoint version
+           pointer_default implicit_handle auto_handle */
+        { let (imports, comps) = $6 in make_interface $3 $1 $4 imports comps }
+  | attributes INTERFACE IDENT SEMI
+        { [], [make_forward_interface $3] }
+  | IMPORT import_list SEMI
+        { List.rev $2, [] }
   | DIVERSION
-        { let (kind, txt) = make_diversion $1 in [Comp_diversion(kind, txt)] }
+        { let (kind, txt) = make_diversion $1 in
+          [], [Comp_diversion(kind, txt)] }
 ;
 
 /* Constant declaration */
@@ -527,7 +545,7 @@ simple_type_spec:
   | BYTE                                        { Type_int Byte }
   | VOID                                        { Type_void }
   | IDENT                                       { Type_named("", $1) }
-  | WCHAR_T                                     { Type_int WChar }
+  | WCHAR_T                                     { wchar_t_type() }
   | HANDLE_T                                    { handle_t_type() }
 ;
 integer_size:
@@ -557,7 +575,7 @@ pointer_opt:
     /* empty */
         { fun ty -> ty }
   | pointer_opt STAR
-        { fun ty -> Type_pointer(Default, ty) }
+        { fun ty -> Type_pointer(!pointer_default, ty) }
 ;
 direct_declarator:
     IDENT
@@ -647,8 +665,10 @@ enum_case:
 /* Attributes */
 
 attributes:
-    /* empty */                                         { [] }
-  | LBRACKET attribute_list RBRACKET                    { List.rev $2 }
+    /* empty */
+        { [] }
+  | LBRACKET attribute_list RBRACKET
+        { let a = List.rev $2 in update_pointer_default a; a }
 ;
 attribute_list:
     attribute                                           { [$1] }
@@ -750,3 +770,22 @@ opt_ident:
     /*empty*/                   { "" }
   | IDENT                       { $1 }
 ;
+
+/* Optional name of superinterface for interfaces */
+
+opt_superinterface:
+    /*empty*/
+        { None }
+  | COLON IDENT
+        { Some $2 }
+;
+
+/* Import list */
+
+import_list:
+    STRING
+        { [$1] }
+  | import_list COMMA STRING
+        { $3 :: $1 }
+;
+
