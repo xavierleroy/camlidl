@@ -83,7 +83,7 @@ let union_c_to_ml c_to_ml oc ud c v discr =
     {case_field = None; case_label = None} -> (* default case, no arg *)
       iprintf oc "default:\n";
       increase_indent();
-      iprintf oc "%s = alloc_small(1, %d);\n" v !tag_constr;
+      iprintf oc "%s = camlidl_alloc_small(1, %d);\n" v !tag_constr;
       incr tag_constr;
       iprintf oc "Field(%s, 0) = Val_int(%s);\n" v discr;
       decrease_indent();
@@ -96,7 +96,7 @@ let union_c_to_ml c_to_ml oc ud c v discr =
       c_to_ml oc "_badprefix." ty (sprintf "%s.%s" c n) v';
       iprintf oc "Begin_root(%s)\n" v';
       increase_indent();
-      iprintf oc "%s = alloc_small(2, %d);\n" v !tag_constr;
+      iprintf oc "%s = camlidl_alloc_small(2, %d);\n" v !tag_constr;
       incr tag_constr;
       iprintf oc "Field(%s, 0) = Val_int(%s);\n" v discr;
       iprintf oc "Field(%s, 1) = %s;\n" v v';
@@ -116,7 +116,7 @@ let union_c_to_ml c_to_ml oc ud c v discr =
       c_to_ml oc "_badprefix." ty (sprintf "%s.%s" c n) v';
       iprintf oc "Begin_root(%s)\n" v';
       increase_indent();
-      iprintf oc "%s = alloc_small(1, %d);\n" v !tag_constr;
+      iprintf oc "%s = camlidl_alloc_small(1, %d);\n" v !tag_constr;
       incr tag_constr;
       iprintf oc "Field(%s, 0) = %s;\n" v v';
       decrease_indent();

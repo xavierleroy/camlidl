@@ -115,7 +115,7 @@ let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
     (* Allocate ML array *)
     let alloc_function =
       if nsize < 64 && no_allocation_type ty_elt
-      then "alloc_small" else "alloc" in
+      then "camlidl_alloc_small" else "camlidl_alloc" in
     if is_float_type ty_elt
     then iprintf oc "%s = %s(%s * Double_wosize, Double_array_tag);\n"
                   v alloc_function size

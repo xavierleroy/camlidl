@@ -224,7 +224,7 @@ let emit_wrapper oc fundecl =
           c_to_ml pc "" ty name (sprintf "_vres[%d]" !pos);
           incr pos)
         outs;
-      iprintf pc "_vresult = alloc_small(%d, 0);\n" num_outs;
+      iprintf pc "_vresult = camlidl_alloc_small(%d, 0);\n" num_outs;
       copy_values_to_block pc "_vres" "_vresult" num_outs;
       decrease_indent();
       iprintf pc "End_roots()\n";

@@ -128,14 +128,14 @@ let rec c_to_ml oc pref ty c v =
           c_to_ml oc pref ty_elt (sprintf "*%s" c) v';
           iprintf oc "Begin_root(%s)\n" v';
           increase_indent();
-          iprintf oc "%s = alloc_small(1, 0);\n" v;
+          iprintf oc "%s = camlidl_alloc_small(1, 0);\n" v;
           iprintf oc "Field(%s, 0) = %s;\n" v v';
           decrease_indent();
           iprintf oc "End_roots();\n";
           decrease_indent();
           iprintf oc "}\n"
       | Ptr ->
-          iprintf oc "%s = alloc(1, Abstract_tag);\n" v;
+          iprintf oc "%s = camlidl_alloc_small(1, Abstract_tag);\n" v;
           iprintf oc "Field(%s, 0) = (value) %s;\n" v c
       | Ignore ->
           ()

@@ -79,7 +79,8 @@ let struct_ml_to_c ml_to_c oc sd v c =
 let struct_c_to_ml c_to_ml oc sd c v =
   if all_float_fields sd.sd_fields then begin
     let nfields = List.length sd.sd_fields in
-    iprintf oc "%s = alloc_small(%d * Double_wosize, Double_tag);\n" v nfields;
+    iprintf oc "%s = camlidl_alloc_small(%d * Double_wosize, Double_tag);\n"
+               v nfields;
     let rec convert_fields pos = function
       [] -> ()
     | f :: rem ->
@@ -103,7 +104,7 @@ let struct_c_to_ml c_to_ml oc sd c v =
                    (sprintf "%s.%s" c n) (sprintf "%s[%d]" v' pos);
         convert_fields (pos + 1) rem in
     convert_fields 0 sd.sd_fields;
-    iprintf oc "%s = alloc_small(%d, 0);\n" v nfields;
+    iprintf oc "%s = camlidl_alloc_small(%d, 0);\n" v nfields;
     copy_values_to_block oc v' v nfields;
     decrease_indent();
     iprintf oc "End_roots()\n"
