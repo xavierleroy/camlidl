@@ -1,0 +1,20 @@
+// --!! Toplevel struct typedefs
+
+
+typedef struct __POINT
+   {
+     int x;
+     int y;
+   } Point;
+
+typedef Point*  PPoint;
+typedef PPoint* PPPoint;
+
+// Same shape and tag, different type name.
+typedef struct POINTa
+   {
+     int ax;
+     int ay;
+   } Point1;
+
+

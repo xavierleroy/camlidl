@@ -1,0 +1,3 @@
+//!! Generating code for pointers
+
+typedef [ref]int* foo;

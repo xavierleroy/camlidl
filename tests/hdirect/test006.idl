@@ -1,0 +1,51 @@
+//!! The IClassFactory interface
+
+// definitions to make it self contained.
+typedef int BOOL;
+typedef unsigned long DWORD;
+typedef unsigned short WORD;
+typedef unsigned char BYTE;
+typedef struct _GUID
+{
+    DWORD Data1;
+    WORD  Data2;
+    WORD  Data3;
+    BYTE  Data4[8];
+} GUID;
+typedef GUID IID;
+typedef IID *REFIID;
+typedef int HRESULT;
+
+//Cheat to avoid having to an `import' of the
+//the IUnknown interface.
+typedef char *IUnknown;
+
+[
+    object,
+    uuid(00000001-0000-0000-C000-000000000046),
+    pointer_default(unique)
+]
+
+interface IClassFactory //: IUnknown
+{
+    typedef [unique] IClassFactory * LPCLASSFACTORY;
+
+    [local]
+    HRESULT CreateInstance(
+        [in, unique] IUnknown * pUnkOuter,
+        [in] REFIID riid,
+        [out, iid_is(riid)] void **ppvObject);
+
+    [call_as(CreateInstance)]
+    HRESULT RemoteCreateInstance(
+        [in] REFIID riid,
+        [out, iid_is(riid)] IUnknown ** ppvObject);
+
+    [local]
+    HRESULT LockServer(
+	[in] BOOL fLock);
+
+    [call_as(LockServer)]
+    HRESULT __stdcall RemoteLockServer(
+	[in] BOOL fLock);
+}
