@@ -4,7 +4,7 @@ CAMLIDL=../compiler/camlidl
 CAMLC=ocamlc -I ../lib
 CC=gcc
 CFLAGS=-Wall -I.. -I$(OCAMLLIB)
-CCPP=egcs
+CCPP=gcc
 CPPFLAGS=-Wall -I.. -I$(OCAMLLIB)
 
 TESTS=basics.idl arrays.idl structs.idl unions.idl unix.idl
