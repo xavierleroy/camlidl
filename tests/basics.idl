@@ -42,4 +42,7 @@ int f15(int x);
 void f16([string] const char * p);
 [string] const char * f17();
 
+/* 64-bit integers */
+hyper int f18(unsigned __int64 x, long long y);
+
 }
