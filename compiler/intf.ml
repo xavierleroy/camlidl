@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: intf.ml,v 1.19 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: intf.ml,v 1.20 2001-06-17 10:50:25 xleroy Exp $ *)
 
 (* Handling of COM-style interfaces *)
 
@@ -280,7 +280,7 @@ let emit_callback_wrapper oc intf meth =
   end;
   (* Convert outputs from Caml to C *)
   let convert_output ty src dst =
-    match (dst, ty) with
+    match (dst, scrape_const ty) with
       ("_res", _) -> ml_to_c pc false "" ty src dst
     | (_, Type_pointer(_, ty')) -> ml_to_c pc false "" ty' src ("*" ^ dst)
     | (_, _) ->

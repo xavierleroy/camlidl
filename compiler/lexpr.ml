@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexpr.ml,v 1.7 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: lexpr.ml,v 1.8 2001-06-17 10:50:25 xleroy Exp $ *)
 
 (* Evaluation and pretty-printing of limited expressions *)
 
@@ -130,7 +130,7 @@ let rec tstype trail = function
       add_string b "int"; add_string b trail
   | Type_named(modl, ty_name) ->
       add_string b ty_name; add_string b trail
-  | Type_pointer(attr, (Type_array(_, _) as ty)) ->
+  | Type_pointer(attr, (Type_array(_,_) as ty)) ->
       tstype (sprintf "(*%s)" trail) ty
   | Type_pointer(attr, ty) ->
       tstype (sprintf "*%s" trail) ty
@@ -144,6 +144,8 @@ let rec tstype trail = function
       tstype (sprintf "*%s" trail) ty
   | Type_interface(modl, intf_name) ->
       add_string b "struct "; add_string b intf_name; add_string b trail
+  | Type_const ty ->
+      tstype (sprintf " const %s" trail) ty
 
 and integer_type = function
     Int -> "int"
@@ -318,9 +320,9 @@ let rec is_dependent v ty =
       || is_dependent v ty
   | Type_union(name, attr) ->
       is_free v attr.discriminant
-  | Type_pointer(_, Type_union(name, attr)) ->
-      is_free v attr.discriminant
   | Type_pointer(_, ty) ->
+      is_dependent v ty
+  | Type_const ty ->
       is_dependent v ty
   | _ -> false
 

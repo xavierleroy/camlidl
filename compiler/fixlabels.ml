@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: fixlabels.ml,v 1.3 2000-08-19 11:04:56 xleroy Exp $ *)
+(* $Id: fixlabels.ml,v 1.4 2001-06-17 10:50:24 xleroy Exp $ *)
 
 (* Prefix record labels with struct/typedef name if required or requested *)
 
@@ -47,6 +47,7 @@ let rec collect_type = function
   | Type_bigarray(_, ty) -> collect_type ty
   | Type_struct sd -> List.iter collect_field sd.sd_fields
   | Type_union(ud, _) -> List.iter collect_case ud.ud_cases
+  | Type_const ty -> collect_type ty
   | _ -> ()
 
 and collect_field f =
@@ -83,6 +84,7 @@ let rec prefix_type pref = function
   | Type_union(ud, attr) -> Type_union(prefix_union pref ud, attr)
   | Type_pointer(kind, ty) -> Type_pointer(kind, prefix_type pref ty)
   | Type_array(attr, ty) -> Type_array(attr, prefix_type pref ty)
+  | Type_const ty -> Type_const(prefix_type pref ty)
   | ty -> ty
 
 and prefix_struct pref sd =

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.mli,v 1.10 2001-06-09 14:48:19 xleroy Exp $ *)
+(* $Id: cvttyp.mli,v 1.11 2001-06-17 10:50:24 xleroy Exp $ *)
 
 open Idltypes
 
@@ -37,5 +37,11 @@ val out_mltype_name: out_channel -> string * string -> unit
 (* Expand a typedef name, returning its definition *)
 val expand_typedef: (string -> idltype) ref
 
-(* Expand typedef in type *)
+(* Expand typedef and const in type *)
 val scrape_type: idltype -> idltype
+
+(* Remove leading "const" from a type *)
+val scrape_const: idltype -> idltype
+
+(* Determine if a type is an ignored pointer *)
+val is_ignored: idltype -> bool

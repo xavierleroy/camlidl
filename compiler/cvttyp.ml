@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.ml,v 1.20 2001-06-09 14:48:19 xleroy Exp $ *)
+(* $Id: cvttyp.ml,v 1.21 2001-06-17 10:50:24 xleroy Exp $ *)
 
 open Utils
 open Printf
@@ -67,6 +67,8 @@ let rec out_c_decl oc (id, ty) =
       out_c_decl oc (sprintf "*%s" id, ty)
   | Type_interface(modl, intf_name) ->
       fprintf oc "struct %s %s" intf_name id
+  | Type_const ty' ->
+      out_c_decl oc (sprintf "const %s" id, ty')
 
 and out_struct oc sd =
   fprintf oc "struct ";
@@ -190,6 +192,8 @@ let rec out_ml_type oc ty =
         out_ml_type ty (ml_bigarray_kind ty) layout typeconstr
   | Type_interface(modl, name) ->
       fprintf oc "%a Com.interface" out_mltype_name (modl, name)      
+  | Type_const ty' ->
+      out_ml_type oc ty'
 
 (* Output a list of ML types *)
 
@@ -203,7 +207,19 @@ let out_ml_types oc sep types =
 (* Expand a typedef name, returning its definition *)
 let expand_typedef = ref ((fun _ -> assert false) : string -> idltype)
 
-(* Expand typedef in type *)
+(* Expand typedef and const in type *)
 let rec scrape_type = function
     Type_named(modname, tyname) -> scrape_type (!expand_typedef tyname)
+  | Type_const ty -> scrape_type ty
   | ty -> ty
+
+(* Remove leading "const" from a type *)
+let rec scrape_const = function
+    Type_const ty -> scrape_const ty
+  | ty -> ty
+
+(* Determine if a type is an ignored pointer *)
+let rec is_ignored = function
+    Type_pointer(Ignore, _) -> true
+  | Type_const ty -> is_ignored ty
+  | _ -> false

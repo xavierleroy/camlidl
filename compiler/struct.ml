@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: struct.ml,v 1.12 2001-06-09 14:48:20 xleroy Exp $ *)
+(* $Id: struct.ml,v 1.13 2001-06-17 10:50:25 xleroy Exp $ *)
 
 (* Handling of structures *)
 
@@ -25,9 +25,6 @@ open Cvttyp
 
 let is_dependent_field name fields =
   List.exists (fun f -> Lexpr.is_dependent name f.field_typ) fields
-
-let is_ignored =
-  function Type_pointer(Ignore, _) -> true | _ -> false
 
 let remove_dependent_fields fields =
   list_filter
@@ -55,9 +52,9 @@ let struct_ml_to_c ml_to_c oc onstack sd v c =
       ml_to_c oc onstack (sprintf "%s." c) f.field_typ
                  v (sprintf "%s.%s" c f.field_name);
       List.iter
-        (function {field_typ = Type_pointer(Ignore, _); field_name = n} ->
-                    iprintf oc "%s.%s = NULL;\n" c n
-                | _ -> ())
+        (fun f ->
+          if is_ignored f.field_typ then
+            iprintf oc "%s.%s = NULL;\n" c f.field_name)
         sd.sd_fields
   | _ ->
       if all_float_fields sd.sd_fields then begin
@@ -70,16 +67,18 @@ let struct_ml_to_c ml_to_c oc onstack sd v c =
       end else begin
         let rec convert_fields pos = function
           [] -> ()
-        | {field_typ = Type_pointer(Ignore, _); field_name = n} :: rem ->
-            iprintf oc "%s.%s = NULL;\n" c n;
-            convert_fields pos rem
-        | {field_name = n} :: rem when is_dependent_field n sd.sd_fields ->
-            convert_fields pos rem
         | {field_typ = ty; field_name = n} :: rem ->
-            let v' = new_ml_variable() in
-            iprintf oc "%s = Field(%s, %d);\n" v' v pos;
-            ml_to_c oc onstack (sprintf "%s." c) ty v' (sprintf "%s.%s" c n);
-            convert_fields (pos + 1) rem in
+            if is_ignored ty then begin
+              iprintf oc "%s.%s = NULL;\n" c n;
+              convert_fields pos rem
+            end else if is_dependent_field n sd.sd_fields then
+              convert_fields pos rem
+            else begin
+              let v' = new_ml_variable() in
+              iprintf oc "%s = Field(%s, %d);\n" v' v pos;
+              ml_to_c oc onstack (sprintf "%s." c) ty v' (sprintf "%s.%s" c n);
+              convert_fields (pos + 1) rem
+            end in
         convert_fields 0 sd.sd_fields
       end
 
@@ -110,14 +109,16 @@ let struct_c_to_ml c_to_ml oc sd c v =
         increase_indent();
         let rec convert_fields pos = function
           [] -> ()
-        | {field_typ = Type_pointer(Ignore, _); field_name = n} :: rem ->
-            convert_fields pos rem
-        | {field_name = n} :: rem when is_dependent_field n sd.sd_fields ->
-            convert_fields pos rem
         | {field_typ = ty; field_name = n} :: rem ->
-            c_to_ml oc (sprintf "%s." c) ty
-                       (sprintf "%s.%s" c n) (sprintf "%s[%d]" v' pos);
-            convert_fields (pos + 1) rem in
+            if is_ignored ty then
+              convert_fields pos rem
+            else if is_dependent_field n sd.sd_fields then
+              convert_fields pos rem
+            else begin
+              c_to_ml oc (sprintf "%s." c) ty
+                         (sprintf "%s.%s" c n) (sprintf "%s[%d]" v' pos);
+              convert_fields (pos + 1) rem
+            end in
         convert_fields 0 sd.sd_fields;
         iprintf oc "%s = camlidl_alloc_small(%d, 0);\n" v nfields;
         copy_values_to_block oc v' v nfields;

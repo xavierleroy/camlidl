@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: array.ml,v 1.14 2001-06-09 14:48:19 xleroy Exp $ *)
+(* $Id: array.ml,v 1.15 2001-06-17 10:50:24 xleroy Exp $ *)
 
 (* Handling of arrays and bigarrays *)
 
@@ -35,6 +35,7 @@ let rec no_allocation_type = function
   | Type_double -> true
   | Type_pointer(kind, ty) -> kind = Ref && no_allocation_type ty
   | Type_enum _ -> true
+  | Type_const ty -> no_allocation_type ty
   | _ -> false  
 
 (* Translation from an ML array [v] to a C array [c] *)
