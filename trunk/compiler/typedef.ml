@@ -27,6 +27,7 @@ let declare_transl oc td =
 (* Translation function from the ML type to the C type *)
 
 let transl_ml_to_c oc td =
+  current_function := sprintf "typedef %s" td.td_name;
   let v = new_var "_v" in
   let c = new_var "_c" in
   fprintf oc "void _camlidl_ml2c_%s_%s(value %s, %s * %s)\n"
@@ -40,11 +41,13 @@ let transl_ml_to_c oc td =
   end;
   output_variable_declarations oc;
   end_diversion oc;
-  fprintf oc "}\n\n"
+  fprintf oc "}\n\n";
+  current_function := ""
 
 (* Translation function from the C type to the ML type *)
 
 let transl_c_to_ml oc td =
+  current_function := sprintf "typedef %s" td.td_name;
   let v = new_ml_variable() in
   let c = new_var "_c" in
   fprintf oc "value _camlidl_c2ml_%s_%s(%s * %s)\n"
@@ -63,7 +66,8 @@ let transl_c_to_ml oc td =
   iprintf pc "return %s;\n" v;
   output_variable_declarations oc;
   end_diversion oc;
-  fprintf oc "}\n\n"
+  fprintf oc "}\n\n";
+  current_function := ""
 
 (* Emit the translation functions *)
 

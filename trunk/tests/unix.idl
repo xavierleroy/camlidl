@@ -141,7 +141,7 @@ typedef [abstract] DIR * dir_handle;
 dir_handle opendir([string] char * filename);
 
 typedef struct {
-  [string] char d_name[];   // NAME_MAX in fact
+  [string] char d_name[256];   // NAME_MAX in fact
 } dirent;
 
 [unique] dirent * readdir(dir_handle d);

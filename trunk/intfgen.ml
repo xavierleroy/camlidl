@@ -18,6 +18,7 @@ let gen_ml_decls oc intf all_type_decls =
     | Comp_enumdecl e -> start_decl(); Enumdecl.ml_declaration oc e
     | _ -> () in
   List.iter emit_typedef all_type_decls;
+  fprintf oc "\n";
   (* Generate the function declarations *)
   let emit_fundecl = function
       Comp_fundecl fd -> Funct.ml_declaration oc fd
