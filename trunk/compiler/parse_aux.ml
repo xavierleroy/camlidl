@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.13 2001-07-30 14:45:40 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.14 2001-08-08 15:54:58 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -133,7 +133,14 @@ let rec apply_type_attribute ty attr =
   | (("unique", _), Type_pointer(attr, ty_elt)) ->
       Type_pointer(Unique, ty_elt)
   | (("unique", _), Type_array(attr, ty_elt)) ->
-      Type_array({attr with maybe_null = true}, ty_elt)
+      begin match attr.bound with
+        None ->
+          Type_array({attr with maybe_null = true}, ty_elt)
+      | Some _ ->
+          eprintf "%t: Warning: `unique' attribute not applicable to array \
+                     of fixed size, ignored\n" print_location;
+          Type_array(attr, ty_elt)
+      end
   | (("unique", _), Type_bigarray(attr, ty_elt)) ->
       Type_bigarray({attr with bigarray_maybe_null = true}, ty_elt)
   | (("ptr", _), Type_pointer(attr, ty_elt)) ->
