@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: com.mli,v 1.8 1999-03-15 15:21:39 xleroy Exp $ *)
+(* $Id: com.mli,v 1.9 1999-03-16 15:41:07 xleroy Exp $ *)
 
 (* Module [Com]: run-time library for COM components *)
 
@@ -110,6 +110,8 @@ val register_factory : 'a component_factory -> unit
 type hRESULT_int = int
 type hRESULT_bool = bool
 type bSTR = string
+        (* The Caml types corresponding to the IDL types [HRESULT_int],
+           [HRESULT_bool] and [BSTR], respectively. *)
 
 (*--*)
 
