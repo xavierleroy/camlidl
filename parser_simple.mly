@@ -109,7 +109,8 @@ let make_op_declaration attrs ty_res name params diversion =
   { fun_name = name;
     fun_res = apply_type_attributes ty_res attrs;
     fun_params = params;
-    fun_ccall = diversion }
+    fun_call = match diversion with None -> emit_standard_call
+                                  | Some s -> emit_custom_call s }
 
 let make_fields attrs tybase decls =
   List.map

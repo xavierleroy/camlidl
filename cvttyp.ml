@@ -87,6 +87,15 @@ let rec out_ml_type oc ty =
       then fprintf oc "string"
       else fprintf oc "%a array" out_ml_type ty
 
+(* Output a list of ML types *)
+
+let out_ml_types oc sep types =
+  match types with
+    [] -> fprintf oc "unit"
+  | (_, ty1) :: tyl ->
+      out_ml_type oc ty1;
+      List.iter (fun (_, ty) -> fprintf oc " %s " sep; out_ml_type oc ty) tyl
+
 (* Output a reference to a restricted expression *)
 
 let string_of_restr_expr = function Var s -> s | Deref s -> "*" ^ s
