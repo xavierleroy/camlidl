@@ -21,10 +21,10 @@ array.cmo: cvttyp.cmi idltypes.cmi utils.cmi variables.cmi array.cmi
 array.cmx: cvttyp.cmx idltypes.cmi utils.cmx variables.cmx array.cmi 
 cvttyp.cmo: idltypes.cmi cvttyp.cmi 
 cvttyp.cmx: idltypes.cmi cvttyp.cmi 
-cvtval.cmo: cvttyp.cmi enum.cmi idltypes.cmi struct.cmi union.cmi utils.cmi \
-    variables.cmi cvtval.cmi 
-cvtval.cmx: cvttyp.cmx enum.cmx idltypes.cmi struct.cmx union.cmx utils.cmx \
-    variables.cmx cvtval.cmi 
+cvtval.cmo: array.cmi cvttyp.cmi enum.cmi idltypes.cmi struct.cmi union.cmi \
+    utils.cmi variables.cmi cvtval.cmi 
+cvtval.cmx: array.cmx cvttyp.cmx enum.cmx idltypes.cmi struct.cmx union.cmx \
+    utils.cmx variables.cmx cvtval.cmi 
 enum.cmo: idltypes.cmi utils.cmi variables.cmi enum.cmi 
 enum.cmx: idltypes.cmi utils.cmx variables.cmx enum.cmi 
 enumdecl.cmo: cvtval.cmi enum.cmi idltypes.cmi utils.cmi variables.cmi \
@@ -73,3 +73,4 @@ utils.cmo: utils.cmi
 utils.cmx: utils.cmi 
 variables.cmo: cvttyp.cmi idltypes.cmi utils.cmi variables.cmi 
 variables.cmx: cvttyp.cmx idltypes.cmi utils.cmx variables.cmi 
+camlidlruntime.o: camlidlruntime.c camlidlruntime.h
