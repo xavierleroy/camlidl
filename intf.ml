@@ -58,7 +58,7 @@ let ml_class_declaration oc intf =
     None ->
       fprintf oc "      val cintf: Com.interface\n"
   | Some s ->
-      fprintf oc "      inherit %s\n" (String.uncapitalize s.intf_name)
+      fprintf oc "      inherit %s_class\n" (String.uncapitalize s.intf_name)
   end;
   List.iter
     (fun meth ->
@@ -78,7 +78,7 @@ let ml_class_definition oc intf =
         { fun_name = sprintf "%s_%s" intf.intf_name meth.fun_name;
           fun_res = meth.fun_res;
           fun_params =
-            ("this", In, Type_named "Com.interface") :: meth.fun_params;
+            ("this", In, Type_named "llinterface") :: meth.fun_params;
           fun_call = None } in
       Funct.ml_declaration oc prim)
     intf.intf_methods;
@@ -90,7 +90,7 @@ let ml_class_definition oc intf =
     None ->
       fprintf oc "    val cintf = llintf\n"
   | Some s ->
-      fprintf oc "    inherit (%s llintf)\n" (String.uncapitalize s.intf_name)
+      fprintf oc "    inherit (%s_internal llintf)\n" (String.uncapitalize s.intf_name)
   end;
   List.iter
     (fun meth ->
@@ -144,7 +144,7 @@ let emit_callback_wrapper oc intf meth =
     fprintf oc "  %a;\n" out_c_decl ("_res", meth.fun_res);
   (* Convert inputs from C to Caml *)
   let pc = divert_output() in
-  iprintf pc "Begin_roots_block(_vres, %d)\n" (num_ins + 1);
+  iprintf pc "Begin_roots_block(_varg, %d)\n" (num_ins + 1);
   increase_indent();
   iprintf pc
     "_varg[0] = ((struct camlidl_intf *) this)->caml_object;\n";
@@ -158,7 +158,7 @@ let emit_callback_wrapper oc intf meth =
   decrease_indent();
   iprintf pc "End_roots();\n";
   (* Do the callback *)
-  iprintf pc "_vres = callbackN(Lookup(_varg[0], _vlabel), %d, _varg)\n"
+  iprintf pc "_vres = callbackN(Lookup(_varg[0], _vlabel), %d, _varg);\n"
              (num_ins + 1);
              (* FIXME: escaping exceptions *)
   (* Convert outputs from Caml to C *)
@@ -190,14 +190,21 @@ let emit_callback_wrapper oc intf meth =
 
 let emit_vtable oc intf =
   let rec emit_vtbl intf =
-    begin match intf.intf_super with
-      None -> ()
-    | Some s -> emit_vtbl s
-    end;
-    List.iter
-      (fun m -> fprintf oc "  /* %s */ (void *) camlidl_%s_%s_%s_callback,\n"
-                        m.fun_name !module_name intf.intf_name m.fun_name)
-      intf.intf_methods in
+    (* Temporary hack for IUnknown *)
+    if intf.intf_name = "IUnknown" then begin
+      fprintf oc "  (void *) camlidl_unknwn_IUnknown_QueryInterface_callback,\n";
+      fprintf oc "  (void *) camlidl_unknwn_IUnknown_AddRef_callback,\n";
+      fprintf oc "  (void *) camlidl_unknwn_IUnknown_Release_callback,\n";
+    end else begin
+      begin match intf.intf_super with
+        None -> ()
+      | Some s -> emit_vtbl s
+      end;
+      List.iter
+        (fun m -> fprintf oc "  /* %s */ (void *) camlidl_%s_%s_%s_callback,\n"
+                          m.fun_name !module_name intf.intf_name m.fun_name)
+        intf.intf_methods
+    end in
   fprintf oc "struct %sVtbl camlidl_%s_%s_vtbl = {\n"
              intf.intf_name !module_name intf.intf_name;
   emit_vtbl intf;
@@ -206,11 +213,11 @@ let emit_vtable oc intf =
 (* Generate ml2c function for an interface *)
 
 let emit_ml2c oc intf =
-  fprintf oc "interface %s * camlidl_ml2c_%s_interface_%s(value vobj, camlidl_arena * _arena)\n"
-             intf.intf_name !module_name intf.intf_name;
+  fprintf oc "void camlidl_ml2c_%s_interface_%s(value vobj, struct camlidl_intf * intf, camlidl_arena * _arena)\n"
+             !module_name intf.intf_name;
   fprintf oc "{\n";
-  fprintf oc "  return (interface %s *) camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, &IID_%s, _arena);\n"
-          intf.intf_name !module_name intf.intf_name intf.intf_name;
+  fprintf oc "  camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, intf, &IID_%s);\n"
+             !module_name intf.intf_name intf.intf_name;
   fprintf oc "}\n\n"
 
 (* Generate c2ml function for an interface *)
@@ -223,12 +230,12 @@ let emit_c2ml oc intf =
   fprintf oc "  value vintf;\n";
   fprintf oc "  if (intf->lpVtbl == &camlidl_%s_%s_vtbl)\n"
              !module_name intf.intf_name;
-  fprintf oc "    return ((struct camlidl_intf) intf)->caml_object;\n";
+  fprintf oc "    return ((struct camlidl_intf *) intf)->caml_object;\n";
   fprintf oc "  if (clos_new == NULL)\n";
-  fprintf oc "    clos_new = camlidl_find_named_value(\"new %s.%s_internal\");\n"
+  fprintf oc "    clos_new = caml_named_value(\"new %s.%s_internal\");\n"
              !module_name intf.intf_name;
   fprintf oc "  vintf = camlidl_pack_interface(intf);\n";
-  fprintf oc "  return callback(*clos_new, intf);\n";
+  fprintf oc "  return callback(*clos_new, vintf);\n";
   fprintf oc "}\n\n"
 
 (* Forward declaration of the translation functions *)
@@ -242,7 +249,9 @@ let declare_transl oc intf =
 (* Definition of the translation functions *)
 
 let emit_transl oc intf =
-  List.iter (emit_callback_wrapper oc intf) intf.intf_methods;
+  (* Temporary hack for IUnknown *)
+  if intf.intf_name <> "IUnknown" then
+    List.iter (emit_callback_wrapper oc intf) intf.intf_methods;
   emit_vtable oc intf;
   emit_ml2c oc intf;
   List.iter (Funct.emit_method_wrapper oc intf.intf_name) intf.intf_methods;

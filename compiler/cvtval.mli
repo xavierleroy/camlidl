@@ -6,3 +6,6 @@ val ml_to_c :
   out_channel -> bool -> string -> idltype -> string -> string -> unit
 val c_to_ml :
   out_channel -> string -> idltype -> string -> string -> unit
+
+val allocate_space :
+  out_channel -> bool -> idltype -> string -> string

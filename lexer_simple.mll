@@ -117,7 +117,7 @@ rule token = parse
       { CHARACTER(char_for_code lexbuf 2 1) }
   | "{" ['a'-'z''A'-'Z']* "|"
       { let s = Lexing.lexeme lexbuf in
-        let kind = String.lowercase (String.sub s 1 (String.length s - 1)) in
+        let kind = String.lowercase (String.sub s 1 (String.length s - 2)) in
         reset diversion_buffer;
         diversion lexbuf;
         DIVERSION(kind, get_stored diversion_buffer) }

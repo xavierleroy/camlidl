@@ -12,7 +12,7 @@ open Enum
 let ml_declaration oc en =
   if en.en_name = ""
   then fprintf oc "enum_%d =\n" en.en_stamp
-  else fprintf oc "%s =\n" en.en_name;
+  else fprintf oc "%s =\n" (String.uncapitalize en.en_name);
   List.iter
     (fun c -> fprintf oc "  | %s\n" (String.capitalize c))
     en.en_consts

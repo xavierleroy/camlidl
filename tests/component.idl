@@ -1,0 +1,42 @@
+{|
+
+#include "comcomp.h"
+typedef void * llinterface;
+
+void check_hresult(HRESULT h)
+{
+  char buffer[80];
+  if (h != 0) {
+    sprintf(buffer, "COM error %d", h);
+    failwith(buffer);
+  }
+}
+
+|}
+
+typedef [errorcode, errorcheck(check_hresult)] int HRESULT;
+typedef [mltype("Com.interface"),
+         c2ml(camlidl_pack_interface), ml2c(camlidl_unpack_interface)]
+    void * llinterface;
+
+[uuid(00000000-0000-0000-0000-000000000080)]
+interface IUnknown {
+  HRESULT QueryInterface([in, string] char * uuid, [out] llinterface * res);
+  unsigned long AddRef(void);
+  unsigned long Release(void);
+}
+
+[uuid(00000000-0000-0000-0000-000000000081)]
+interface IX : IUnknown {
+  void F(int x);
+}
+
+[uuid(00000000-0000-0000-0000-000000000081)]
+interface IY : IUnknown {
+  int G(int x);
+}
+
+IUnknown * create_instance(void);
+void test_ix(IX * c);
+void test_iy(IY * c);
+

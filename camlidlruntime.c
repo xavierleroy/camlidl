@@ -5,7 +5,10 @@
 #include <caml/memory.h>
 #include <caml/alloc.h>
 #include <caml/fail.h>
+#include <caml/callback.h>
 #include "camlidlruntime.h"
+
+/* Helper functions for conversion */
 
 value camlidl_find_enum(int n, int *flags, int nflags, char *errmsg)
 {
@@ -43,27 +46,29 @@ mlsize_t camlidl_ptrarray_size(void ** array)
   return i;
 }
 
-union alloc_block {
-  union alloc_block * next;
-  double force_align;
-};
+/* Malloc-like allocation with en masse deallocation */
 
-static union alloc_block * temp_blocks_head = NULL;
-
-void * camlidl_temp_alloc(size_t size)
+void * camlidl_malloc(size_t sz, camlidl_arena * arena)
 {
-  union alloc_block * res = stat_alloc(sizeof(union alloc_block) + size);
-  res->next = temp_blocks_head;
-  temp_blocks_head = res;
-  return (void *) (res + 1);
+  void * res = stat_alloc(sz);
+  if (arena != NULL) {
+    struct camlidl_block_list * l =
+      stat_alloc(sizeof(struct camlidl_block_list));
+    l->block = res;
+    l->next = *arena;
+    *arena = l;
+  }
+  return res;
 }
 
-void camlidl_temp_free(void)
+void camlidl_free(camlidl_arena arena)
 {
-  union alloc_block * l;
-  for (l = temp_blocks_head; l != NULL; l = l->next)
-    stat_free((void *)(l + 1));
-  temp_blocks_head = NULL;
+  camlidl_arena tmp;
+  while (arena != NULL) {
+    tmp = arena;
+    arena = arena->next;
+    stat_free(tmp);
+  }
 }
 
 /* This function is for compatibility with OCaml 2.00 and earlier */
@@ -90,3 +95,99 @@ value camlidl_alloc (mlsize_t wosize, tag_t tag)
 }
 
 #endif
+
+/* Helper functions for handling COM interfaces */
+
+value camlidl_lookup_method(char * name)
+{
+  static value * lookup_clos = NULL;
+
+  if (lookup_clos == NULL) {
+    lookup_clos = caml_named_value("Oo.new_method");
+    if (lookup_clos == NULL) invalid_argument("Oo.new_method not registered");
+  }
+  return callback(*lookup_clos, copy_string(name));
+}
+
+#ifndef _WIN32
+interface IUnknown;
+
+struct IUnknownVtbl {
+  HRESULT (*QueryInterface)(interface IUnknown * this,
+                            IID * iid, void ** object);
+  ULONG (*AddRef)(interface IUnknown * this);
+  ULONG (*Release)(interface IUnknown * this);
+};
+
+interface IUnknown {
+  struct IUnknownVtbl * lpVtbl;
+};
+#endif
+
+static void camlidl_finalize_interface(value intf)
+{
+  interface IUnknown * i = (interface IUnknown *) Field(intf, 1);
+  i->lpVtbl->Release(i);
+}
+
+value camlidl_pack_interface(void * intf)
+{
+  value res = alloc_final(2, camlidl_finalize_interface, 0, 1);
+  Field(res, 1) = (value) intf;
+  return res;
+}
+
+void * camlidl_unpack_interface(value vintf)
+{
+  return (void *) Field(vintf, 1);
+}
+
+void camlidl_make_interface(void * vtbl, value caml_object,
+                            struct camlidl_intf * intf, IID * iid)
+{
+  intf->vtbl = vtbl;
+  intf->caml_object = caml_object;
+  intf->refcount = 1;
+  intf->iid = iid;
+  register_global_root(&(intf->caml_object));
+}
+
+/* Basic methods (QueryInterface, AddRef, Release) for COM objects
+   encapsulating a Caml object */
+
+#ifndef _WIN32
+#define IsEqualIID(a,b) (memcmp(a, b, sizeof(IID)) == 0)
+#define InterlockedIncrement(p) (++(*(p)))
+#define InterlockedDecrement(p) (--(*(p)))
+extern IID IID_IUnknown;
+#define S_OK 0
+#define E_NOINTERFACE (-1)
+#endif
+
+HRESULT camlidl_unknwn_IUnknown_QueryInterface_callback
+          (struct camlidl_intf * this, IID * iid, void ** object)
+{
+  if (IsEqualIID(iid, this->iid) || IsEqualIID(this, &IID_IUnknown)) {
+    *object = (void *) this;
+    InterlockedIncrement(&(this->refcount));
+    return S_OK;
+  } else {
+    *object = NULL;
+    return E_NOINTERFACE;
+  }
+}
+  
+ULONG camlidl_unknwn_IUnknown_AddRef_callback(struct camlidl_intf * this)
+{
+  return InterlockedIncrement(&(this->refcount));
+}
+
+ULONG camlidl_unknwn_IUnknown_Release_callback(struct camlidl_intf * this)
+{
+  ULONG newrefcount = InterlockedDecrement(&(this->refcount));
+  if (newrefcount == 0) {
+    remove_global_root(&(this->caml_object));
+    stat_free(this);
+  }
+  return newrefcount;
+}
