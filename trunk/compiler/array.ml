@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: array.ml,v 1.16 2001-06-29 13:29:58 xleroy Exp $ *)
+(* $Id: array.ml,v 1.17 2002-01-16 09:42:00 xleroy Exp $ *)
 
 (* Handling of arrays and bigarrays *)
 
@@ -181,10 +181,11 @@ let array_output_size attr =
 
 (* Allocate room for an out array *)
 
-let array_allocate_output_space oc attr ty_elt c =
+let array_allocate_output_space oc pref attr ty_elt c =
   if attr.bound = None then begin
     iprintf oc "%s = camlidl_malloc(%a * sizeof(%a), _ctx);\n"
-               c Lexpr.output ("", array_output_size attr) out_c_type ty_elt;
+               c Lexpr.output (pref, array_output_size attr)
+               out_c_type ty_elt;
     need_context := true
   end
 
@@ -245,7 +246,7 @@ let bigarray_c_to_ml oc pref attr ty_elt c v =
 
 (* Allocate room for an out bigarray *)
 
-let bigarray_allocate_output_space oc attr ty_elt c =
+let bigarray_allocate_output_space oc pref attr ty_elt c =
   (* Since the conversion to ML bigarray does not copy the data,
      we must allocate permanent space using stat_alloc
      (instead of transient space using camlidl_alloc),
@@ -253,7 +254,7 @@ let bigarray_allocate_output_space oc attr ty_elt c =
      ML bigarray will be managed by the Caml GC *)
   iprintf oc "%s = stat_alloc(" c;
   List.iter
-    (fun a -> fprintf oc "%a * " Lexpr.output ("", array_output_size a))
+    (fun a -> fprintf oc "%a * " Lexpr.output (pref, array_output_size a))
     attr.dims;
   fprintf oc "sizeof(%a));\n" out_c_type ty_elt;
   attr.malloced <- true

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: struct.ml,v 1.13 2001-06-17 10:50:25 xleroy Exp $ *)
+(* $Id: struct.ml,v 1.14 2002-01-16 09:42:03 xleroy Exp $ *)
 
 (* Handling of structures *)
 
@@ -46,10 +46,11 @@ let all_float_fields fl =
 (* Translation from an ML record [v] to a C struct [c] *)
 (* [sd] is the IDL declaration for the record type. *)
 
-let struct_ml_to_c ml_to_c oc onstack sd v c =
+let struct_ml_to_c ml_to_c oc onstack pref sd v c =
+  let pref' = Prefix.enter_struct pref sd c in
   match remove_dependent_fields sd.sd_fields with
     [f] ->
-      ml_to_c oc onstack (sprintf "%s." c) f.field_typ
+      ml_to_c oc onstack pref' f.field_typ
                  v (sprintf "%s.%s" c f.field_name);
       List.iter
         (fun f ->
@@ -76,7 +77,7 @@ let struct_ml_to_c ml_to_c oc onstack sd v c =
             else begin
               let v' = new_ml_variable() in
               iprintf oc "%s = Field(%s, %d);\n" v' v pos;
-              ml_to_c oc onstack (sprintf "%s." c) ty v' (sprintf "%s.%s" c n);
+              ml_to_c oc onstack pref' ty v' (sprintf "%s.%s" c n);
               convert_fields (pos + 1) rem
             end in
         convert_fields 0 sd.sd_fields
@@ -85,10 +86,11 @@ let struct_ml_to_c ml_to_c oc onstack sd v c =
 (* Translation from a C pointer struct [c] to an ML record [v].
    [sd] is the IDL declaration for the record type. *)
 
-let struct_c_to_ml c_to_ml oc sd c v =
+let struct_c_to_ml c_to_ml oc pref sd c v =
+  let pref' = Prefix.enter_struct pref sd c in
   match remove_dependent_fields sd.sd_fields with
     [f] ->
-      c_to_ml oc (sprintf "%s." c) f.field_typ
+      c_to_ml oc pref' f.field_typ
                  (sprintf "%s.%s" c f.field_name) v
   | fields ->
       let nfields = List.length fields in
@@ -115,7 +117,7 @@ let struct_c_to_ml c_to_ml oc sd c v =
             else if is_dependent_field n sd.sd_fields then
               convert_fields pos rem
             else begin
-              c_to_ml oc (sprintf "%s." c) ty
+              c_to_ml oc pref' ty
                          (sprintf "%s.%s" c n) (sprintf "%s[%d]" v' pos);
               convert_fields (pos + 1) rem
             end in

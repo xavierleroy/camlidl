@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: uniondecl.ml,v 1.15 2000-08-19 11:04:58 xleroy Exp $ *)
+(* $Id: uniondecl.ml,v 1.16 2002-01-16 09:42:04 xleroy Exp $ *)
 
 (* Handling of union declarations *)
 
@@ -80,7 +80,7 @@ let transl_ml_to_c oc ud =
   increase_indent();
   let discr = new_c_variable (Type_int(Int, Iunboxed)) in
   iprintf pc "%s = -1;\n" discr; (* keeps gcc happy *)
-  union_ml_to_c ml_to_c pc false ud v (sprintf "(*%s)" c) discr;
+  union_ml_to_c ml_to_c pc false Prefix.empty ud v (sprintf "(*%s)" c) discr;
   iprintf pc "return %s;\n" discr;
   output_variable_declarations oc;
   end_diversion oc;
@@ -100,7 +100,7 @@ let transl_c_to_ml oc ud =
   let pc = divert_output() in
   increase_indent();
   let v = new_ml_variable() in
-  union_c_to_ml c_to_ml pc ud (sprintf "(*%s)" c) v discr;
+  union_c_to_ml c_to_ml pc Prefix.empty ud (sprintf "(*%s)" c) v discr;
   iprintf pc "return %s;\n" v;
   output_variable_declarations oc;
   end_diversion oc;

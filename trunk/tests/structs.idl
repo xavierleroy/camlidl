@@ -51,3 +51,19 @@ struct s5 {
   [unique] struct s6 * data;
 };
 
+// Unions
+
+enum switchtype { FLOAT_ARRAY  = 1, DOUBLE_ARRAY = 2, OTHER = 3 };
+
+struct su1
+{
+    int len;
+    enum switchtype type;
+    [switch_is(type)] union
+    {         
+    	case FLOAT_ARRAY: [size_is(len)] float* fl;
+    	case DOUBLE_ARRAY: [size_is(len)] double* db;
+        case OTHER: struct { int len2; [size_is(len2)] int* c; } i;
+    } data;
+};
+

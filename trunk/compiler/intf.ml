@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: intf.ml,v 1.21 2001-07-30 14:33:34 xleroy Exp $ *)
+(* $Id: intf.ml,v 1.22 2002-01-16 09:42:02 xleroy Exp $ *)
 
 (* Handling of COM-style interfaces *)
 
@@ -220,6 +220,7 @@ let emit_callback_wrapper oc intf meth =
   current_function := sprintf "%s::%s" intf.intf_name meth.fun_name;
   need_context := false;
   let (ins, outs) = ml_view meth in
+  let pref = Prefix.enter_function meth.fun_params in
   (* Emit function header *)
   let fun_name =
     sprintf "camlidl_%s_%s_%s_callback"
@@ -248,7 +249,7 @@ let emit_callback_wrapper oc intf meth =
   iprintf pc
     "_varg[0] = ((struct camlidl_intf *) this)->caml_object;\n";
   iter_index
-    (fun pos (name, ty) -> c_to_ml pc "" ty name (sprintf "_varg[%d]" pos))
+    (fun pos (name, ty) -> c_to_ml pc pref ty name (sprintf "_varg[%d]" pos))
     1 ins;
   (* Recover the label.
      _vlabel is not registered as a root because it's an integer. *)
@@ -281,8 +282,8 @@ let emit_callback_wrapper oc intf meth =
   (* Convert outputs from Caml to C *)
   let convert_output ty src dst =
     match (dst, scrape_const ty) with
-      ("_res", _) -> ml_to_c pc false "" ty src dst
-    | (_, Type_pointer(_, ty')) -> ml_to_c pc false "" ty' src ("*" ^ dst)
+      ("_res", _) -> ml_to_c pc false pref ty src dst
+    | (_, Type_pointer(_, ty')) -> ml_to_c pc false pref ty' src ("*" ^ dst)
     | (_, _) ->
         error (sprintf "Out parameter `%s' must be a pointer" dst) in
   begin match outs with

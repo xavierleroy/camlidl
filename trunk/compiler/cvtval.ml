@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvtval.ml,v 1.23 2001-07-30 14:45:39 xleroy Exp $ *)
+(* $Id: cvtval.ml,v 1.24 2002-01-16 09:42:01 xleroy Exp $ *)
 
 open Printf
 open Utils
@@ -93,7 +93,7 @@ let rec ml_to_c oc onstack pref ty v c =
       ()
   | Type_struct sd ->
       if sd.sd_name = "" then
-        Struct.struct_ml_to_c ml_to_c oc onstack sd v c
+        Struct.struct_ml_to_c ml_to_c oc onstack pref sd v c
       else begin
         iprintf oc "camlidl_ml2c_%s_struct_%s(%s, &%s, _ctx);\n"
                    sd.sd_mod sd.sd_name v c;
@@ -101,7 +101,7 @@ let rec ml_to_c oc onstack pref ty v c =
       end
   | Type_union(ud, attr) ->
       if ud.ud_name = "" then
-        Union.union_ml_to_c ml_to_c oc onstack ud v c
+        Union.union_ml_to_c ml_to_c oc onstack pref ud v c
                             (Lexpr.tostring pref attr.discriminant)
       else begin
         iprintf oc "%a = camlidl_ml2c_%s_union_%s(%s, &%s, _ctx);\n"
@@ -173,13 +173,13 @@ let rec c_to_ml oc pref ty c v =
       ()
   | Type_struct sd ->
       if sd.sd_name = ""
-      then Struct.struct_c_to_ml c_to_ml oc sd c v
+      then Struct.struct_c_to_ml c_to_ml oc pref sd c v
       else iprintf oc "%s = camlidl_c2ml_%s_struct_%s(&%s, _ctx);\n"
                       v sd.sd_mod sd.sd_name c;
       need_context := true
   | Type_union(ud, attr) ->
       if ud.ud_name = ""
-      then Union.union_c_to_ml c_to_ml oc ud c v
+      then Union.union_c_to_ml c_to_ml oc pref ud c v
                                (Lexpr.tostring pref attr.discriminant)
       else iprintf oc "%s = camlidl_c2ml_%s_union_%s(%a, &%s, _ctx);\n"
                       v ud.ud_mod ud.ud_name
@@ -226,15 +226,15 @@ let rec c_to_ml oc pref ty c v =
 
 (* Allocate suitable space for the C out parameter [c]. *)
 
-let rec allocate_output_space oc c ty =
+let rec allocate_output_space oc pref c ty =
   match ty with
     Type_pointer(attr, ty_arg) ->
       let c' = new_c_variable ty_arg in
       iprintf oc "%s = &%s;\n" c c'
   | Type_array(attr, ty_arg) ->
-      Array.array_allocate_output_space oc attr ty_arg c
+      Array.array_allocate_output_space oc pref attr ty_arg c
   | Type_bigarray(attr, ty_arg) ->
-      Array.bigarray_allocate_output_space oc attr ty_arg c
+      Array.bigarray_allocate_output_space oc pref attr ty_arg c
   | Type_const ty' -> (* does this make sense? *)
-      allocate_output_space oc c ty'
+      allocate_output_space oc pref c ty'
   | _ -> ()

@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: parser_midl.mly,v 1.16 2001-06-29 13:30:00 xleroy Exp $ */
+/* $Id: parser_midl.mly,v 1.17 2002-01-16 09:42:02 xleroy Exp $ */
 
 /* Parser for Microsoft IDL */
 
@@ -333,12 +333,18 @@ array_bounds_declarator:
 
 /* Struct declaration and discriminated unions */
 
+union_name:
+    ident 
+        { $1 }
+  | /* empty */
+        { "u" }
+;
 struct_declarator:
     STRUCT opt_ident LBRACE field_declarators RBRACE
         { {sd_name = $2; sd_mod = ""; sd_stamp = 0; sd_fields = $4} } 
-  | UNION opt_ident SWITCH LPAREN simple_type_spec ident RPAREN
+  | UNION opt_ident SWITCH LPAREN simple_type_spec ident RPAREN union_name
     LBRACE union_body RBRACE
-        { make_discriminated_union $2 $6 $5 (List.rev $9) }
+        { make_discriminated_union $2 $8 $6 $5 (List.rev $10) }
 ;
 field_declarators:
     field_declarator

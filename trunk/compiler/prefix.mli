@@ -10,15 +10,13 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: union.mli,v 1.6 2002-01-16 09:42:04 xleroy Exp $ *)
-
-(* Marshalling for unions *)
+(* $Id: prefix.mli,v 1.1 2002-01-16 09:42:03 xleroy Exp $ *)
 
 open Idltypes
 
-val union_ml_to_c : 
-  (out_channel -> bool -> Prefix.t -> idltype -> string -> string -> unit) ->
-    out_channel -> bool -> Prefix.t -> union_decl -> string -> string -> string -> unit
-val union_c_to_ml : 
-  (out_channel -> Prefix.t -> idltype -> string -> string -> unit) ->
-    out_channel -> Prefix.t -> union_decl -> string -> string -> string -> unit
+type t
+
+val empty: t
+val enter_function: (string * 'a * 'b) list -> t
+val enter_struct: t -> struct_decl -> string -> t
+val for_ident: t -> string -> string

@@ -10,12 +10,12 @@
 #*                                                                     *
 #***********************************************************************
 
-#* $Id: Makefile,v 1.5 2001-06-29 13:29:58 xleroy Exp $
+#* $Id: Makefile,v 1.6 2002-01-16 09:42:00 xleroy Exp $
 
 include ../config/Makefile
 
 OBJS=config.cmo utils.cmo clflags.cmo \
-  lexpr.cmo cvttyp.cmo variables.cmo \
+  prefix.cmo lexpr.cmo cvttyp.cmo variables.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
   structdecl.cmo enumdecl.cmo uniondecl.cmo \
   typedef.cmo funct.cmo constdecl.cmo intf.cmo \
