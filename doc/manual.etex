@@ -483,7 +483,7 @@ IDL structs are mapped to Caml record types.  The names and types of
 the IDL struct fields determine the names and types of the Caml record
 type:
 \begin{alltt}
-struct \var{s} \{ ... ; \nth{ty}{i} \nth{id}{i} ; ... \}  =  type struct_\var{s} = \{ ... ; \nth{id}{i} : \transl{\nth{ty}{i}} ; ... \}
+struct \var{s} \{ ... ; \nth{ty}{i} \nth{id}{i} ; ... \} {\rm becomes}  type struct_\var{s} = \{ ... ; \nth{id}{i} : \transl{\nth{ty}{i}} ; ... \}
 \end{alltt}
 Example: "struct s { int n; double d[4]; }" becomes
 "type struct_s = {n: int; d: float array}".
@@ -1007,7 +1007,7 @@ Caml's "int" time, the loss of the 32-th bit causes problems around
 year 2005.  A simple solution is to pretend (in the IDL file) that
 "time" returns a double:
 \begin{verbatim}
-        double time() " _res = time(NULL); ";
+        double time() quote(" _res = time(NULL); ");
 \end{verbatim}
 This way, "time" will have the expected Caml type "unit -> float".
 Again, the stub code ``knows'' that "time" actually returns an integer,
@@ -1051,7 +1051,7 @@ release.
 If a C function dynamically allocates some of its outputs (either
 returned or stored in "out" parameters), its IDL declaration must
 contain a @'quote(dealloc,' string ')'@ clause to properly free the
-space occupieid by those outputs after they have been converted to
+space occupied by those outputs after they have been converted to
 Caml.  Otherwise, memory leaks will occur.
 
 This does not conform to the MIDL and COM specifications, which say
