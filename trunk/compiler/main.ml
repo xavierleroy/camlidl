@@ -1,4 +1,5 @@
 open Printf
+open Clflags
 open Utils
 open Idltypes
 open File
@@ -35,7 +36,20 @@ let _ =
   try
     Arg.parse
       ["-I", Arg.String(fun s -> search_path := !search_path @ [s]),
-         "<dir>  Adds directory to search path"]
+         "<dir>  Add directory to search path";
+       "-header", Arg.Set include_header,
+         "  Generate a #include \"filename.h\" in the C stub code (default)";
+       "-noheader", Arg.Clear include_header,
+         "  Do not generate any extra #include in the C stub code";
+       "-D", Arg.String(fun s -> prepro_defines := !prepro_defines @ [s]),
+         "<symbol>  Pass -D<symbol> to the C preprocessor";
+       "-cpp", Arg.Set use_cpp,
+         "  Pass the .idl files through the C preprocessor (default)";
+       "-nocpp", Arg.Clear use_cpp,
+         "  Do not pass the .idl files through the C preprocessor";
+       "-prepro", Arg.String(fun s -> preprocessor := s),
+         "<cmd>  Use <cmd> as the preprocessor instead of the C preprocessor"
+      ]
       process_file
       "Usage: camlidl [options]<.idl file> ... <.idl file>\nOptions are:\n"
   with Error ->

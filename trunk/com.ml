@@ -24,3 +24,12 @@ let iUnknown_of (intf : 'a interface) = (Obj.magic intf : iUnknown interface)
 let _ =
   Callback.register "Oo.new_method" Oo.new_method
 
+external prim_aggregate: 'a interface -> 'b interface -> 'a interface =
+  "camlidl_com_aggregate"
+
+let aggregate i1 i2 =
+  try
+    prim_aggregate i1 i2
+  with Failure s ->
+    raise (Error s)
+

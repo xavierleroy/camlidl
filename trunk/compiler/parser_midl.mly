@@ -787,6 +787,9 @@ lexpr:
         { Expr_dereffield($1, $3) }
   | lexpr DOT IDENT %prec prec_dot
         { Expr_field($1, $3) }
+  | lexpr DOT INTEGER %prec prec_dot
+        /* This is a hack for parsing version attributes, e.g. version(0.1) */
+        { Expr_field($1, string_of_int $3) }
   | LPAREN lexpr RPAREN
         { $2 }
 ;

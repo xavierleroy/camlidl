@@ -1,0 +1,5 @@
+(* Compile-time configuration *)
+
+(* How to invoke the C preprocessor *)
+let cpp = "%%CPP%%"
+

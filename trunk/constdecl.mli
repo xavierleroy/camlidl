@@ -7,3 +7,5 @@ type constant_decl =
 
 val ml_declaration: out_channel -> constant_decl -> unit
 val ml_definition: out_channel -> constant_decl -> unit
+
+val import: constant_decl -> unit

@@ -51,11 +51,19 @@ value camlidl_lookup_method(char * name);
 void * camlidl_unpack_interface(value vintf);
 value camlidl_pack_interface(void * intf);
 
+struct camlidl_component;
+
 struct camlidl_intf {
   void * vtbl;
   value caml_object;
-  int refcount;
   IID * iid;
+  struct camlidl_component * comp;
+};
+
+struct camlidl_component {
+  int numintfs;
+  int refcount;
+  struct camlidl_intf intf[1];
 };
 
 value camlidl_make_interface(void * vtbl, value caml_object, IID * iid);

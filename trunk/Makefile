@@ -1,3 +1,6 @@
+
+include Makefile.config
+
 OCAMLC=ocamlc -g
 OCAMLDEP=ocamldep
 OCAMLYACC=ocamlyacc -v
@@ -5,12 +8,14 @@ OCAMLLEX=ocamllex
 CC=gcc
 CFLAGS=-g -O -Wall -I/usr/local/lib/ocaml
 
-OBJS=utils.cmo ebuff.cmo lexpr.cmo cvttyp.cmo variables.cmo \
+OBJS=config.cmo utils.cmo ebuff.cmo clflags.cmo \
+  lexpr.cmo cvttyp.cmo variables.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
   structdecl.cmo enumdecl.cmo uniondecl.cmo \
   typedef.cmo funct.cmo constdecl.cmo intf.cmo \
   file.cmo \
-  parser_midl.cmo lexer_midl.cmo normalize.cmo \
+  parser_midl.cmo lexer_midl.cmo linenum.cmo parse.cmo \
+  normalize.cmo \
   main.cmo
 
 COBJS=camlidlruntime.o
@@ -42,6 +47,25 @@ clean::
 	rm -f lexer_midl.ml
 
 beforedepend:: lexer_midl.ml
+
+config.ml: config.mlp Makefile.config
+	-rm -f config.ml
+	sed -e 's|%%CPP%%|$(CPP)|' \
+          config.mlp > config.ml
+	-chmod -w config.ml
+
+clean::
+	rm -f config.ml
+
+beforedepend:: config.ml
+
+linenum.ml: linenum.mll
+	$(OCAMLLEX) linenum.mll
+
+partialclean::
+	rm -f linenum.ml
+
+beforedepend:: linenum.ml
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 

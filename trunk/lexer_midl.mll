@@ -80,7 +80,11 @@ rule token = parse
       { token lexbuf }
   | "/*"
       { comment lexbuf }
-  | "//" [ ^ '\n' ] * '\n'
+  | "//" [ ^ '\n' ] * ('\n' | '\r' | "\r\n")
+      { token lexbuf }
+  | "#" [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] *
+    ('\n' | '\r' | "\r\n")
+      (* # linenum "filename" flags \n *)
       { token lexbuf }
   | identstart identchar *
       { let s = Lexing.lexeme lexbuf in

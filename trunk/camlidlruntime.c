@@ -73,7 +73,7 @@ void camlidl_free(camlidl_arena arena)
 
 char * camlidl_malloc_string(value mlstring, camlidl_arena * arena)
 {
-  mlsize_t len = string_len(mlstring);
+  mlsize_t len = string_length(mlstring);
   char * res = camlidl_malloc(len + 1, arena);
   memcpy(res, String_val(mlstring), len + 1);
   return res;
@@ -153,14 +153,16 @@ void * camlidl_unpack_interface(value vintf)
 
 value camlidl_make_interface(void * vtbl, value caml_object, IID * iid)
 {
-  struct camlidl_intf * intf =
-    (struct camlidl_intf *) stat_alloc(sizeof(struct camlidl_intf));
-  intf->vtbl = vtbl;
-  intf->caml_object = caml_object;
-  intf->refcount = 1;
-  intf->iid = iid;
-  register_global_root(&(intf->caml_object));
-  return camlidl_pack_interface(intf);
+  struct camlidl_component * comp =
+    (struct camlidl_component *) stat_alloc(sizeof(struct camlidl_component));
+  comp->numintfs = 1;
+  comp->refcount = 1;
+  comp->intf[0].vtbl = vtbl;
+  comp->intf[0].caml_object = caml_object;
+  comp->intf[0].iid = iid;
+  comp->intf[0].comp = comp;
+  register_global_root(&(comp->intf[0].caml_object));
+  return camlidl_pack_interface(&(comp->intf[0]));
 }
 
 /* Basic methods (QueryInterface, AddRef, Release) for COM objects
@@ -178,27 +180,39 @@ extern IID IID_IUnknown;
 HRESULT camlidl_QueryInterface(struct camlidl_intf * this, IID * iid,
                                void ** object)
 {
-  if (IsEqualIID(iid, this->iid) || IsEqualIID(this, &IID_IUnknown)) {
-    *object = (void *) this;
-    InterlockedIncrement(&(this->refcount));
-    return S_OK;
-  } else {
-    *object = NULL;
-    return E_NOINTERFACE;
+  struct camlidl_component * comp = this->comp;
+  int i;
+  for (i = 0; i < comp->numintfs; i++) {
+    if (IsEqualIID(iid, comp->intf[i].iid)) {
+      *object = (void *) &(comp->intf[i]);
+      InterlockedIncrement(&(comp->refcount));
+      return S_OK;
+    }
   }
+  if (IsEqualIID(iid, &IID_IUnknown)) {
+    *object = (void *) this;
+    InterlockedIncrement(&(comp->refcount));
+    return S_OK;
+  }
+  *object = NULL;
+  return E_NOINTERFACE;
 }
   
 ULONG camlidl_AddRef(struct camlidl_intf * this)
 {
-  return InterlockedIncrement(&(this->refcount));
+  return InterlockedIncrement(&(this->comp->refcount));
 }
 
 ULONG camlidl_Release(struct camlidl_intf * this)
 {
-  ULONG newrefcount = InterlockedDecrement(&(this->refcount));
+  struct camlidl_component * comp = this->comp;
+  ULONG newrefcount = InterlockedDecrement(&(comp->refcount));
+  int i;
+
   if (newrefcount == 0) {
-    remove_global_root(&(this->caml_object));
-    stat_free(this);
+    for (i = 0; i < comp->numintfs; i++)
+      remove_global_root(&(comp->intf[i].caml_object));
+    stat_free(comp);
   }
   return newrefcount;
 }
@@ -215,4 +229,39 @@ value camlidl_com_queryInterface(value vintf, value viid)
                                    &res) != S_OK)
     failwith("interface not supported");
   return camlidl_pack_interface(res);
+}
+
+/* Combine the interfaces of two Caml components */
+
+#define is_a_caml_interface(i) \
+  ((void *) (((interface IUnknown *) i1)->lpVtbl->QueryInterface) == \
+   (void *) camlidl_QueryInterface)
+
+value camlidl_com_aggregate(value vintf1, value vintf2)
+{
+  struct camlidl_intf * i1, * i2;
+  struct camlidl_component * c1, * c2, * c;
+  int n, i;
+
+  i1 = camlidl_unpack_interface(vintf1);
+  i2 = camlidl_unpack_interface(vintf2);
+  if (! is_a_caml_interface(i1) || ! is_a_caml_interface(i2))
+    failwith("Com.aggregate: not a Caml interface");
+  c1 = i1->comp;
+  c2 = i2->comp;
+  n = c1->numintfs + c2->numintfs;
+  c = (struct camlidl_component *)
+        stat_alloc(sizeof(struct camlidl_component) +
+                   sizeof(struct camlidl_intf) * (n - 1));
+  c->numintfs = n;
+  c->refcount = 1;
+  for (i = 0; i < c1->numintfs; i++)
+    c->intf[i] = c1->intf[i];
+  for (i = 0; i < c2->numintfs; i++)
+    c->intf[c1->numintfs + i] = c2->intf[i];
+  for (i = 0; i < n; i++) {
+    register_global_root(&(c->intf[i].caml_object));
+    c->intf[i].comp = c;
+  }
+  return camlidl_pack_interface(c->intf + (i1 - c1->intf));
 }
