@@ -1,13 +1,14 @@
 OCAMLC=ocamlc -g
 OCAMLDEP=ocamldep
-OCAMLYACC=ocamlyacc
+OCAMLYACC=ocamlyacc -v
 OCAMLLEX=ocamllex
 CC=gcc
 CFLAGS=-O -Wall -I/usr/local/lib/ocaml
 
 OBJS=utils.cmo cvttyp.cmo variables.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
-  funct.cmo structdecl.cmo enumdecl.cmo uniondecl.cmo typedef.cmo \
+  funct.cmo structdecl.cmo enumdecl.cmo uniondecl.cmo \
+  typedef.cmo constdecl.cmo \
   intfgen.cmo stubgen.cmo \
   parser_simple.cmo lexer_simple.cmo normalize.cmo \
   main.cmo
@@ -30,7 +31,7 @@ parser_simple.ml parser_simple.mli: parser_simple.mly
 	$(OCAMLYACC) parser_simple.mly
 
 clean::
-	rm -f parser_simple.ml parser_simple.mli
+	rm -f parser_simple.ml parser_simple.mli parser_simple.output
 
 beforedepend:: parser_simple.ml parser_simple.mli
 

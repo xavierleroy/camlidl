@@ -1,4 +1,5 @@
 array.cmi: idltypes.cmi 
+constdecl.cmi: idltypes.cmi 
 cvttyp.cmi: idltypes.cmi 
 cvtval.cmi: idltypes.cmi 
 enum.cmi: idltypes.cmi 
@@ -19,6 +20,8 @@ all.cmo: idltypes.cmi
 all.cmx: idltypes.cmi 
 array.cmo: cvttyp.cmi idltypes.cmi utils.cmi variables.cmi array.cmi 
 array.cmx: cvttyp.cmx idltypes.cmi utils.cmx variables.cmx array.cmi 
+constdecl.cmo: idltypes.cmi utils.cmi constdecl.cmi 
+constdecl.cmx: idltypes.cmi utils.cmx constdecl.cmi 
 cvttyp.cmo: idltypes.cmi cvttyp.cmi 
 cvttyp.cmx: idltypes.cmi cvttyp.cmi 
 cvtval.cmo: array.cmi cvttyp.cmi enum.cmi idltypes.cmi struct.cmi union.cmi \
@@ -35,10 +38,10 @@ funct.cmo: cvttyp.cmi cvtval.cmi idltypes.cmi utils.cmi variables.cmi \
     funct.cmi 
 funct.cmx: cvttyp.cmx cvtval.cmx idltypes.cmi utils.cmx variables.cmx \
     funct.cmi 
-intfgen.cmo: enumdecl.cmi funct.cmi idltypes.cmi structdecl.cmi typedef.cmi \
-    uniondecl.cmi utils.cmi intfgen.cmi 
-intfgen.cmx: enumdecl.cmx funct.cmx idltypes.cmi structdecl.cmx typedef.cmx \
-    uniondecl.cmx utils.cmx intfgen.cmi 
+intfgen.cmo: constdecl.cmi enumdecl.cmi funct.cmi idltypes.cmi structdecl.cmi \
+    typedef.cmi uniondecl.cmi utils.cmi intfgen.cmi 
+intfgen.cmx: constdecl.cmx enumdecl.cmx funct.cmx idltypes.cmi structdecl.cmx \
+    typedef.cmx uniondecl.cmx utils.cmx intfgen.cmi 
 lexer_simple.cmo: parser_simple.cmi utils.cmi lexer_simple.cmi 
 lexer_simple.cmx: parser_simple.cmx utils.cmx lexer_simple.cmi 
 main.cmo: idltypes.cmi intfgen.cmi lexer_simple.cmi normalize.cmi \

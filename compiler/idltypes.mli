@@ -66,12 +66,18 @@ type type_decl =
     td_ml2c: string option;
     td_mltype: string option }
 
+type constant_value = Cst_int of int | Cst_string of string
+
+type constant_decl =
+  { cd_name: string; cd_type: idltype; cd_value: constant_value }
+
 type interface_component =
     Comp_typedecl of type_decl
   | Comp_structdecl of struct_decl
   | Comp_uniondecl of union_decl
   | Comp_enumdecl of enum_decl
   | Comp_fundecl of function_decl
+  | Comp_constdecl of constant_decl
   | Comp_diversion of string
 
 type interface = interface_component list

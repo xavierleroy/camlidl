@@ -22,5 +22,6 @@ let gen_ml_decls oc intf all_type_decls =
   (* Generate the function declarations *)
   let emit_fundecl = function
       Comp_fundecl fd -> Funct.ml_declaration oc fd
+    | Comp_constdecl cd -> Constdecl.ml_declaration oc cd
     | _ -> () in
   List.iter emit_fundecl intf
