@@ -73,8 +73,7 @@ let transl_c_to_ml oc td =
   fprintf oc "{\n";
   let pc = divert_output() in
   if td.td_abstract then begin
-    iprintf pc "%s = alloc((sizeof(%a) + sizeof(value) - 1) / sizeof(value), \
-                           Abstract_tag);\n"
+    iprintf pc "%s = camlidl_alloc((sizeof(%a) + sizeof(value) - 1) / sizeof(value), Abstract_tag);\n"
             v out_c_type td.td_type;
     iprintf pc "*((%a *) Bp_val(%s)) = *%s;\n"
             out_c_type td.td_type v c

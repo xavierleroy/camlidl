@@ -9,4 +9,11 @@ mlsize_t camlidl_ptrarray_size(void ** array);
 void * camlidl_temp_alloc(size_t size);
 void camlidl_temp_free(void);
 
+#if defined(CAMLVERSION) && CAMLVERSION < 201
+value camlidl_alloc(mlsize_t size, tag_t tag);
+#define camlidl_alloc_small alloc
+#else
+#define camlidl_alloc alloc
+#define camlidl_alloc_small alloc_small
+#endif
 
