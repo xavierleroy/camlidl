@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.17 2002-04-19 13:24:29 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.18 2002-04-26 12:17:02 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -259,13 +259,16 @@ let make_fun_declaration attrs ty_res name params quotes =
     fun_dealloc = !dealloc }
 
 let make_field attrs tybase decl =
-  let rec mlname default = function
-    [] -> default
-  | ("mlname", [Expr_ident s]) :: rem -> mlname s rem
-  | (_, _) :: rem -> mlname default rem in
-  let (name, ty) = decl tybase in
-  { field_name = name; field_mlname = mlname name attrs;
-    field_typ = apply_type_attributes ty attrs }
+  let rec merge_attributes name ty = function
+    [] ->
+      (name, ty)
+  | ("mlname", [Expr_ident s]) :: rem ->
+      merge_attributes s ty rem
+  | attr :: rem ->
+      merge_attributes name (apply_type_attribute ty attr) rem in
+  let (name, raw_ty) = decl tybase in
+  let (mlname, ty) = merge_attributes name raw_ty attrs in
+  { field_name = name; field_mlname = mlname; field_typ = ty }
 
 let make_fields attrs tybase decls =
   List.map (make_field attrs tybase) decls
