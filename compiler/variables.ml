@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: variables.ml,v 1.11 2002-01-16 16:15:34 xleroy Exp $ *)
+(* $Id: variables.ml,v 1.12 2002-04-22 09:02:17 xleroy Exp $ *)
 
 open Printf
 open Utils
@@ -28,7 +28,7 @@ let new_var prefix =
   
 let new_c_variable ty =
   let name = new_var "_c" in
-  temp_variables := (name, ty) :: !temp_variables;
+  temp_variables := (name, scrape_const ty) :: !temp_variables;
   name
 
 let new_ml_variable () =
@@ -56,7 +56,7 @@ let output_variable_declarations oc =
 (* Zero an array of values *)
 
 let init_value_block oc blk numvals =
-  if numvals <= 8 then begin
+  if numvals <= 4 then begin
     iprintf oc "";
     for i = 0 to numvals - 1 do
       fprintf oc "%s[%d] = " blk i
