@@ -46,7 +46,7 @@ let rec out_c_decl oc (id, ty) =
   | Type_array(attr, ty) ->
       let id' =
         match attr.bound with
-          Some n -> sprintf "%s[%d]" id n
+          Some n -> sprintf "%s[%d]" id (Lexpr.eval_int n)
         | None -> sprintf "*%s" id in
       out_c_decl oc (id', ty)
   | Type_interface(modl, intf_name) ->
@@ -109,14 +109,4 @@ let out_ml_types oc sep types =
   | (_, ty1) :: tyl ->
       out_ml_type oc ty1;
       List.iter (fun (_, ty) -> fprintf oc " %s " sep; out_ml_type oc ty) tyl
-
-(* Output a reference to a restricted expression *)
-
-let string_of_restr_expr pref re =
-  match re with
-    Var s -> pref ^ s
-  | Deref s -> "*" ^ pref ^ s
-
-let out_restr_expr oc (pref, re) =
-  output_string oc (string_of_restr_expr pref re)
 

@@ -16,6 +16,6 @@ type component =
 
 type components = component list
 
-val gen_mli_file: out_channel -> components -> components -> unit
-val gen_ml_file: out_channel -> components -> components -> unit
+val gen_mli_file: out_channel -> components -> unit
+val gen_ml_file: out_channel -> components -> unit
 val gen_c_stub: out_channel -> components -> components -> unit

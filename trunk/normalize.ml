@@ -22,7 +22,7 @@ let rec iunknown =
     intf_uid = "\000\000\000\000\000\000\000\000\192\000\000\000\000\000\000\070" }
     (* 00000000-0000-0000-C000-000000000046 *)
 
-let all_type_decls = ref ([] : component list)
+let all_comps = ref ([] : component list)
 
 let currstamp = ref 0
 
@@ -37,22 +37,27 @@ let error_if_fundecl kind =
 (* Generic function to handle declarations and definitions of struct,
    unions, enums and interfaces *)
 
-let process_declarator tbl name contents make_decl update_decl =
-  if contents = [] then begin
-    try
-      Hashtbl.find tbl name
-    with Not_found ->
-      Hashtbl.add tbl name (make_decl ());
-      make_decl ()
+let process_declarator kind tbl name sourcedecl 
+                       proj_contents make_decl update_decl =
+  if name = "" then begin
+    if !in_fundecl then
+     error (sprintf "anonymous %s in function parameters or result type" kind);
+    let newdecl = make_decl() in
+    update_decl newdecl sourcedecl;
+    newdecl
   end else begin
     let decl =
       try
         Hashtbl.find tbl name
       with Not_found ->
         let newdecl = make_decl() in
-        if name <> "" then Hashtbl.add tbl name newdecl;
+        Hashtbl.add tbl name newdecl;
         newdecl in
-    update_decl decl;
+    if proj_contents sourcedecl <> [] then begin
+      if proj_contents decl <> [] then
+        error (sprintf "redefinition of %s %s" kind name);
+      update_decl decl sourcedecl
+    end;
     decl
   end
 
@@ -63,28 +68,10 @@ let rec normalize_type = function
       Type_pointer(kind, normalize_type ty_elt)
   | Type_array(attr, ty_elt) ->
       Type_array(attr, normalize_type ty_elt)
-  | Type_struct {sd_fields = []; sd_name = name} ->
-      begin try
-        Type_struct(Hashtbl.find structs name)
-      with Not_found ->
-        error (sprintf "Unknown struct %s in type" name)
-      end
   | Type_struct sd ->
       Type_struct(enter_struct sd)
-  | Type_union({ud_cases = []; ud_name = name}, discr) ->
-      begin try
-        Type_union(Hashtbl.find unions name, discr)
-      with Not_found ->
-        error (sprintf "Unknown union %s in type" name)
-      end
   | Type_union(ud, discr) ->
       Type_union(enter_union ud, discr)
-  | Type_enum({en_consts = []; en_name = name}, attr) ->
-      begin try
-        Type_enum(Hashtbl.find enums name, attr)
-      with Not_found ->
-        error (sprintf "Unknown enum %s in type" name)
-      end
   | Type_enum (en, attr) ->
       Type_enum(enter_enum en, attr)
   | Type_named(_, s) ->
@@ -109,34 +96,37 @@ and normalize_case c =
   | Some f -> {c with case_field = Some(normalize_field f)}
 
 and enter_struct sd =
-  process_declarator structs sd.sd_name sd.sd_fields
+  process_declarator "struct" structs sd.sd_name sd
+    (fun sd -> sd.sd_fields)
     (fun () ->
       { sd_name = sd.sd_name; sd_mod = !module_name;
         sd_stamp = 0; sd_fields = [] })
-    (fun sd' ->
+    (fun sd' sd ->
       sd'.sd_stamp <- newstamp();
       sd'.sd_fields <- List.map normalize_field sd.sd_fields;
-      all_type_decls := Comp_structdecl sd' :: !all_type_decls)
+      all_comps := Comp_structdecl sd' :: !all_comps)
 
 and enter_union ud =
-  process_declarator unions ud.ud_name ud.ud_cases
+  process_declarator "union" unions ud.ud_name ud
+    (fun ud -> ud.ud_cases)
     (fun () ->
       { ud_name = ud.ud_name; ud_mod = !module_name;
         ud_stamp = 0; ud_cases = [] })
-    (fun ud' ->
+    (fun ud' ud ->
       ud'.ud_stamp <- newstamp();
       ud'.ud_cases <- List.map normalize_case ud.ud_cases;
-      all_type_decls := Comp_uniondecl ud' :: !all_type_decls)
+      all_comps := Comp_uniondecl ud' :: !all_comps)
 
 and enter_enum en =
-  process_declarator enums en.en_name en.en_consts
+  process_declarator "enum" enums en.en_name en
+    (fun en -> en.en_consts)
     (fun () ->
       { en_name = en.en_name; en_mod = !module_name;
         en_stamp = 0; en_consts = [] })
-    (fun en' ->
+    (fun en' en ->
       en'.en_stamp <- newstamp();
       en'.en_consts <- en.en_consts;
-      all_type_decls := Comp_enumdecl en' :: !all_type_decls)
+      all_comps := Comp_enumdecl en' :: !all_comps)
 
 let normalize_fundecl fd =
   current_function := fd.fun_name;
@@ -158,16 +148,16 @@ let enter_typedecl td =
               td_type = if td.td_abstract
                         then td.td_type
                         else normalize_type td.td_type } in
-  all_type_decls := Comp_typedecl td' :: !all_type_decls;
-  Hashtbl.add typedefs td'.td_name td';
-  td'
+  all_comps := Comp_typedecl td' :: !all_comps;
+  Hashtbl.add typedefs td'.td_name td'
 
-let normalize_interface i =
-  process_declarator intfs i.intf_name i.intf_methods
+let enter_interface i =
+  process_declarator "interface" intfs i.intf_name i
+    (fun i -> i.intf_methods)
     (fun () ->
       { intf_name = i.intf_name; intf_mod = !module_name;
         intf_super = i.intf_super; intf_methods = []; intf_uid = "" })
-    (fun i' ->
+    (fun i' i ->
       let super =
         try
           Hashtbl.find intfs i.intf_super.intf_name
@@ -177,17 +167,20 @@ let normalize_interface i =
       i'.intf_uid <- i.intf_uid;
       i'.intf_super <- super;
       i'.intf_methods <- List.map normalize_fundecl i.intf_methods;
-      all_type_decls := Comp_interface i' :: !all_type_decls)
+      all_comps := Comp_interface i' :: !all_comps)
 
 let normalize_component = function
-    Comp_typedecl td -> Comp_typedecl(enter_typedecl td)
-  | Comp_structdecl sd -> Comp_structdecl(enter_struct sd)
-  | Comp_uniondecl ud -> Comp_uniondecl(enter_union ud)
-  | Comp_enumdecl en -> Comp_enumdecl(enter_enum en)
-  | Comp_fundecl fd -> Comp_fundecl(normalize_fundecl fd)
-  | Comp_constdecl cd -> Comp_constdecl cd
-  | Comp_diversion(ty, s) -> Comp_diversion(ty, s)
-  | Comp_interface intf -> Comp_interface(normalize_interface intf)
+    Comp_typedecl td -> enter_typedecl td
+  | Comp_structdecl sd -> ignore(enter_struct sd)
+  | Comp_uniondecl ud -> ignore(enter_union ud)
+  | Comp_enumdecl en -> ignore(enter_enum en)
+  | Comp_fundecl fd ->
+      all_comps := Comp_fundecl(normalize_fundecl fd) :: !all_comps
+  | Comp_constdecl cd ->
+      all_comps := Comp_constdecl cd :: !all_comps
+  | Comp_diversion(ty, s) ->
+      all_comps := Comp_diversion(ty, s) :: !all_comps
+  | Comp_interface intf -> ignore(enter_interface intf)
 
 module StringSet = Set.Make(struct type t = string let compare = compare end)
 
@@ -201,10 +194,15 @@ let read_file filename =
     close_in ic;
     res
   with Parsing.Parse_error ->
-    close_in ic;
-    eprintf "File %s, character %d: syntax error\n"
-            filename (Lexing.lexeme_start lb);
-    raise Error
+         close_in ic;
+         eprintf "File %s, character %d: syntax error\n"
+                 filename (Lexing.lexeme_start lb);
+         raise Error
+     | Lexer_midl.Lex_error msg ->
+         close_in ic;
+         eprintf "File %s, character %d: %s\n"
+                 filename (Lexing.lexeme_start lb) msg;
+         raise Error
 
 let rec normalize_file name =
   imports_read := StringSet.add name !imports_read;
@@ -214,28 +212,29 @@ let rec normalize_file name =
     with Not_found ->
       eprintf "Cannot find file %s\n" name;
       raise Error in
-  let (imports, comps) = read_file filename in
   let pref =
     if Filename.check_suffix name ".idl"
     then Filename.chop_suffix name ".idl"
     else name in
+  module_name := Filename.basename pref;
+  let (imports, comps) = read_file filename in
   (* Recursively process the imports *)
   let importlist =
     List.map
       (fun name ->
         if StringSet.mem name !imports_read then [] else begin
-          let (comps, imports, decls) = normalize_file name in
+          let (comps, imports) = normalize_file name in
           imports @ comps
         end)
       imports in
   (* Normalize the components and collect all type definitions *)
   module_name := Filename.basename pref;
-  all_type_decls := [];
+  all_comps := [];
   currstamp := 0;
-  let comps' = List.map normalize_component comps in
-  let decls = !all_type_decls in
-  all_type_decls := [];
-  (comps', List.concat importlist, decls)
+  List.iter normalize_component comps;
+  let comps' = List.rev !all_comps in
+  all_comps := [];
+  (comps', List.concat importlist)
 
 let process_file f =
   imports_read := StringSet.empty;

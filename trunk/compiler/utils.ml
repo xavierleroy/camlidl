@@ -88,3 +88,7 @@ let find_in_path name =
         if Sys.file_exists fullname then fullname else try_dir rem
     in try_dir !search_path
   end
+
+(* Discard result *)
+
+external ignore: 'a -> unit = "%identity" (* not quite *)

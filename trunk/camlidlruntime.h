@@ -30,6 +30,7 @@ typedef struct camlidl_block_list * camlidl_arena;
 
 void * camlidl_malloc(size_t sz, camlidl_arena * arena);
 void camlidl_free(camlidl_arena arena);
+char * camlidl_malloc_string(value mlstring, camlidl_arena * arena);
 
 /* Helper functions for handling COM interfaces */
 

@@ -10,21 +10,7 @@ open Cvttyp
    or switch_is of another field).  Also remove ignored pointers. *)
 
 let is_dependent_field name fields =
-  let is_param = function
-      Var s -> s = name
-    | Deref s -> s = name in
-  let is_param_opt = function
-      None -> false
-    | Some re -> is_param re in
-  List.exists
-    (fun {field_name = name; field_typ = ty} ->
-      match ty with
-        Type_array(attr, ty) ->
-          is_param_opt attr.size || is_param_opt attr.length
-      | Type_union(name, attr) ->
-          is_param attr.discriminant
-      | _ -> false)
-    fields
+  List.exists (fun f -> Lexpr.is_dependent name f.field_typ) fields
 
 let is_ignored =
   function Type_pointer(Ignore, _) -> true | _ -> false

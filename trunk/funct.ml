@@ -22,23 +22,7 @@ type function_decl =
    or switch_is of another parameter).  Also remove ignored pointers. *)
 
 let is_dependent_parameter name params =
-  let is_param = function
-      Var s -> s = name
-    | Deref s -> s = name in
-  let is_param_opt = function
-      None -> false
-    | Some re -> is_param re in
-  List.exists
-    (fun (name, inout, ty) ->
-      match ty with
-        Type_array(attr, ty) ->
-          is_param_opt attr.size || is_param_opt attr.length
-      | Type_union(name, attr) ->
-          is_param attr.discriminant
-      | Type_pointer(_, Type_union(name, attr)) ->
-          is_param attr.discriminant
-      | _ -> false)
-    params
+  List.exists (fun (name, inout, ty) -> Lexpr.is_dependent name ty) params
 
 let is_ignored =
   function Type_pointer(Ignore, _) -> true | _ -> false

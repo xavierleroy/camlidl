@@ -73,7 +73,8 @@ let ml_class_definition oc intf =
              out_mltype_name (intf.intf_super.intf_mod,
                               intf.intf_super.intf_name);
   (* Declare the C wrappers for invoking the methods from Caml *)
-  let self_type = Type_pointer(Ref, Type_interface("", intf.intf_name)) in
+  let self_type =
+    Type_pointer(Ref, Type_interface(!module_name, intf.intf_name)) in
   List.iter
     (fun meth ->
       let prim =
@@ -89,7 +90,7 @@ let ml_class_definition oc intf =
   fprintf oc "class %s_class (intf : %s Com.interface) =\n" intfname intfname;
   fprintf oc "  object\n";
   if intf.intf_super.intf_name <> "IUnknown" then
-    fprintf oc "    inherit (%s (%s_of_%s intf))\n"
+    fprintf oc "    inherit (%s_class (%s_of_%s intf))\n"
                supername supername intfname;
   List.iter
     (fun meth ->
