@@ -1,0 +1,10 @@
+//!! More dependent parameter tests
+interface Test {
+  void foo( [out]int* len
+  	  , [out]char** str);
+  void fob( [out]int* len
+	  , [in]int l
+  	  , [in,out,size_is(,*len)]char** str
+	  , [in]int l1
+	  );
+}

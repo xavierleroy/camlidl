@@ -1,0 +1,13 @@
+//!! Enumerations with expressions on RHS
+
+
+interface Test {
+const int int_size=4;
+
+typedef enum _foo {
+   a = int_size,
+   b = 1
+} bar;
+
+}
+

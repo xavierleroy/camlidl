@@ -1,0 +1,4 @@
+//!!! Testing enumeration references
+enum _rgb { red,green=0,blue=-1 };
+typedef enum _rgb rgb2,rgb3;
+typedef [v1_enum]enum _rgb rgb;

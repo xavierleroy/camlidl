@@ -1,0 +1,40 @@
+#ifndef CAMLIDL
+import "oaidl.idl" ;
+#endif
+
+[
+	object,
+	uuid(32BB8326-B41B-11CF-A6BB-0080C7B2D682),
+	pointer_default(unique),
+	dual,
+	oleautomation
+]
+interface IX : IDispatch
+{
+        HRESULT Fx() ;
+        HRESULT FxStringIn([in] BSTR bstrIn) ; 
+        HRESULT FxStringOut([out, retval] BSTR* pbstrOut) ; 
+        HRESULT FxFakeError() ;
+}
+
+#ifndef CAMLIDL
+[
+	uuid(e59e3b70-dad8-11d2-8e2c-0060974fbf19),
+	version(1.0),
+	helpstring("CAMLIDL, test component 2, type library")
+]
+library ComponentLib
+{
+	importlib("stdole32.tlb") ;
+
+	// Component
+	[
+		uuid(6a3d0750-dad9-11d2-8e2c-0060974fbf19),
+		helpstring("Component Class")
+	]
+	coclass Component
+	{
+		[default] interface IX ;
+	} ;
+} ;
+#endif

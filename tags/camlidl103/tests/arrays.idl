@@ -1,0 +1,36 @@
+[pointer_default(ref)] interface Arrays {
+/* Strings */
+
+[string] char * str1([in,string] unsigned char * s);
+
+/* Arrays */
+
+void array1([in, out] int t[10]);
+
+void array2([in] int n, [in, out, size_is(n)] int t[]);
+
+void array3([in] int n, [in, out, size_is(n)] int t[10]);
+
+void array4([in] int n, [out] int * m, [in, out, size_is(n), length_is(*m)] int t[10]);
+
+void array5([in,out] int *n, [in, out, size_is(*n), length_is(*n)] int t[]);
+
+/* Optional strings and arrays */
+
+[string,unique] char * optstr1([in,string,unique] unsigned char * s);
+
+void optarray1([in,null_terminated,unique] int options[]);
+
+/* Multidimensional arrays */
+
+void multarray1([in] int i, [in] int j, [in, size_is(i,j)] int t[][]);
+void multarray2([in] int i, [in, size_is(,i)] int t[10][]);
+
+/* Big arrays */
+
+void bigarray1([bigarray,in,out] double t[10][20]);
+void bigarray2([in] int dimx, [in] int dimy,
+               [in,bigarray,size_is(dimx,dimy)] long t[][],
+               [out,bigarray,size_is(dimy,dimx)] long tt[][]);
+[bigarray,unique,size_is(10)] long * bigarray3([bigarray,in,unique] long * b);
+}

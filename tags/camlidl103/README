@@ -1,0 +1,57 @@
+OVERVIEW:
+
+Camlidl is a stub code generator for Objective Caml.  It generates
+stub code for interfacing Caml with C from an IDL description of the C
+functions.  Thus, Camlidl automates the most tedious task in
+interfacing C libraries with Caml programs.  It can also be used to
+interface Caml programs with other languages, as long as those
+languages have a well-defined C interface.
+
+In addition, Camlidl provides basic support for COM interfaces and
+components under MS Windows.  It supports both using COM components
+(usually written in C++ or C) from Caml programs, and packaging Caml
+objects as COM components that can then be used from C++ or C.
+
+
+COPYRIGHT:
+
+All files marked "Copyright INRIA" in this distribution are copyright
+1999, 2000, 2001 Institut National de Recherche en Informatique et en
+Automatique (INRIA) and distributed under the conditions stated in
+file LICENSE.  They can be freely redistributed for non-commercial
+purposes, provided the copyright notice remains attached.
+
+
+REQUIREMENTS:
+
+Camlidl requires Objective Caml 3.02 or later.  Under MS Windows,
+Microsoft's Visual C++ 6.0 is required, as well as the Cygnus CYGWIN32
+tools (http://sourceware.cygnus.com/cygwin/).
+
+
+INSTALLATION:
+
+- Under Unix, copy config/Makefile.unix to config/Makefile.
+  Under Windows, copy config/Makefile.windows to config/Makefile.
+
+- Edit config/Makefile to set configuration options, following the
+  comments in that file.  You must set the OCAMLLIB and BINDIR variables
+  to reflect the location of your OCaml installation.  Other variables
+  have reasonable defaults.
+
+- Do "make all".
+
+- Become super-user if necessary and do "make install".
+
+
+DOCUMENTATION:
+
+- The doc/ subdirectory contains the user's manual in HTML and in Postscript.
+
+- Several examples are provided in the directories tests/ and tests/comp/.
+
+
+SUPPORT:
+
+- Please send bug reports and comments to caml@inria.fr
+

@@ -1,0 +1,5 @@
+interface IFoo
+{
+ int foo([in]int x,[in,out,unique]int* y);
+}
+

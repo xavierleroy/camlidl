@@ -1,0 +1,28 @@
+\documentclass[11pt]{article}
+
+\usepackage{isolatin1}
+\usepackage{alltt}
+\usepackage{fullpage}
+\usepackage{syntaxdef}
+\usepackage{hevea}
+
+\newif\ifpdf\pdffalse
+\newif\ifplaintext\plaintextfalse
+\ifhevea
+\input{macros.hva}
+\else
+\input{macros.tex}
+\fi
+\renewcommand{\index}[1]{}
+
+\title{Camlidl user's manual \\ Version 1.03}
+\author{Xavier Leroy \\
+        INRIA Rocquencourt}
+
+\begin{document}
+
+\maketitle
+
+\input{manual.tex}
+
+\end{document}

@@ -1,0 +1,156 @@
+#
+# Chapter 11 - Makefile
+#
+TARGETS = Server.dll
+DIR_SERVER = InProc
+
+#
+# Flags - Always compiles debug
+#
+CPP_FLAGS=/c /MT /Zi /Od /D_DEBUG
+EXE_LINK_FLAGS= /NOD /DEBUG
+DLL_LINK_FLAGS=/NOD /DLL /DEBUG
+
+LIBS = kernel32.lib uuid.lib advapi32.lib ole32.lib oleaut32.lib
+
+# NOTE: Added oleaut32.lib
+
+#################################################
+#
+# Targets
+#
+
+all : Client.exe DClient.exe $(TARGETS) camlclient camlcomponent
+
+#################################################
+#
+# Proxy source files
+#
+Iface.h Server.tlb Proxy.c Guids.c DllData.c : Server.idl
+	midl /h Iface.h /iid Guids.c /proxy Proxy.c Server.idl
+
+#################################################
+#
+# Shared source files
+#
+
+Guids.obj : Guids.c
+		cl $(CPP_FLAGS) Guids.c
+
+#################################################
+#
+# Component/server source files
+#
+
+Server.obj : Server.cpp cunknown.h cfactory.h Iface.h
+	cl $(CPP_FLAGS)  Server.cpp
+
+Cmpnt.obj : Cmpnt.cpp Cmpnt.h Iface.h Registry.h   \
+		CUnknown.h
+	cl $(CPP_FLAGS) Cmpnt.cpp
+
+#
+# Helper classes
+#
+
+CUnknown.obj : CUnknown.cpp CUnknown.h
+	cl $(CPP_FLAGS) $(SERVER) CUnknown.cpp
+
+CFactory.obj : CFactory.cpp CFactory.h
+	cl $(CPP_FLAGS) $(SERVER) CFactory.cpp
+
+Registry.obj : Registry.cpp Registry.h
+	cl $(CPP_FLAGS) $(SERVER) Registry.cpp
+
+#################################################
+#
+# Client source files
+#
+
+Client.obj : Client.cpp Iface.h Util.h
+	cl $(CPP_FLAGS) Client.cpp
+
+DClient.obj : DClient.cpp Util.h
+	cl $(CPP_FLAGS) DClient.cpp
+
+# Util.cpp compiled for the client
+Util.obj : Util.cpp Util.h
+	cl $(CPP_FLAGS) Util.cpp
+
+#################################################
+#
+# Link component - Automatically register component.
+#
+
+SERVER_OBJS = Server.obj	 \
+              Cmpnt.obj      \
+              Registry.obj   \
+              CFactory.obj   \
+              CUnknown.obj   \
+              Util.obj       \
+              Guids.obj
+
+Server.dll:  $(SERVER_OBJS) Server.def
+	link $(DLL_LINK_FLAGS) $(SERVER_OBJS) libcmtd.lib   \
+		libcimtd.lib $(LIBS) /DEF:Server.def
+	regsvr32 -s Server.dll
+
+#################################################
+#
+# Link clients
+#
+
+Client.exe : Client.obj Guids.obj Util.obj
+	link $(EXE_LINK_FLAGS) Client.obj Guids.obj Util.obj   \
+		libcmtd.lib libcimtd.lib $(LIBS)
+	
+DClient.exe : DClient.obj Util.obj
+	link $(EXE_LINK_FLAGS) DClient.obj Guids.obj Util.obj   \
+		libcmtd.lib libcimtd.lib $(LIBS)
+
+#############
+#
+# Caml side
+#
+camlclient : camlclient.exe
+
+camlclient.exe: component.obj GUIDs.obj component.cmo camlclient.cmo
+	ocamlc -verbose -ccopt /Zi -o camlclient.exe  -custom \
+          com.cma component.cmo camlclient.cmo \
+          component.obj GUIDs.obj \
+          -cclib -lcamlidl oleaut32.lib ole32.lib
+
+component.ml component.mli component.c: component.idl ../../compiler/camlidl
+	../../compiler/camlidl -header component.idl
+
+component.cmo: component.ml component.cmi
+component.cmi: component.mli
+camlclient.cmo: component.cmi
+
+camlcomponent: camlcomp.dll
+
+COMPONENTFILES=\
+  component.obj GUIDs.obj \
+  component.cmo camlcomp.cmo camlcomp.cmo \
+  component.tlb
+
+camlcomp.dll: $(COMPONENTFILES)
+	camlidldll -o camlcomp.dll $(COMPONENTFILES)
+	regsvr32 -s camlcomp.dll
+
+component.tlb: component.idl
+	midl /client none /server none /header component.h2 /newtlb component.idl
+
+camlcomp.cmo: component.cmi
+
+.SUFFIXES: .ml .mli .cmo .cmi .c .obj
+
+.ml.cmo:
+	ocamlc -I ../.. -c $<
+
+.mli.cmi:
+	ocamlc -I ../.. -c $<
+
+.c.obj:
+	ocamlc -ccopt /Zi -c $<
+

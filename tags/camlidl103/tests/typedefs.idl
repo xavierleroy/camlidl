@@ -1,0 +1,13 @@
+/* Typedefs */
+
+typedef int t0;
+
+typedef [abstract] int t1;
+
+typedef [abstract,finalize(t2_final),compare(t2_compare)] int t2;
+
+typedef [abstract,ml2c(t3_ml2c),c2ml(t3_c2ml)] int t3;
+
+quote(C, "void t3_ml2c(value v, t3 * c) { *c = Int_val(v); }")
+
+quote(C, "value t3_c2ml(t3 * c) { return Val_int(*c); }")

@@ -1,0 +1,7 @@
+//!!! Array parameters
+interface IFoo {
+  void foo([in]char str[80]);
+  void foz([in]char str[80][40]);
+  void bar([in,out]char str[80]);
+  void baz([out]char **str);
+}
