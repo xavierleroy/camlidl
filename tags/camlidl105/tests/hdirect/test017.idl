@@ -1,0 +1,11 @@
+
+typedef struct tagPALETTEENTRY {
+    int        peRed;
+    int        peGreen;
+    int        peBlue;
+    int        peFlags;
+} PALETTEENTRY, *PPALETTEENTRY, *LPPALETTEENTRY;
+
+typedef struct foo {
+ int x,y;
+} Bar, Pbar;

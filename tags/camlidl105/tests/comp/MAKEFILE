@@ -1,0 +1,114 @@
+#
+# Chapter 7 - Makefile
+#
+#
+# Flags - Always compiles debug.
+#
+CPP_FLAGS=/c /MTd /Zi /Od /D_DEBUG
+EXE_LINK_FLAGS=/DEBUG
+DLL_LINK_FLAGS=/DLL /DEBUG
+
+LIBS=UUID.lib Advapi32.lib Ole32.lib
+
+#################################################
+#
+# Targets
+#
+all : client component camlclient camlcomponent
+
+client : Client.exe 
+
+component : Cmpnt.dll 
+	   
+
+#################################################
+#
+# Shared source files
+#
+
+GUIDs.obj : GUIDs.cpp 
+	cl $(CPP_FLAGS) GUIDs.cpp
+
+Registry.obj : Registry.cpp Registry.h
+	cl $(CPP_FLAGS) Registry.cpp
+
+#################################################
+#
+# component source files
+#
+
+Cmpnt.obj : Cmpnt.cpp Iface.h Registry.h
+	cl $(CPP_FLAGS) Cmpnt.cpp
+
+
+#################################################
+#
+# Client source files
+#
+
+Client.obj : Client.cpp Iface.h 
+	cl $(CPP_FLAGS) Client.cpp
+
+
+#################################################
+#
+# Link component and automatically register component.
+#
+
+Cmpnt.dll : Cmpnt.obj	GUIDs.obj Registry.obj Cmpnt.def 
+	link $(DLL_LINK_FLAGS) Cmpnt.obj GUIDs.obj Registry.obj $(LIBS) /DEF:Cmpnt.def 
+	regsvr32 -s Cmpnt.dll
+
+#################################################
+#
+# Link client.
+#
+
+Client.exe : Client.obj GUIDs.obj
+	link $(EXE_LINK_FLAGS) Client.obj GUIDs.obj $(LIBS)
+
+#############
+#
+# Caml side
+#
+camlclient : camlclient.exe
+
+camlclient.exe: component_stubs.obj GUIDs.obj component.cmo camlclient.cmo
+	ocamlc -ccopt /Zi -o camlclient.exe  -custom \
+          com.cma component.cmo camlclient.cmo \
+          component_stubs.obj GUIDs.obj \
+          -cclib -lcamlidl oleaut32.lib ole32.lib
+
+component.ml component.mli component_stubs.c: component.idl ../../compiler/camlidl
+	../../compiler/camlidl -header component.idl
+
+component.cmo: component.ml component.cmi
+component.cmi: component.mli
+camlclient.cmo: component.cmi
+
+camlcomponent: camlcomp.dll
+
+camlcomp.dll: component_stubs.obj GUIDs.obj \
+              component.cmo camlcomp.cmo
+	camlidldll -o camlcomp.dll \
+                component_stubs.obj GUIDs.obj \
+                component.cmo camlcomp.cmo
+	regsvr32 -s camlcomp.dll
+
+camlcomp.cmo: component.cmi
+
+.SUFFIXES: .ml .mli .cmo .cmx .cmi .c .obj
+
+.ml.cmo:
+	ocamlc -c $<
+
+.ml.cmx:
+	ocamlopt -c $<
+
+.mli.cmi:
+	ocamlc -c $<
+
+.c.obj:
+	ocamlc -ccopt /Zi -c $<
+
+camlcomponent:

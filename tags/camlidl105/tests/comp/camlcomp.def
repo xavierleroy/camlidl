@@ -1,0 +1,8 @@
+LIBRARY         Camlcomp.dll
+DESCRIPTION     'CAMLIDL, test component 1'
+
+EXPORTS
+                DllGetClassObject   @2	PRIVATE
+                DllCanUnloadNow     @3	PRIVATE
+                DllRegisterServer   @4	PRIVATE
+                DllUnregisterServer @5	PRIVATE

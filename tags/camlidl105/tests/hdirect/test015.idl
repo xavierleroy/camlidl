@@ -1,0 +1,8 @@
+//!!! Testing dependent arguments
+
+typedef struct _tag {
+   int x;
+   int y;
+   struct { int z;} a;
+} pt3;
+

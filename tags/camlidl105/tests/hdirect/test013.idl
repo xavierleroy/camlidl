@@ -1,0 +1,9 @@
+//!!! Testing enumeration references
+
+typedef struct _pt pt5;
+typedef struct _pt { int data,x; } pt1;
+typedef pt1 pt2,*pt3,*pt4;
+typedef struct _pt pt6;
+typedef struct _p { int data1; } foo;
+typedef int bar;
+typedef int _bar;

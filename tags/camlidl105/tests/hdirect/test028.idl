@@ -1,0 +1,19 @@
+//!!! example taken from DCOM mailing list posting
+//!!! by Erik Westlin <westlin@MSI.SE>
+
+
+interface IFoo {
+const short MAX_ADB_PARAM_INDEX=2048;
+const short ADB_NAME_LENGTH=14;
+typedef char param_name_t[ADB_NAME_LENGTH];
+const short _maxcount_names=ADB_NAME_LENGTH;
+
+typedef char ADB_STATUS;
+
+int ADB_convert_index(
+                        [in]long name_count,
+                        [in,size_is(name_count)]short* indexes,
+                        [out,size_is(name_count)]param_name_t names[],
+                        [out,size_is(name_count)]ADB_STATUS status_tab[]
+                        );
+}

@@ -1,0 +1,9 @@
+//!! Dependent parameters
+interface Test {
+  void foo( [in]int len
+  	  , [in,size_is(len)]char* str);
+  void foz( [in]int len
+  	  , [in,size_is(len,len)]char** str);
+  void faz( [in,ref]int *len
+  	  , [in,size_is(*len,*len)]char** str);
+}

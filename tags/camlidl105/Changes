@@ -1,0 +1,82 @@
+CamlIDL 1.05:
+-------------
+
+* Update to the new representation of objects introduced in OCaml 3.08.
+* Fixed compiler failure with bigarrays of "const" elements.
+* Fixed bug in conversion from C's signed char to Caml's char type.
+* Function declarations support the [mlname] attribute (to set the
+  Caml name of the function) and the [blocking] attribute (for long-running
+  C functions).
+* Fixed cpp preprocessing problem on MacOS X 10.2 and later.
+* Fixed bug in conversion from a struct of floats to a Caml record of floats.
+* Fixed incorrect initialization of DLL generated for a COM component.
+
+CamlIDL 1.04:
+-------------
+
+* Fixed silly bug in abstract typedefs, introduced in 1.03.
+* Strings, arrays and bigarrays are now non-NULL if "unique" is not specified,
+  even if the pointer default is "unique".
+* "out" parameters dependent on "out" parameters are now removed from
+  the Caml view of a function.
+* Removed spurious warning on the "mlname" attribute.
+
+CamlIDL 1.03:
+-------------
+
+* Revised handling of integer constants, which can now be of Caml boxed int
+  types (int32, int64, nativeint).
+* Dependent fields can now reference all variables that are in lexical scope,
+  e.g. struct { int n; struct { [size_is(x)] int * n; } s; }
+* The C file generated from x.idl is now named x_stubs.c rather than x.c
+  to avoid a name clash on file x.o when compiling x.ml to native code.
+* Added [finalize(fn)], [compare(fn)] and [hash(fn)] on abstract typedefs
+  to associate user-provided finalization, comparison or hashing functions
+  to typedefs.
+* Fixed some oddities with the "const" qualifier.
+
+
+CamlIDL 1.02:
+-------------
+
+* Added support for the "long long", "hyper int" and "__int64" types
+  (64-bit C integers)
+* Added support for "const" modifier on pointer types
+* Support for [unique] attribute on big arrays, turned into option types
+  in the Caml interface
+* Generated C code should now compile cleanly with a C++ compiler
+* Print source location for most warnings
+* Error location was sometimes way off; this is now fixed
+* Fixed incorrect code generated for the types HRESULT_int and HRESULT_bool
+* Fixed refcount management bug causing early deallocation of interfaces
+  implemented in Caml.
+
+
+CamlIDL 1.01:
+-------------
+
+* Added support for Caml boxed int types (int32, int64, nativeint)
+  and for big arrays (module Bigarray)
+* Fixed bug in allocation of working space for out parameters
+  of array types.
+* Disambiguation of record labels that belong to several struct types.
+* Support for [unique] attribute on strings and arrays, turned into
+  option types in the Caml interface.
+* Fixed bug with anonymous enum types (forgot to define the
+  corresponding translation table).
+* Fixed bug with dependent parameters depending on out parameters
+  (these must not be omitted in the Caml function declaration).
+* "in,out" parameters of type string or big array are now presented
+  as an "in,out" parameter of the Caml function and modified in place,
+  rather than presented as a parameter and a result.
+* Added minimal support for COM dispatch interfaces.
+* Fixed lack of initialization of ignored pointers for structs with
+  only one significant field.
+* Relicensed under the QPL (for the compiler) and the LGPL (for
+  everything else).
+
+
+CamlIDL 1.00:
+-------------
+
+First public release.
