@@ -1,5 +1,6 @@
 /* Integers */
 
+[pointer_default(ref)] 
 interface Basics {
 
 int f1([in] int x);
@@ -36,4 +37,9 @@ int f9(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8);
 }
 
 int f15(int x);
+
+/* Const madness */
+void f16([string] const char * p);
+[string] const char * f17();
+
 }
