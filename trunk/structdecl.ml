@@ -16,7 +16,7 @@ let ml_declaration oc sd =
   else fprintf oc "%s = {\n" sd.sd_name;
   List.iter
     (fun f ->
-      fprintf oc "  %s: %a; \n"
+      fprintf oc "  %s: %a;\n"
               (String.uncapitalize f.field_name) out_ml_type f.field_typ)
     (remove_dependent_fields sd.sd_fields);
   fprintf oc "}\n"

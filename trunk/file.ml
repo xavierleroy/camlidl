@@ -19,9 +19,9 @@ type idl_file = component list
 
 (* Generate the ML interface *)
 
-let gen_ml_decls oc intf all_type_decls =
-  fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
-  (* Generate the type definitions *)
+(* Generate the type definitions common to the .ml and the .mli *)
+
+let gen_type_def oc all_type_decls =
   let first = ref true in
   let start_decl () =
     if !first then fprintf oc "type " else fprintf oc "and ";
@@ -31,14 +31,36 @@ let gen_ml_decls oc intf all_type_decls =
     | Comp_structdecl s -> start_decl(); Structdecl.ml_declaration oc s
     | Comp_uniondecl u -> start_decl(); Uniondecl.ml_declaration oc u
     | Comp_enumdecl e -> start_decl(); Enumdecl.ml_declaration oc e
+    | Comp_interface i -> start_decl(); Intf.ml_declaration oc i
     | _ -> () in
   List.iter emit_typedef all_type_decls;
   fprintf oc "\n";
+
+(* Generate the .mli file *)
+
+let gen_mli_file oc intf all_type_decls =
+  fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
+  gen_type_def oc all_type_decls;
   (* Generate the function declarations *)
   let emit_fundecl = function
       Comp_fundecl fd -> Funct.ml_declaration oc fd
     | Comp_constdecl cd -> Constdecl.ml_declaration oc cd
-    | Comp_diversion(Div_ml, txt) -> output_string oc txt
+    | Comp_diversion((Div_mli | Div_ml_mli), txt) -> output_string oc txt
+    | Comp_interface i -> Intf.ml_class_declaration oc i
+    | _ -> () in
+  List.iter emit_fundecl intf
+
+(* Generate the .ml file *)
+
+let gen_ml_file oc intf all_type_decls =
+  fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
+  gen_type_def oc all_type_decls;
+  (* Generate the function declarations and class definitions *)
+  let emit_fundecl = function
+      Comp_fundecl fd -> Funct.ml_declaration oc fd
+    | Comp_constdecl cd -> Constdecl.ml_definition oc cd
+    | Comp_diversion((Div_ml | Div_ml_mli), txt) -> output_string oc txt
+    | Comp_interface i -> Intf.ml_class_definition oc i
     | _ -> () in
   List.iter emit_fundecl intf
 
@@ -67,6 +89,10 @@ let process_comp oc = function
       ()
   | Comp_diversion(kind, txt) ->
       if kind = Div_c then output_string oc txt
+  | Comp_interface i ->
+      if i.intf_methods = []
+      then Intf.declare_transl oc i
+      else Intf.emit_transl oc i
 
 let gen_c_stub oc intf =
   (* Output the header *)

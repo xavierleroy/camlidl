@@ -15,7 +15,7 @@ type function_decl =
   { fun_name: string;
     fun_res: idltype;
     fun_params: (string * in_out * idltype) list;
-    fun_ccall: string option }
+    fun_call: out_channel -> function_decl -> unit }
 
 (* Remove dependent parameters (parameters that are size_is, length_is,
    or switch_is of another parameter).  Also remove ignored pointers. *)
@@ -85,13 +85,6 @@ let ml_view fundecl =
 
 (* Generate the ML declaration for a function *)
 
-let out_ml_types oc sep types =
-  match types with
-    [] -> fprintf oc "unit"
-  | (_, ty1) :: tyl ->
-      out_ml_type oc ty1;
-      List.iter (fun (_, ty) -> fprintf oc " %s " sep; out_ml_type oc ty) tyl
-
 let ml_declaration oc fundecl =
   let (ins, outs) = ml_view fundecl in
   fprintf oc "external %s : " (String.uncapitalize fundecl.fun_name);
@@ -128,6 +121,28 @@ let rec call_error_check oc name ty =
   | Type_pointer(kind, ty_elt) ->
       call_error_check oc ("*" ^ name) ty_elt
   | _ -> ()
+
+(* Print a standard call *)
+
+let emit_standard_call oc fundecl =
+  if fundecl.fun_res = Type_void
+  then iprintf oc ""
+  else iprintf oc "_res = ";
+  fprintf oc "%s(" fundecl.fun_name;
+  begin match fundecl.fun_params with
+    [] -> ()
+  | (name1, _,_) :: rem ->
+      fprintf oc "%s" name1;
+      List.iter (fun (name, _, _) -> fprintf oc ", %s" name) rem
+  end;
+  fprintf oc ");\n"
+
+(* Print a custom call *)
+
+let emit_custom_call s oc fundecl =
+  iprintf oc "/* begin user-supplied calling sequence */\n";
+  output_string oc s;
+  iprintf oc "/* end user-supplied calling sequence */\n"
 
 (* Generate the wrapper for calling a C function from ML *)
 
@@ -176,25 +191,8 @@ let emit_wrapper oc fundecl =
                   iprintf pc "%s = &%s;\n" name c
             | _ -> ())
     fundecl.fun_params;
-  (* Generate call to C function *)
-  begin match fundecl.fun_ccall with
-    Some s ->
-      iprintf pc "/* begin user-supplied calling sequence */\n";
-      output_string pc s;
-      iprintf pc "/* end user-supplied calling sequence */\n"
-  | None ->
-      if fundecl.fun_res = Type_void
-      then iprintf pc ""
-      else iprintf pc "_res = ";
-      fprintf pc "%s(" fundecl.fun_name;
-      begin match fundecl.fun_params with
-        [] -> ()
-      | (name1, _,_) :: rem ->
-          fprintf pc "%s" name1;
-          List.iter (fun (name, _, _) -> fprintf pc ", %s" name) rem
-      end;
-      fprintf pc ");\n"
-  end;
+  (* Generate the call to C function *)
+  fundecl.fun_call oc fundecl;
   (* Call error checking functions on result and out parameters
      that need it *)
   call_error_check pc "_res" fundecl.fun_res;
