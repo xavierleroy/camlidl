@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.ml,v 1.26 2002-01-16 16:15:30 xleroy Exp $ *)
+(* $Id: cvttyp.ml,v 1.27 2004-07-08 11:24:43 xleroy Exp $ *)
 
 open Utils
 open Printf
@@ -136,7 +136,7 @@ let out_mltype_stamp oc kind modl name stamp =
 
 (* Convert an IDL type to an ML bigarray element type *)
 
-let ml_bigarray_kind ty =
+let rec ml_bigarray_kind ty =
   match ty with
     Type_int((Char | UChar | Byte), _) -> "Bigarray.int8_unsigned_elt"
   | Type_int((SChar | Small), _) -> "Bigarray.int8_signed_elt"
@@ -148,6 +148,7 @@ let ml_bigarray_kind ty =
   | Type_int((Hyper | UHyper), _) -> "Bigarray.int64_elt"
   | Type_float -> "Bigarray.float32_elt"
   | Type_double -> "Bigarray.float64_elt"
+  | Type_const ty -> ml_bigarray_kind ty
   | _ -> assert false
 
 (* Convert an IDL type to an ML type *)
