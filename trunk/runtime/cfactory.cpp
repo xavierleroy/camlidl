@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: cfactory.cpp,v 1.7 2000-08-19 11:05:00 xleroy Exp $ */
+/* $Id: cfactory.cpp,v 1.8 2001-07-30 14:05:17 xleroy Exp $ */
 
 /* The class factory and DLL support */
 
@@ -64,12 +64,13 @@ public:
                                            const IID& iid,
                                            void** object) 
   {
+    struct camlidl_ctx_struct ctx = { CAMLIDL_ADDREF, NULL };
     // Aggregation is not supported yet
     if (pUnknownOuter != NULL) return CLASS_E_NOAGGREGATION;
     // Create the component
     value vcomp =
       callback(Field(this->comp->compdata, COMPDATA_CREATE), Val_unit);
-    IUnknown * comp = (IUnknown *) camlidl_unpack_interface(vcomp, NULL);
+    IUnknown * comp = (IUnknown *) camlidl_unpack_interface(vcomp, &ctx);
     // Get the requested interface
     HRESULT res = comp->QueryInterface(iid, object);
     // Release the initial pointer to the component
