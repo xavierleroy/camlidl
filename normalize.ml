@@ -34,16 +34,20 @@ let error_if_fundecl kind =
   if !in_fundecl then
     error (sprintf "anonymous %s in function parameters or result type" kind)
 
+let make_module_name filename =
+  Filename.chop_extension (Filename.basename filename)
+
 (* Generic function to handle declarations and definitions of struct,
    unions, enums and interfaces *)
 
 let process_declarator kind tbl name sourcedecl 
-                       proj_contents make_decl update_decl =
+                       proj_contents make_decl update_decl record_decl =
   if name = "" then begin
     if !in_fundecl then
      error (sprintf "anonymous %s in function parameters or result type" kind);
     let newdecl = make_decl() in
     update_decl newdecl sourcedecl;
+    record_decl newdecl;
     newdecl
   end else begin
     let decl =
@@ -58,6 +62,7 @@ let process_declarator kind tbl name sourcedecl
         error (sprintf "redefinition of %s %s" kind name);
       update_decl decl sourcedecl
     end;
+    record_decl decl;
     decl
   end
 
@@ -103,8 +108,9 @@ and enter_struct sd =
         sd_stamp = 0; sd_fields = [] })
     (fun sd' sd ->
       sd'.sd_stamp <- newstamp();
-      sd'.sd_fields <- List.map normalize_field sd.sd_fields;
-      all_comps := Comp_structdecl sd' :: !all_comps)
+      sd'.sd_fields <- List.map normalize_field sd.sd_fields)
+    (fun sd ->
+      all_comps := Comp_structdecl sd :: !all_comps)
 
 and enter_union ud =
   process_declarator "union" unions ud.ud_name ud
@@ -114,8 +120,9 @@ and enter_union ud =
         ud_stamp = 0; ud_cases = [] })
     (fun ud' ud ->
       ud'.ud_stamp <- newstamp();
-      ud'.ud_cases <- List.map normalize_case ud.ud_cases;
-      all_comps := Comp_uniondecl ud' :: !all_comps)
+      ud'.ud_cases <- List.map normalize_case ud.ud_cases)
+    (fun ud ->
+      all_comps := Comp_uniondecl ud :: !all_comps)
 
 and enter_enum en =
   process_declarator "enum" enums en.en_name en
@@ -125,8 +132,9 @@ and enter_enum en =
         en_stamp = 0; en_consts = [] })
     (fun en' en ->
       en'.en_stamp <- newstamp();
-      en'.en_consts <- en.en_consts;
-      all_comps := Comp_enumdecl en' :: !all_comps)
+      en'.en_consts <- en.en_consts)
+    (fun en ->
+      all_comps := Comp_enumdecl en :: !all_comps)
 
 let normalize_fundecl fd =
   current_function := fd.fun_name;
@@ -166,10 +174,11 @@ let enter_interface i =
                          i.intf_super.intf_name i.intf_name) in
       i'.intf_uid <- i.intf_uid;
       i'.intf_super <- super;
-      i'.intf_methods <- List.map normalize_fundecl i.intf_methods;
-      all_comps := Comp_interface i' :: !all_comps)
+      i'.intf_methods <- List.map normalize_fundecl i.intf_methods)
+    (fun i ->
+      all_comps := Comp_interface i :: !all_comps)
 
-let normalize_component = function
+let rec normalize_component = function
     Comp_typedecl td -> enter_typedecl td
   | Comp_structdecl sd -> ignore(enter_struct sd)
   | Comp_uniondecl ud -> ignore(enter_union ud)
@@ -181,56 +190,33 @@ let normalize_component = function
   | Comp_diversion(ty, s) ->
       all_comps := Comp_diversion(ty, s) :: !all_comps
   | Comp_interface intf -> ignore(enter_interface intf)
+  | Comp_import(filename, comps) ->
+      let name = make_module_name filename in
+      let saved_name = !module_name in
+      module_name := name;
+      let comps' = normalize_components comps in
+      module_name := saved_name;
+      all_comps := Comp_import(name, comps') :: !all_comps
 
-
-(* Read and normalize a file, recursively processing the imports *)
-
-module StringSet = Set.Make(struct type t = string let compare = compare end)
-
-let imports_read = ref StringSet.empty
-
-let rec normalize_file name =
-  imports_read := StringSet.add name !imports_read;
-  let filename =
-    try
-      find_in_path !Clflags.search_path name
-    with Not_found ->
-      eprintf "Cannot find file %s\n" name;
-      raise Error in
-  let pref =
-    if Filename.check_suffix name ".idl"
-    then Filename.chop_suffix name ".idl"
-    else name in
-  module_name := Filename.basename pref;
-  let (imports, comps) = Parse.read_file filename in
-  (* Recursively process the imports *)
-  let importlist =
-    List.map
-      (fun name ->
-        if StringSet.mem name !imports_read then [] else begin
-          let (comps, imports) = normalize_file name in
-          imports @ comps
-        end)
-      imports in
-  (* Normalize the components and collect all type definitions *)
-  module_name := Filename.basename pref;
+and normalize_components comps =
+  let saved_all_comps = !all_comps in
   all_comps := [];
-  currstamp := 0;
   List.iter normalize_component comps;
-  let comps' = List.rev !all_comps in
-  all_comps := [];
-  (comps', List.concat importlist)
+  let ac = List.rev !all_comps in
+  all_comps := saved_all_comps;
+  ac
 
-let process_file f =
-  imports_read := StringSet.empty;
+(* Main entry point *)
+
+let normalize_file filename =
   Hashtbl.clear structs;
   Hashtbl.clear unions;
   Hashtbl.clear enums;
   Hashtbl.clear intfs;
   Hashtbl.clear typedefs;
   Hashtbl.add intfs "IUnknown" iunknown;
-  let res = normalize_file f in
-  imports_read := StringSet.empty;
+  module_name := make_module_name filename;
+  let res = normalize_components (Parse.read_file filename) in
   Hashtbl.clear structs;
   Hashtbl.clear unions;
   Hashtbl.clear enums;

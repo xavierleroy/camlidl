@@ -86,9 +86,23 @@ let ml_declaration oc fundecl =
 (* Print a warm fuzzy in/out comment *)
 
 let out_inout oc = function
-    In -> fprintf oc "[in]"
-  | Out -> fprintf oc "[out]"
-  | InOut -> fprintf oc "[in,out]"
+    In -> fprintf oc "in"
+  | Out -> fprintf oc "out"
+  | InOut -> fprintf oc "in,out"
+
+(* Generate the C declaration for a function *)
+
+let c_declaration oc fundecl =
+  fprintf oc "extern %a(" out_c_decl (fundecl.fun_name, fundecl.fun_res);
+  begin match fundecl.fun_params with
+    [] -> fprintf oc "void"
+  | p1 :: pl ->
+      let out_param (name, inout, ty) =
+        fprintf oc "/*%a*/ %a" out_inout inout out_c_decl (name, ty) in
+      out_param p1;
+      List.iter (fun p -> fprintf oc ", "; out_param p) pl
+  end;
+  fprintf oc ");\n\n"
 
 (* If heap allocation is needed, set up allocation arena *)
 

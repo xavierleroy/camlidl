@@ -17,7 +17,8 @@ let enum_c_to_ml c_to_ml oc en c v =
   if List.length en.en_consts <= 4 then begin
     iprintf oc "switch(%s) {\n" c;
     iter_index
-      (fun i cst -> iprintf oc "case %s: %s = Val_int(%d); break;\n" cst v i)
+      (fun i c ->
+        iprintf oc "case %s: %s = Val_int(%d); break;\n" c.const_name v i)
       0 en.en_consts;
     iprintf oc "default: invalid_argument(\"%s: bad enum %s value\");\n"
                !current_function en.en_name;

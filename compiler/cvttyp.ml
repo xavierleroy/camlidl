@@ -26,17 +26,17 @@ let rec out_c_decl oc (id, ty) =
   | Type_double -> fprintf oc "double %s" id
   | Type_void -> fprintf oc "void %s" id
   | Type_struct sd ->
-      assert (sd.sd_name <> "");
-      fprintf oc "struct %s %s" sd.sd_name id
+      if sd.sd_name <> ""
+      then fprintf oc "struct %s %s" sd.sd_name id
+      else fprintf oc "%a %s" out_struct sd id
   | Type_union(ud, discr) ->
-      assert (ud.ud_name <> "");
-      fprintf oc "union %s %s" ud.ud_name id
+      if ud.ud_name <> ""
+      then fprintf oc "union %s %s" ud.ud_name id
+      else fprintf oc "%a %s" out_union ud id
   | Type_enum (en, attr) ->
-      fprintf oc "int %s" id
-      (* Alternatively, one could do:
-           assert (en.en_name <> "");
-           fprintf oc "enum %s %s" en.en_name id
-         but this forces the enum to be declared beforehand on the C side *)
+      if en.en_name <> ""
+      then fprintf oc "int %s" id
+      else fprintf oc "%a %s" out_enum en id
   | Type_named(modl, ty_name) ->
       fprintf oc "%s %s" ty_name id
   | Type_pointer(attr, (Type_array(_, _) as ty)) ->
@@ -50,7 +50,48 @@ let rec out_c_decl oc (id, ty) =
         | None -> sprintf "*%s" id in
       out_c_decl oc (id', ty)
   | Type_interface(modl, intf_name) ->
-      fprintf oc "interface %s %s" intf_name id
+      fprintf oc "struct %s %s" intf_name id
+
+and out_struct oc sd =
+  fprintf oc "struct ";
+  if sd.sd_name <> "" then fprintf oc "%s " sd.sd_name;
+  fprintf oc "{\n";
+  increase_indent();
+  List.iter (out_field oc) sd.sd_fields;
+  decrease_indent();
+  fprintf oc "}"
+
+and out_field oc f =
+  iprintf oc "%a;\n" out_c_decl (f.field_name, f.field_typ)
+
+and out_union oc ud =
+  fprintf oc "struct ";
+  if ud.ud_name <> "" then fprintf oc "%s " ud.ud_name;
+  fprintf oc "{\n";
+  increase_indent();
+  List.iter (out_case oc) ud.ud_cases;
+  decrease_indent();
+  fprintf oc "}"
+
+and out_case oc c =
+  match c.case_field with None -> () | Some f -> out_field oc f
+
+and out_enum oc en =
+  fprintf oc "enum ";
+  if en.en_name <> "" then fprintf oc "%s " en.en_name;
+  fprintf oc "{\n";
+  increase_indent();
+  List.iter (out_enum_const oc) en.en_consts;
+  decrease_indent();
+  fprintf oc "}"
+
+and out_enum_const oc cst =
+  fprintf oc "%s" cst.const_name;
+  begin match cst.const_val with
+    None -> ()
+  | Some le -> fprintf oc " = %a" Lexpr.output ("", le)
+  end;
+  fprintf oc ",\n"
 
 (* Convert an IDL type to a C type *)
 

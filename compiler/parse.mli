@@ -1,3 +1,3 @@
 (* Source parsing *)
 
-val read_file: string -> string list * File.components
+val read_file: string -> File.components

@@ -35,6 +35,13 @@ let ml_declaration oc td =
       fprintf oc "%s = %a\n"
               (String.uncapitalize td.td_name) out_ml_type td.td_type
 
+(* Generate the C typedef corresponding to the typedef *)
+
+let c_declaration oc td =
+  fprintf oc "typedef ";
+  out_c_decl oc (td.td_name, td.td_type);
+  fprintf oc ";\n\n"
+
 (* External (forward) declaration of the translation functions *)
 
 let declare_transl oc td =

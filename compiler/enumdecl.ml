@@ -4,18 +4,24 @@ open Printf
 open Utils
 open Variables
 open Idltypes
+open Cvttyp
 open Cvtval
 open Enum
 
-(* Convert and IDL enum declaration to an ML record declaration *)
+(* Convert an IDL enum declaration to an ML datatype declaration *)
 
 let ml_declaration oc en =
   if en.en_name = ""
   then fprintf oc "enum_%d =\n" en.en_stamp
   else fprintf oc "%s =\n" (String.uncapitalize en.en_name);
   List.iter
-    (fun c -> fprintf oc "  | %s\n" (String.capitalize c))
+    (fun c -> fprintf oc "  | %s\n" (String.capitalize c.const_name))
     en.en_consts
+
+(* Convert an IDL enum declaration to a C enum declaration *)
+
+let c_declaration oc en =
+  out_enum oc en; fprintf oc ";\n\n"
 
 (* External (forward) declaration of the translation functions *)
 
@@ -33,7 +39,7 @@ let transl_ml_to_c oc en =
   fprintf oc "int camlidl_transl_table_%s_enum_%d[%d] = {\n"
              en.en_mod en.en_stamp (List.length en.en_consts);
   List.iter
-    (fun c -> fprintf oc "  %s,\n" c)
+    (fun c -> fprintf oc "  %s,\n" c.const_name)
     en.en_consts;
   fprintf oc "};\n\n";
   current_function := sprintf "enum %s" en.en_name;

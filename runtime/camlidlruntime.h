@@ -41,7 +41,10 @@ typedef int HRESULT;
 typedef unsigned long ULONG;
 #endif
 
-#ifdef __GNUC__
+#if defined(_WIN32)
+#define DECLARE_VTBL_PADDING
+#define VTBL_PADDING
+#elif defined(__GNUC__)
 #define DECLARE_VTBL_PADDING void * padding; void * constr;
 #define VTBL_PADDING 0, 0,
 #endif

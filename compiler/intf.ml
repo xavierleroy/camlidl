@@ -48,7 +48,8 @@ let ml_class_declaration oc intf =
     intf.intf_methods;
   fprintf oc "    end\n\n";
   (* Declare the IID *)
-  fprintf oc "val iid_%s : %s Com.iid\n" mlintf mlintf;
+  if intf.intf_uid <> "" then
+    fprintf oc "val iid_%s : %s Com.iid\n" mlintf mlintf;
   (* Declare the conversion functions *)
   fprintf oc "val use_%s : %s Com.interface -> %s_class\n"
              mlintf mlintf mlintf;
@@ -59,14 +60,54 @@ let ml_class_declaration oc intf =
              out_mltype_name (intf.intf_super.intf_mod,
                               intf.intf_super.intf_name)
 
+(* Declare the interface in C *)
+
+let c_forward_declaration oc intf =
+  fprintf oc "struct %s;\n" intf.intf_name
+
+let rec declare_vtbl oc self intf =
+  if intf.intf_name = "IUnknown" then begin
+    iprintf oc "HRESULT (*QueryInterface)(struct %s * self, IID *, void **);\n"
+               self;
+    iprintf oc "ULONG (*AddRef)(struct %s * self);\n" self;
+    iprintf oc "ULONG (*Release)(struct %s * self);\n" self
+  end else begin
+    declare_vtbl oc self intf.intf_super;
+    List.iter
+      (fun m ->
+        iprintf oc "%a(struct %s * self"
+                   out_c_decl (sprintf "(*%s)" m.fun_name, m.fun_res)
+                   self;
+        List.iter
+          (fun (name, inout, ty) ->
+            fprintf oc ", /*%a*/ %a" out_inout inout out_c_decl (name, ty))
+          m.fun_params;
+        fprintf oc ";\n")
+      intf.intf_methods
+  end
+
+let c_declaration oc intf =
+  fprintf oc "struct %sVtbl {\n" intf.intf_name;
+  increase_indent();
+  declare_vtbl oc intf.intf_name intf;
+  decrease_indent();
+  fprintf oc "};\n";
+  fprintf oc "struct %s {\n" intf.intf_name;
+  fprintf oc "  struct lpVtbl * %sVtbl;\n" intf.intf_name;
+  fprintf oc "};\n";
+  fprintf oc "struct %s {\n" intf.intf_name;
+  fprintf oc "  struct %sVtbl * lpVtbl;\n" intf.intf_name;
+  fprintf oc "};\n\n"
+
 (* Define the wrapper classes *)
 
 let ml_class_definition oc intf =
   let intfname = String.uncapitalize intf.intf_name in
   let supername = String.uncapitalize intf.intf_super.intf_name in
   (* Define the IID *)
-  fprintf oc "let iid_%s = (Obj.magic \"%s\" : %s Com.iid)\n"
-             intfname (String.escaped intf.intf_uid) intfname;
+  if intf.intf_uid <> "" then
+    fprintf oc "let iid_%s = (Obj.magic \"%s\" : %s Com.iid)\n"
+               intfname (String.escaped intf.intf_uid) intfname;
   (* Define the coercion function to the super class *)
   fprintf oc "let %s_of_%s (intf : %s Com.interface) = (Obj.magic intf : %a Com.interface)\n\n"
              supername intfname intfname
@@ -200,23 +241,24 @@ let declare_callback_wrapper oc intf meth =
 
 (* Generate the vtable for an interface (for the make_ conversion) *)
 
+let rec emit_vtbl oc intf =
+  if intf.intf_name = "IUnknown" then begin
+    fprintf oc "  (void *) camlidl_QueryInterface,\n";
+    fprintf oc "  (void *) camlidl_AddRef,\n";
+    fprintf oc "  (void *) camlidl_Release,\n";
+  end else begin
+    emit_vtbl oc intf.intf_super;
+    List.iter
+      (fun m -> fprintf oc "  /* %s */ (void *) camlidl_%s_%s_%s_callback,\n"
+                        m.fun_name !module_name intf.intf_name m.fun_name)
+      intf.intf_methods
+  end
+
 let emit_vtable oc intf =
-  let rec emit_vtbl intf =
-    if intf.intf_name = "IUnknown" then begin
-      fprintf oc "  (void *) camlidl_QueryInterface,\n";
-      fprintf oc "  (void *) camlidl_AddRef,\n";
-      fprintf oc "  (void *) camlidl_Release,\n";
-    end else begin
-      emit_vtbl intf.intf_super;
-      List.iter
-        (fun m -> fprintf oc "  /* %s */ (void *) camlidl_%s_%s_%s_callback,\n"
-                          m.fun_name !module_name intf.intf_name m.fun_name)
-        intf.intf_methods
-    end in
   fprintf oc "struct %sVtbl camlidl_%s_%s_vtbl = {\n"
              intf.intf_name !module_name intf.intf_name;
   fprintf oc "  VTBL_PADDING\n";
-  emit_vtbl intf;
+  emit_vtbl oc intf;
   fprintf oc "};\n\n"
 
 (* Generate the make_ conversion (takes an ML object, wraps it into
@@ -226,8 +268,12 @@ let emit_make_interface oc intf =
   fprintf oc "value camlidl_makeintf_%s_%s(value vobj)\n"
              !module_name intf.intf_name;
   fprintf oc "{\n";
-  fprintf oc "  return camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, &IID_%s);\n"
-             !module_name intf.intf_name intf.intf_name;
+  if intf.intf_uid = "" then
+    fprintf oc "  return camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, NULL);\n"
+               !module_name intf.intf_name
+  else
+    fprintf oc "  return camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, &IID_%s);\n"
+               !module_name intf.intf_name intf.intf_name;
   fprintf oc "}\n\n"
 
 (* Definition of the translation functions *)

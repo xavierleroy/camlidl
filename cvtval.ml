@@ -69,7 +69,7 @@ let rec ml_to_c oc onstack pref ty v c =
       iprintf oc "camlidl_ml2c_%s_%s(%s, &%s, _arena);\n" modl name v c;
       need_deallocation := true
   | Type_pointer(Ref, Type_interface(modl, name)) ->
-      iprintf oc "%s = (interface %s *) camlidl_unpack_interface(%s);\n"
+      iprintf oc "%s = (struct %s *) camlidl_unpack_interface(%s);\n"
                  c name v
   | Type_pointer(Ref, ty_elt) ->
       let c' = allocate_space oc onstack ty_elt c in

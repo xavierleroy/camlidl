@@ -21,6 +21,14 @@ let ml_declaration oc sd =
     (remove_dependent_fields sd.sd_fields);
   fprintf oc "}\n"
 
+(* Convert an IDL struct declaration to a C struct declaration *)
+
+let c_declaration oc sd =
+  out_struct oc sd; fprintf oc ";\n\n"
+
+let c_forward_declaration oc sd =
+  if sd.sd_name <> "" then fprintf oc "struct %s;\n" sd.sd_name
+
 (* External (forward) declaration of the translation functions *)
 
 let declare_transl oc sd =

@@ -14,4 +14,5 @@ type iUnknown
 
 val iUnknown_of : 'a interface -> iUnknown interface
 
-val aggregate: 'a interface -> 'b interface -> 'a interface
+val combine: 'a interface -> 'b interface -> 'a interface
+

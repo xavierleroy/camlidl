@@ -2,6 +2,7 @@
 
 {
 open Utils
+open Parse_aux
 open Parser_midl
 
 let keywords = Hashtbl.create 29
@@ -27,6 +28,7 @@ let _ =
       "interface", INTERFACE;
       "long", LONG;
       "NULL", NULL;
+      "quote", QUOTE;
       "short", SHORT;
       "signed", SIGNED;
       "sizeof", SIZEOF;
@@ -65,6 +67,7 @@ exception Lex_error of string
 }
 
 let blank = [' ' '\010' '\013' '\009' '\012']
+let eol = ('\n' | '\r' | "\r\n")
 let identstart = ['A'-'Z' 'a'-'z' '_']
 let identchar = identstart | ['0'-'9']
 let decimal_literal = ['0'-'9']+
@@ -80,10 +83,9 @@ rule token = parse
       { token lexbuf }
   | "/*"
       { comment lexbuf }
-  | "//" [ ^ '\n' ] * ('\n' | '\r' | "\r\n")
+  | "//" [ ^ '\n' ] * eol
       { token lexbuf }
-  | "#" [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] *
-    ('\n' | '\r' | "\r\n")
+  | "#" [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] * eol
       (* # linenum "filename" flags \n *)
       { token lexbuf }
   | identstart identchar *
@@ -91,7 +93,9 @@ rule token = parse
         try
           Hashtbl.find keywords s
         with Not_found ->
-          IDENT s }
+          if StringSet.mem s !typedef_names
+          then TYPEIDENT s
+          else IDENT s }
   | octal_literal
       { INTEGER(int_of_string("0o" ^ Lexing.lexeme lexbuf)) }
   | decimal_literal | hex_literal
@@ -106,16 +110,6 @@ rule token = parse
       { CHARACTER(char_for_backslash (Lexing.lexeme_char lexbuf 2)) }
   | "'" '\\' ['0'-'3'] ['0'-'7']? ['0'-'7']? "'"
       { CHARACTER(char_for_code lexbuf 2 1) }
-  | "{" ['a'-'z''A'-'Z']* "|"
-      { let s = Lexing.lexeme lexbuf in
-        let kind = String.lowercase (String.sub s 1 (String.length s - 2)) in
-        Ebuff.reset diversion_buffer;
-        diversion lexbuf;
-        DIVERSION(kind, Ebuff.get_stored diversion_buffer) }
-  | "#" [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] *
-    ('\n' | '\r' | "\r\n")
-      (* # linenum "filename" flags \n *)
-      { token lexbuf }
   | "&" { AMPER }
   | "&&" { AMPERAMPER }
   | "!" { BANG }
@@ -164,7 +158,7 @@ and comment = parse
 and string = parse
     '"'
       { () }
-  | '\\' '\n' [' ' '\009'] *
+  | '\\' eol [' ' '\009'] *
       { string lexbuf }
   | '\\' ['\\' '"' 'n' 't' 'b' 'r']
       { Ebuff.add_char string_buffer
@@ -178,16 +172,6 @@ and string = parse
   | _
       { Ebuff.add_char string_buffer (Lexing.lexeme_char lexbuf 0);
         string lexbuf }
-
-and diversion = parse
-    "|}"
-      { () }
-  (* TODO: skip strings correctly *)
-  | eof
-      { raise (Lex_error "Unterminated {| section") }
-  | _
-      { Ebuff.add_char diversion_buffer (Lexing.lexeme_char lexbuf 0);
-        diversion lexbuf }
 
 and scan_uuid = parse
     eof

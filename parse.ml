@@ -42,9 +42,12 @@ let read_file filename =
          <> 0
        then error "error during preprocessing";
        let r = read_source_file filename tempfile in
-       Sys.remove tempfile;
+       remove_file tempfile;
        r
      with x ->
-       begin try Sys.remove tempfile with _ -> () end;
+       remove_file tempfile;
        raise x
   end
+
+let _ =
+  Parse_aux.read_file := read_file

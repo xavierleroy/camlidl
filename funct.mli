@@ -16,6 +16,7 @@ val ml_view :
       function_decl -> (string * idltype) list * (string * idltype) list
 
 val ml_declaration : out_channel -> function_decl -> unit
+val c_declaration : out_channel -> function_decl -> unit
 
 val emit_wrapper : out_channel -> function_decl -> unit
 val emit_method_wrapper : out_channel -> string -> function_decl -> unit

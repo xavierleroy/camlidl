@@ -33,6 +33,14 @@ let ml_declaration oc ud =
       fprintf oc "  | %a of %a\n" out_constr lbl out_ml_type f.field_typ in
   List.iter emit_case ud.ud_cases
 
+(* Convert an IDL union declaration to a C union declaration *)
+
+let c_declaration oc ud =
+  out_union oc ud; fprintf oc ";\n\n"
+
+let c_forward_declaration oc ud =
+  if ud.ud_name <> "" then fprintf oc "union %s;\n" ud.ud_name
+
 (* External (forward) declaration of the translation functions *)
 
 let declare_transl oc ud =

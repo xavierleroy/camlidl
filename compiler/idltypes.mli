@@ -37,6 +37,9 @@ and field =
 and union_case =
   { case_label: string option; case_field: field option }
 
+and enum_const =
+  { const_name: string; const_val: lexpr option }
+
 and struct_decl =
   { sd_name: string; sd_mod: string; mutable sd_stamp: int;
      mutable sd_fields: field list }
@@ -47,7 +50,7 @@ and union_decl =
 
 and enum_decl =
   { en_name: string; en_mod: string; mutable en_stamp: int;
-    mutable en_consts: string list }
+    mutable en_consts: enum_const list }
 
 and lexpr =
     Expr_ident of string

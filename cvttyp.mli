@@ -6,6 +6,11 @@ val out_c_decl : out_channel -> string * Idltypes.idltype -> unit
 (* Convert an IDL type to a C type *)
 val out_c_type : out_channel -> Idltypes.idltype -> unit
 
+(* Print C declarations for structs, unions, enums *)
+val out_struct : out_channel -> struct_decl -> unit
+val out_union : out_channel -> union_decl -> unit
+val out_enum : out_channel -> enum_decl -> unit
+
 (* Convert an IDL type to an ML type *)
 val out_ml_type : out_channel -> Idltypes.idltype -> unit
 

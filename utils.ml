@@ -16,6 +16,11 @@ let increase_indent() =
 let decrease_indent() =
   current_indentation := !current_indentation - 2
 
+(* Remove a file, ignoring errors *)
+
+let remove_file name =
+  try Sys.remove name with Sys_error _ -> ()
+
 (* Divert output to a temp file *)
 
 let temp_file = ref ""
@@ -35,7 +40,7 @@ let end_diversion oc =
     if n > 0 then (output oc buffer 0 n; copy()) in
   copy();
   close_in ic;
-  Sys.remove !temp_file
+  remove_file !temp_file
 
 (* Remember current module name and current function name *)
 
@@ -90,3 +95,4 @@ let find_in_path path name =
 (* Discard result *)
 
 external ignore: 'a -> unit = "%identity" (* not quite *)
+
