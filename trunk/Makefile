@@ -1,36 +1,25 @@
 
 include Makefile.config
 
-OCAMLC=ocamlc -g
-OCAMLDEP=ocamldep
-OCAMLYACC=ocamlyacc -v
-OCAMLLEX=ocamllex
-CC=gcc
-CFLAGS=-g -O -Wall -I/usr/local/lib/ocaml
-
 OBJS=config.cmo utils.cmo ebuff.cmo clflags.cmo \
   lexpr.cmo cvttyp.cmo variables.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
   structdecl.cmo enumdecl.cmo uniondecl.cmo \
   typedef.cmo funct.cmo constdecl.cmo intf.cmo \
   file.cmo \
-  parser_midl.cmo lexer_midl.cmo linenum.cmo parse.cmo \
+  parse_aux.cmo parser_midl.cmo lexer_midl.cmo linenum.cmo parse.cmo \
   normalize.cmo \
   main.cmo
 
-COBJS=camlidlruntime.o
+MAKERUNTIME=$(MAKE) -f Makefile.$(OSTYPE)
 
-all: camlidl libcamlidl.a com.cmo
+all: camlidl com.cmo idlruntime
 
 camlidl: $(OBJS)
 	$(OCAMLC) -o camlidl $(OBJS)
 
 clean::
 	rm -f camlidl
-
-libcamlidl.a: $(COBJS)
-	rm -f libcamlidl.a
-	ar rc libcamlidl.a $(COBJS)
 
 parser_midl.ml parser_midl.mli: parser_midl.mly
 	$(OCAMLYACC) parser_midl.mly
@@ -62,10 +51,16 @@ beforedepend:: config.ml
 linenum.ml: linenum.mll
 	$(OCAMLLEX) linenum.mll
 
-partialclean::
+clean::
 	rm -f linenum.ml
 
 beforedepend:: linenum.ml
+
+idlruntime:
+	cd runtime; $(MAKERUNTIME) all
+
+clean::
+	cd runtime; $(MAKERUNTIME) clean
 
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
@@ -80,11 +75,11 @@ beforedepend:: linenum.ml
 
 # Clean up
 clean::
-	rm -f *.cm[iox] *.[oa]
+	rm -f *.cm[iox]
 
 # Dependencies
 depend: beforedepend
 	$(OCAMLDEP) $(INCLUDES) *.mli *.ml > .depend
-	$(CC) $(CFLAGS) -MM *.c >> .depend
+	cd runtime; $(MAKERUNTIME) depend
 
 include .depend

@@ -127,7 +127,7 @@ let rec tstype trail = function
         | None -> sprintf "*%s" trail in
       tstype trail ty
   | Type_interface(modl, intf_name) ->
-      add_string b "interface "; add_string b intf_name; add_string b trail
+      add_string b "struct "; add_string b intf_name; add_string b trail
 
 and integer_type = function
     Int -> "int"

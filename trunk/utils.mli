@@ -21,3 +21,5 @@ val iter_index : (int -> 'a -> unit) -> int -> 'a list -> unit
 val find_in_path : string list -> string -> string
 
 external ignore: 'a -> unit = "%identity"
+
+val remove_file : string -> unit

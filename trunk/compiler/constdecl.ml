@@ -9,15 +9,26 @@ open Cvttyp
 type constant_decl =
   { cd_name: string; cd_type: idltype; cd_value: lexpr }
 
-(* Generate the ML let binding corresponding to the constant declaration *)
+(* Record the value of a constant declaration *)
+
+let record c =
+  Lexpr.bind_const c.cd_name (eval c.cd_value)
+
+(* Declare the constant in ML *)
 
 let ml_declaration oc c =
   fprintf oc "val %s : %a\n"
              (String.uncapitalize c.cd_name) out_ml_type c.cd_type
-  
+
+(* #define the constant in C *)
+
+let c_declaration oc c =
+  fprintf oc "#define %s (%a)\n\n" c.cd_name Lexpr.output ("", c.cd_value)
+
+(* Generate the ML let binding corresponding to the constant declaration *)
+
 let ml_definition oc c =
   let v = eval c.cd_value in
-  Lexpr.bind_const c.cd_name v;
   let name = String.uncapitalize c.cd_name in
   match (c.cd_type, v) with
     (Type_int(Char | UChar | SChar), Cst_int n) ->
@@ -34,8 +45,3 @@ let ml_definition oc c =
                  name (String.escaped s)
   | _ ->
       error (sprintf "type mismatch in constant %s" c.cd_name)
-
-(* Import a constant declaration *)
-
-let import c =
-  Lexpr.bind_const c.cd_name (eval c.cd_value)
