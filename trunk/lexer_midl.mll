@@ -93,7 +93,7 @@ rule token = parse
         try
           Hashtbl.find keywords s
         with Not_found ->
-          if StringSet.mem s !typedef_names
+          if StringSet.mem s !type_names
           then TYPEIDENT s
           else IDENT s }
   | octal_literal

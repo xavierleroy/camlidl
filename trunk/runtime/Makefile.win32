@@ -2,7 +2,7 @@ include ..\Makefile.config
 
 OCAMLC=ocamlc
 
-OBJS=idlalloc.obj comintf.obj cfactory.obj
+OBJS=idlalloc.obj comintf.obj cfactory.obj comerror.obj
 
 all: camlidlruntime.lib
 

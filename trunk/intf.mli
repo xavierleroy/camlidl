@@ -13,7 +13,6 @@ type interface =
 val ml_declaration: out_channel -> interface -> unit
 val ml_class_declaration: out_channel -> interface -> unit
 val c_declaration: out_channel -> interface -> unit
-val c_forward_declaration: out_channel -> interface -> unit
 val ml_class_definition: out_channel -> interface -> unit
 val emit_transl: out_channel -> interface -> unit
 val declare_transl: out_channel -> interface -> unit

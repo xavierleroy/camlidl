@@ -1,7 +1,3 @@
-{|
-#include <stdio.h>
-|}
-
 interface Arrays {
 /* Strings */
 

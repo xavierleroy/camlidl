@@ -1,57 +1,60 @@
 /* Parts of the Unix library */
 
-{|
+quote(C,"
+  #include <stdlib.h>
+  #include <stdio.h>
+  #include <sys/types.h>
+  #include <sys/wait.h>
+  #include <dirent.h>
+  #include <unistd.h>
+  #include <sys/stat.h>
+  #include <sys/time.h>
+  #include <fcntl.h>
 
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <fcntl.h>
+  /* Wrapping of return code for wait */
 
-/* Wrapping of return code for wait */
+  union process_status { int code; };
 
-union process_status { int code; };
+  enum { WEXITED, WSIGNALED, WSTOPPED };
 
-enum { WEXITED, WSIGNALED, WSTOPPED };
-
-static void decode_status(int status, int * kind, union process_status * p)
-{
-  if (WIFEXITED(status)) {
-    *kind = WEXITED; p->code = WEXITSTATUS(status);
-  } else if (WIFSIGNALED(status)) {
-    *kind = WSIGNALED; p->code = WTERMSIG(status);
-  } else {
-    *kind = WSTOPPED; p->code = WSTOPSIG(status);
+  static void decode_status(int status, int * kind, union process_status * p)
+  {
+    if (WIFEXITED(status)) {
+      *kind = WEXITED; p->code = WEXITSTATUS(status);
+    } else if (WIFSIGNALED(status)) {
+      *kind = WSIGNALED; p->code = WTERMSIG(status);
+    } else {
+      *kind = WSTOPPED; p->code = WSTOPSIG(status);
+    }
   }
-}
 
-int read2(int fd, int len, int * rd, char * buf)
-{
-  int retcode = read(fd, buf, len);
-  if (retcode != -1) { *rd = retcode; retcode = 0; }
-  return retcode;
-}
+  int read2(int fd, int len, int * rd, char * buf)
+  {
+    int retcode = read(fd, buf, len);
+    if (retcode != -1) { *rd = retcode; retcode = 0; }
+    return retcode;
+  }
 
-typedef DIR * dir_handle;
-typedef struct dirent dirent;
-typedef fd_set * file_descr_set;
+  typedef DIR * dir_handle;
+  typedef struct dirent dirent;
+  typedef fd_set * file_descr_set;
 
-|}
+  extern char ** environ;
+")
 
-typedef [string] char * cstring;
-
-[null_terminated] cstring * environment(void);
+[string*, null_terminated] char ** environment(void)
+          "_res = environ;";
 
 [string] char * getenv([in,string] char * varname);
 
 void putenv([in,string] char * name_val);
 
-int execv([in,string] char * path, [in,null_terminated] cstring * argv);
+int execv([in,string] char * path,
+          [in,null_terminated,string*] char ** argv);
 
-int execve([in,string] char * path, [in,null_terminated] cstring * argv, [in,null_terminated] cstring * env);
+int execve([in,string] char * path, 
+           [in,null_terminated,string*] char ** argv,
+           [in,null_terminated,string*] char ** env);
 
 int fork(void);
 
@@ -63,17 +66,15 @@ union process_status {
 
 int wait([out] int * kind,
          [out,switch_is(*kind)] union process_status * p)
-  {| { int status;
-       _res = wait(&status);
-       if (_res != -1) decode_status(status, kind, p); }
-  |};
+  " { int status;
+      _res = wait(&status);
+      if (_res != -1) decode_status(status, kind, p); }";
 
 void system([in,string] char * cmd,
             [out] int * kind,
             [out,switch_is(*kind)] union process_status * p)
-  {| { int ret = system(cmd);
-       decode_status(ret, kind, p); }
-  |};
+  "  { int ret = system(cmd);
+       decode_status(ret, kind, p); } ";
 
 int getpid(void);
 int getppid(void);
@@ -87,16 +88,18 @@ enum open_flags {
 int openfile([in,string] char * name,
              [in,set] enum open_flags flags,
              [in] int perms)
-  {| _res = open(name, flags, perms);
-  |};
+  " _res = open(name, flags, perms); ";
+
 int close([in] int fd);
 
 /* read in place */
 int read([in] int fd, [in,string,size_is(len)] char * buf, [in] int len);
 
 /* read with copy */
-/* needs work to pre-allocate output array? */
-int read2([in] int fd, [in] int len, [out] int *rd, [out,string,size_is(len),length_is(*rd)] char * buf);
+void read2([in] int fd, [in] int len, [out] int *rd,
+          [out,string,size_is(len),length_is(*rd)] char * buf)
+  " *rd = read(fd, buf, len);
+    if (*rd == -1) failwith(\"read2\"); ";
 
 /* write */
 int write([in] int fd, [in,string,size_is(len)] char * buf, [in] int len);
@@ -138,10 +141,11 @@ int link([string] char * filename, [string] char * newname);
 
 /* Directories */
 
-typedef [abstract] DIR * dir_handle;
+typedef [abstract,ptr] void * dir_handle;
 
-/* problem: error detection? */
-dir_handle opendir([string] char * filename);
+dir_handle opendir([string] char * filename)
+  " _res = opendir(filename);
+    if (_res == NULL) failwith(\"opendir\"); ";
 
 typedef struct {
   [string] char d_name[256];   // NAME_MAX in fact
@@ -158,7 +162,7 @@ int pipe([out] int fds[2]);
 
 /* select */
 
-typedef [abstract] fd_set * file_descr_set;
+typedef [abstract] void * file_descr_set;
 
 void FD_ZERO(file_descr_set s);
 void FD_SET(int fd, file_descr_set s);

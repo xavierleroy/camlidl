@@ -79,9 +79,24 @@ HRESULT camlidl_QueryInterface(struct camlidl_intf * this, IID * iid,
 ULONG camlidl_AddRef(struct camlidl_intf * this);
 ULONG camlidl_Release(struct camlidl_intf * this);
 
-/* TODO: class factories? */
+/* Lookup a method in a method suite */
+/* (Should be in mlvalues.h?) */
 
-/* Should be in mlvalues.h? */
 #define Lookup(obj, lab) \
   Field (Field (Field (obj, 0), ((lab) >> 16) / sizeof (value)), \
          ((lab) / sizeof (value)) & 0xFF)
+
+/* Handle HRESULTs */
+
+void camlidl_check_hresult(HRESULT hr);
+value camlidl_c2ml_hresult_bool(HRESULT hr);
+void camlidl_ml2c_hresult_bool(value v, HRESULT * hr);
+value camlidl_c2ml_hresult_int(HRESULT hr);
+void camlidl_ml2c_hresult_int(value v, HRESULT * hr);
+
+/* Handle uncaught exceptions in C-to-ML callbacks */
+
+HRESULT camlidl_result_exception(void * intf, value exn_bucket);
+void camlidl_warn_exception(char * methname, value exn_bucket);
+void camlidl_abort_exception(char * methname, value exn_bucket);
+

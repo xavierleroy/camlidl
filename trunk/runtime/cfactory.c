@@ -52,7 +52,7 @@ struct camlidl_factory {
 static int camlidl_num_server_locks = 0;
 
 /* Count of components */
-int camlidl_num_components = 0;
+extern int camlidl_num_components;
 
 /* Handle for module (for the DLL) */
 HANDLE camlidl_module_handle;

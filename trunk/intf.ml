@@ -62,11 +62,9 @@ let ml_class_declaration oc intf =
 
 (* Declare the interface in C *)
 
-let c_forward_declaration oc intf =
-  fprintf oc "struct %s;\n" intf.intf_name
-
 let rec declare_vtbl oc self intf =
   if intf.intf_name = "IUnknown" then begin
+    iprintf oc "DECLARE_VTBL_PADDING\n";
     iprintf oc "HRESULT (*QueryInterface)(struct %s * self, IID *, void **);\n"
                self;
     iprintf oc "ULONG (*AddRef)(struct %s * self);\n" self;
@@ -82,22 +80,24 @@ let rec declare_vtbl oc self intf =
           (fun (name, inout, ty) ->
             fprintf oc ", /*%a*/ %a" out_inout inout out_c_decl (name, ty))
           m.fun_params;
-        fprintf oc ";\n")
+        fprintf oc ");\n")
       intf.intf_methods
   end
 
 let c_declaration oc intf =
-  fprintf oc "struct %sVtbl {\n" intf.intf_name;
-  increase_indent();
-  declare_vtbl oc intf.intf_name intf;
-  decrease_indent();
-  fprintf oc "};\n";
-  fprintf oc "struct %s {\n" intf.intf_name;
-  fprintf oc "  struct lpVtbl * %sVtbl;\n" intf.intf_name;
-  fprintf oc "};\n";
-  fprintf oc "struct %s {\n" intf.intf_name;
-  fprintf oc "  struct %sVtbl * lpVtbl;\n" intf.intf_name;
-  fprintf oc "};\n\n"
+  if intf.intf_methods = [] then begin
+    fprintf oc "struct %s;\n" intf.intf_name
+  end else begin
+    fprintf oc "struct %sVtbl {\n" intf.intf_name;
+    increase_indent();
+    declare_vtbl oc intf.intf_name intf;
+    decrease_indent();
+    fprintf oc "};\n";
+    fprintf oc "struct %s {\n" intf.intf_name;
+    fprintf oc "  struct %sVtbl * lpVtbl;\n" intf.intf_name;
+    fprintf oc "};\n";
+    fprintf oc "extern IID IID_%s;\n\n" intf.intf_name
+  end
 
 (* Define the wrapper classes *)
 
@@ -157,6 +157,7 @@ let output_arena before after =
 
 let emit_callback_wrapper oc intf meth =
   current_function := sprintf "%s::%s" intf.intf_name meth.fun_name;
+  in_callback := true;
   need_deallocation := false;
   let (ins, outs) = ml_view meth in
   (* Emit function header *)
@@ -195,9 +196,20 @@ let emit_callback_wrapper oc intf meth =
   decrease_indent();
   iprintf pc "End_roots();\n";
   (* Do the callback *)
-  iprintf pc "_vres = callbackN(Lookup(_varg[0], _vlabel), %d, _varg);\n"
+  iprintf pc "_vres = callbackN_exn(Lookup(_varg[0], _vlabel), %d, _varg);\n"
              (num_ins + 1);
-             (* FIXME: escaping exceptions *)
+  (* Check if exception occurred *)
+  iprintf pc "if (Is_exception_result(_vres))\n";
+  begin match meth.fun_res with
+    Type_named(_, "HRESULT") ->
+      iprintf pc "  return camlidl_result_exception(\"%s.%s\", \
+                             Extract_exception(_vres));\n"
+                 !module_name !current_function
+  | _ ->
+      iprintf pc "  camlidl_uncaught_exception(\"%s\", \
+                             Extract_exception(_vres));\n"
+                 !current_function
+  end;
   (* Convert outputs from Caml to C *)
   let convert_output ty src dst =
     match (dst, ty) with
@@ -221,7 +233,8 @@ let emit_callback_wrapper oc intf meth =
     iprintf pc "return _res;\n";
   output_variable_declarations oc;
   end_diversion oc;
-  fprintf oc "}\n\n"
+  fprintf oc "}\n\n";
+  in_callback := false
 
 (* Declare external callback wrapper *)
 

@@ -44,7 +44,7 @@ let make_test() =
   and cy = Component.make_iY (new my_iy) in
   Component.test_ix cx;
   Component.test_iy cy;
-  Component.test_component(Com.iUnknown_of(Com.aggregate cx cy))
+  Component.test_component(Com.iUnknown_of(Com.combine cx cy))
 
 let _ =
   make_test();

@@ -15,13 +15,6 @@ let enums =   (Hashtbl.create 13 : (string, enum_decl) Hashtbl.t)
 let intfs =   (Hashtbl.create 13 : (string, interface) Hashtbl.t)
 let typedefs =(Hashtbl.create 13 : (string, type_decl) Hashtbl.t)
 
-let rec iunknown =
-  { intf_name = "IUnknown"; intf_mod = "Com";
-    intf_super = iunknown;
-    intf_methods = [];
-    intf_uid = "\000\000\000\000\000\000\000\000\192\000\000\000\000\000\000\070" }
-    (* 00000000-0000-0000-C000-000000000046 *)
-
 let all_comps = ref ([] : component list)
 
 let currstamp = ref 0
@@ -43,13 +36,24 @@ let make_module_name filename =
 let process_declarator kind tbl name sourcedecl 
                        proj_contents make_decl update_decl record_decl =
   if name = "" then begin
+    (* Unnamed definition *)
     if !in_fundecl then
      error (sprintf "anonymous %s in function parameters or result type" kind);
     let newdecl = make_decl() in
     update_decl newdecl sourcedecl;
     record_decl newdecl;
     newdecl
+  end else if proj_contents sourcedecl = [] then begin
+    (* Reference to previous definition, or forward declaration *)
+    try
+      Hashtbl.find tbl name
+    with Not_found ->
+      let newdecl = make_decl() in
+      Hashtbl.add tbl name newdecl;
+      record_decl (make_decl()); (* record with contents still empty *)
+      newdecl
   end else begin
+    (* Named definition *)
     let decl =
       try
         Hashtbl.find tbl name
@@ -57,11 +61,12 @@ let process_declarator kind tbl name sourcedecl
         let newdecl = make_decl() in
         Hashtbl.add tbl name newdecl;
         newdecl in
-    if proj_contents sourcedecl <> [] then begin
-      if proj_contents decl <> [] then
-        error (sprintf "redefinition of %s %s" kind name);
-      update_decl decl sourcedecl
-    end;
+    (* Check we're not redefining *)
+    if proj_contents decl <> [] then
+      error (sprintf "redefinition of %s %s" kind name);
+    (* Process the components *)
+    update_decl decl sourcedecl;
+    (* Record the full declaration *)
     record_decl decl;
     decl
   end
@@ -214,7 +219,8 @@ let normalize_file filename =
   Hashtbl.clear enums;
   Hashtbl.clear intfs;
   Hashtbl.clear typedefs;
-  Hashtbl.add intfs "IUnknown" iunknown;
+  List.iter (fun td -> Hashtbl.add typedefs td.td_name td) Predef.typedefs;
+  List.iter (fun i -> Hashtbl.add intfs i.intf_name i) Predef.interfaces;
   module_name := make_module_name filename;
   let res = normalize_components (Parse.read_file filename) in
   Hashtbl.clear structs;

@@ -6,7 +6,7 @@ OBJS=config.cmo utils.cmo ebuff.cmo clflags.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
   structdecl.cmo enumdecl.cmo uniondecl.cmo \
   typedef.cmo funct.cmo constdecl.cmo intf.cmo \
-  file.cmo \
+  file.cmo predef.cmo \
   parse_aux.cmo parser_midl.cmo lexer_midl.cmo linenum.cmo parse.cmo \
   normalize.cmo \
   main.cmo

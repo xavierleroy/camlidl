@@ -35,7 +35,7 @@ let process_file name =
   if !Clflags.gen_header then begin
     let oc = open_out (pref ^ ".h") in
     begin try
-      gen_c_stub oc intf;
+      gen_c_header oc intf;
       close_out oc
     with x ->
       close_out oc; remove_file (pref ^ ".h"); raise x

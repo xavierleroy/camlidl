@@ -223,7 +223,7 @@ let emit_function oc fundecl ins outs locals emit_call =
     fprintf oc "value camlidl_%s_%s_bytecode(value * argv, int argn)\n"
                fundecl.fun_mod fundecl.fun_name;
     fprintf oc "{\n";
-    fprintf oc "  camlidl_%s_%s(argv[0]" fundecl.fun_mod fundecl.fun_name;
+    fprintf oc "  return camlidl_%s_%s(argv[0]" fundecl.fun_mod fundecl.fun_name;
     for i = 1 to List.length ins - 1 do
       fprintf oc ", argv[%d]" i
     done;
