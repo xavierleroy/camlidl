@@ -165,7 +165,7 @@ let emit_callback_wrapper oc intf meth =
   let fun_name =
     sprintf "camlidl_%s_%s_%s_callback"
             !module_name intf.intf_name meth.fun_name in
-  fprintf oc "%a(" out_c_decl (fun_name, meth.fun_res);
+  fprintf oc "%a(" out_c_decl ("STDMETHODCALLTYPE " ^ fun_name, meth.fun_res);
   fprintf oc "\n\tinterface %s * this" intf.intf_name;
   List.iter
     (fun (name, inout, ty) ->

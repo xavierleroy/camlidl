@@ -42,12 +42,16 @@ char * camlidl_malloc_string(value mlstring, camlidl_ctx ctx);
 
 /* Helper functions for handling COM interfaces */
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <objbase.h>
+#else
 #define interface struct
 typedef struct { unsigned char data[16]; } IID;
+typedef IID * REFIID;
 typedef int HRESULT;
 typedef unsigned long ULONG;
 #define SetErrorInfo(x,y)
+#define STDMETHODCALLTYPE
 #endif
 
 #if defined(_WIN32)
@@ -83,10 +87,13 @@ value camlidl_make_interface(void * vtbl, value caml_object, IID * iid);
 /* Basic methods (QueryInterface, AddRef, Release) for COM objects
    encapsulating a Caml object */
 
-HRESULT camlidl_QueryInterface(struct camlidl_intf * this, IID * iid,
-                               void ** object);
-ULONG camlidl_AddRef(struct camlidl_intf * this);
-ULONG camlidl_Release(struct camlidl_intf * this);
+HRESULT STDMETHODCALLTYPE
+camlidl_QueryInterface(struct camlidl_intf * this, REFIID iid,
+                       void ** object);
+ULONG STDMETHODCALLTYPE
+camlidl_AddRef(struct camlidl_intf * this);
+ULONG STDMETHODCALLTYPE
+camlidl_Release(struct camlidl_intf * this);
 
 /* Lookup a method in a method suite */
 /* (Should be in mlvalues.h?) */

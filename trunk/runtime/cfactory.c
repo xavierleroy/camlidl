@@ -43,7 +43,7 @@ value camlidl_register_factory(value compdata)
 /* The class factory itself */
 
 struct camlidl_factory {
-  struct IClassFactory * lpVtbl;
+  struct IClassFactoryVtbl * lpVtbl;
   int refcount;
   struct camlidl_comp * comp;
 };
@@ -59,9 +59,11 @@ HANDLE camlidl_module_handle;
 
 /* Methods of IClassFactory */
 
-static HRESULT cfactory_QueryInterface(struct camlidl_factory * this,
-                                       IID * iid, void ** object)
+static HRESULT STDMETHODCALLTYPE
+cfactory_QueryInterface(struct IClassFactory * self,
+                        REFIID iid, void ** object)
 {
+  struct camlidl_factory * this = (struct camlidl_factory *) self;
   if (IsEqualIID(iid, &IID_IClassFactory) ||
       IsEqualIID(iid, &IID_IUnknown)) {
     *object = (void *) this;
@@ -73,22 +75,28 @@ static HRESULT cfactory_QueryInterface(struct camlidl_factory * this,
   }
 }
 
-static ULONG cfactory_AddRef(struct camlidl_factory * this)
+static ULONG STDMETHODCALLTYPE
+cfactory_AddRef(struct IClassFactory * self)
 {
+  struct camlidl_factory * this = (struct camlidl_factory *) self;
   return InterlockedIncrement(&(this->refcount));
 }
 
-static ULONG cfactory_Release(struct camlidl_factory * this)
+static ULONG STDMETHODCALLTYPE
+cfactory_Release(struct IClassFactory * self)
 {
+  struct camlidl_factory * this = (struct camlidl_factory *) self;
   ULONG res = InterlockedDecrement(&(this->refcount));
   if (res == 0) free(this);
   return res;
 }
 
-static HRESULT cfactory_CreateInstance(struct camlidl_factory * this,
-                                       interface IUnknown * outer,
-                                       IID * iid, void ** object)
+static HRESULT STDMETHODCALLTYPE
+cfactory_CreateInstance(struct IClassFactory * self,
+                        interface IUnknown * outer,
+                        REFIID iid, void ** object)
 {
+  struct camlidl_factory * this = (struct camlidl_factory *) self;
   value vcomp;
   interface IUnknown * comp;
   HRESULT res;
@@ -97,7 +105,7 @@ static HRESULT cfactory_CreateInstance(struct camlidl_factory * this,
   if (outer != NULL) return CLASS_E_NOAGGREGATION;
   /* Create the component */
   vcomp = callback(Field(this->comp->compdata, COMPDATA_CREATE), Val_unit);
-  comp = camlidl_unpack_interface(vcomp);
+  comp = camlidl_unpack_interface(vcomp, NULL);
   /* Get the requested interface */
   res = comp->lpVtbl->QueryInterface(comp, iid, object);
   /* Release the initial pointer to the component
@@ -107,7 +115,8 @@ static HRESULT cfactory_CreateInstance(struct camlidl_factory * this,
   return res;
 }
 
-static HRESULT cfactory_LockServer(BOOL block)
+static HRESULT STDMETHODCALLTYPE
+cfactory_LockServer(struct IClassFactory * self, BOOL block)
 {
   if (block)
     InterlockedIncrement(&camlidl_num_server_locks);
@@ -124,11 +133,11 @@ static struct IClassFactoryVtbl cfactory_vtbl = {
   cfactory_LockServer
 };
 
-static camlidl_factory * cfactory_new(struct camlidl_comp * comp)
+static struct camlidl_factory * cfactory_new(struct camlidl_comp * comp)
 {
-  struct camlidl_factory * f = malloc(sizeof(camlidl_factory));
+  struct camlidl_factory * f = malloc(sizeof(struct camlidl_factory));
   if (f == NULL) return NULL;
-  f->lpVtbl = cfactory_vtbl;
+  f->lpVtbl = &cfactory_vtbl;
   f->refcount = 1;
   f->comp = comp;
   return f;
@@ -136,7 +145,7 @@ static camlidl_factory * cfactory_new(struct camlidl_comp * comp)
 
 /* The class factory server */
 
-STDAPI DllGetClassObject(CLSID * clsid, IID * iid, void ** object)
+STDAPI DllGetClassObject(REFCLSID clsid, REFIID iid, void ** object)
 {
   struct camlidl_comp * c;
   struct camlidl_factory * f;
@@ -150,10 +159,10 @@ STDAPI DllGetClassObject(CLSID * clsid, IID * iid, void ** object)
       f = cfactory_new(c);
       if (f == NULL) return E_OUTOFMEMORY;
       /* Get requested interface */
-      res = f->lpVtbl->QueryInterface(f, iid, object);
+      res = f->lpVtbl->QueryInterface((struct IClassFactory *) f, iid, object);
       /* Release the class factory; if QueryInterface failed, it will free
          itself */
-      f->Release(f);
+      f->lpVtbl->Release((struct IClassFactory *) f);
       /* Return result of QueryInterface */
       return res;
     }
@@ -168,7 +177,8 @@ STDAPI DllRegisterServer()
 {
   struct camlidl_comp * c;
   CLSID * clsid;
-  wchar_t * 
+  HRESULT retcode;
+
   for (c = registered_components; c != NULL; c = c->next) {
     retcode =
       RegisterServer(
@@ -188,7 +198,8 @@ STDAPI DllUnregisterserver()
 {
   struct camlidl_comp * c;
   CLSID * clsid;
-  wchar_t * 
+  HRESULT retcode;
+
   for (c = registered_components; c != NULL; c = c->next) {
     retcode =
       Unregisterserver(
@@ -205,7 +216,7 @@ STDAPI DllUnregisterserver()
 STDAPI DllCanUnloadNow()
 {
   if (camlidl_num_components == 0 && camlidl_num_server_locks == 0)
-    return S_TRUE;
+    return S_OK;
   else
     return S_FALSE;
 }

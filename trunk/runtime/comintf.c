@@ -66,8 +66,9 @@ value camlidl_make_interface(void * vtbl, value caml_object, IID * iid)
 /* Basic methods (QueryInterface, AddRef, Release) for COM objects
    encapsulating a Caml object */
 
-HRESULT camlidl_QueryInterface(struct camlidl_intf * this, IID * iid,
-                               void ** object)
+HRESULT STDMETHODCALLTYPE
+camlidl_QueryInterface(struct camlidl_intf * this, REFIID iid,
+                       void ** object)
 {
   struct camlidl_component * comp = this->comp;
   int i;
@@ -93,12 +94,12 @@ HRESULT camlidl_QueryInterface(struct camlidl_intf * this, IID * iid,
   return E_NOINTERFACE;
 }
   
-ULONG camlidl_AddRef(struct camlidl_intf * this)
+ULONG STDMETHODCALLTYPE camlidl_AddRef(struct camlidl_intf * this)
 {
   return InterlockedIncrement(&(this->comp->refcount));
 }
 
-ULONG camlidl_Release(struct camlidl_intf * this)
+ULONG STDMETHODCALLTYPE camlidl_Release(struct camlidl_intf * this)
 {
   struct camlidl_component * comp = this->comp;
   ULONG newrefcount = InterlockedDecrement(&(comp->refcount));
@@ -180,7 +181,7 @@ value camlidl_com_create_instance(value clsid, value iid)
                          (IID *) String_val(iid),
                          &instance);
   if (FAILED(res)) raise_com_error(res);
-  return camlidl_pack_interface(instance);
+  return camlidl_pack_interface(instance, NULL);
 #else
   invalid_argument("Com.create_instance not implemented");
 #endif
@@ -191,7 +192,7 @@ value camlidl_com_create_instance(value clsid, value iid)
 value camlidl_com_initialize(value unit)
 {
 #ifdef _WIN32
-  CoInitialize();
+  CoInitialize(NULL);
 #endif
   return Val_unit;
 }

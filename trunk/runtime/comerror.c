@@ -41,7 +41,7 @@ void camlidl_error(HRESULT errcode, char * who, char * what)
                       NULL,       /* message source */
                       errcode,
                       0,          /* language */
-                      &msg,       /* message buffer */
+                      msg,        /* message buffer */
                       sizeof(msg),/* max size */
                       NULL)       /* inserts */
         != 0)
@@ -67,10 +67,10 @@ static void camlidl_hresult_error(HRESULT errcode)
   GetErrorInfo(0L, &errinfo);
   if (errinfo != NULL) {
     errinfo->lpVtbl->GetSource(errinfo, &source);
-    _snprintf(who, "%ls", source);
+    _snprintf(who, sizeof(who) - 1, "%ls", source);
     who[sizeof(who) - 1] = 0;
     errinfo->lpVtbl->GetDescription(errinfo, &descr);
-    _snprintf(what, "%ls", descr);
+    _snprintf(what, sizeof(who) - 1, "%ls", descr);
     what[sizeof(what) - 1] = 0;
     SysFreeString(source);
     SysFreeString(descr);
@@ -117,6 +117,10 @@ HRESULT camlidl_result_exception(char * methname, value exn_bucket)
 #ifdef _WIN32
   interface ICreateErrorInfo * createrr;
   interface IErrorInfo * errinfo;
+  int wstrlen;
+  wchar_t * wstr;
+  char * exndesc;
+
   if (SUCCEEDED(CreateErrorInfo(&createrr))) {
     wstrlen = strlen(methname);
     wstr = (wchar_t *) malloc((wstrlen + 1) * sizeof(wchar_t));
@@ -145,7 +149,7 @@ HRESULT camlidl_result_exception(char * methname, value exn_bucket)
     createrr->lpVtbl->Release(createrr);
   }
 #endif
-  return MAKE_HRESULT(SEVERITY_FAILURE, FACILITY_ITF, 0x200);
+  return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x200);
 }
 
 void camlidl_uncaught_exception(char * methname, value exn_bucket)
@@ -165,22 +169,25 @@ struct camlidl_sei {
   struct camlidl_intf * intf;
 };
 
-HRESULT camlidl_sei_QueryInterface(struct ISupportErrorInfo * self,
-                                   IID * iid, void ** object)
+HRESULT STDMETHODCALLTYPE
+camlidl_sei_QueryInterface(struct ISupportErrorInfo * self,
+                           REFIID iid, void ** object)
 {
   return
     camlidl_QueryInterface(((struct camlidl_sei *)self)->intf, iid, object);
 }
 
-ULONG camlidl_sei_AddRef(struct ISupportErrorInfo * self)
+ULONG STDMETHODCALLTYPE
+camlidl_sei_AddRef(struct ISupportErrorInfo * self)
 {
   return InterlockedIncrement(&(((struct camlidl_sei *)self)->refcount));
 }
 
-ULONG camlidl_sei_Release(struct ISupportErrorInfo * self)
+ULONG STDMETHODCALLTYPE
+camlidl_sei_Release(struct ISupportErrorInfo * self)
 {
   struct camlidl_sei * s = (struct camlidl_sei *) self;
-  ULONG newrefcount = InterlockedDecrement(&(self->refcount));
+  ULONG newrefcount = InterlockedDecrement(&(s->refcount));
   if (newrefcount == 0) {
     struct IUnknown * i = (struct IUnknown *) (s->intf);
     i->lpVtbl->Release(i);
@@ -189,7 +196,9 @@ ULONG camlidl_sei_Release(struct ISupportErrorInfo * self)
   return newrefcount;
 }
 
-HRESULT InterfaceSupportsErrorInfo(struct ISupportErrorInfo * self, IID * iid)
+HRESULT STDMETHODCALLTYPE
+camlidl_sei_InterfaceSupportsErrorInfo(struct ISupportErrorInfo * self,
+                                       REFIID iid)
 {
   if (IsEqualIID(iid, &IID_IUnknown) ||
       IsEqualIID(iid, &IID_ISupportErrorInfo))
@@ -210,10 +219,10 @@ struct ISupportErrorInfo * camlidl_support_error_info(struct camlidl_intf * i)
 {
   struct camlidl_sei * r =
     (struct camlidl_sei *) stat_alloc(sizeof(struct camlidl_sei));
-  r->lpVtbl = camlidl_sei_vtbl;
+  r->lpVtbl = &camlidl_sei_vtbl;
   r->refcount = 1;
   r->intf = i;
-  ((struct IUnknown *) i)->lpVtbl->AddRef(i);
+  ((struct IUnknown *) i)->lpVtbl->AddRef((struct IUnknown *) i);
   return (struct ISupportErrorInfo *) r;
 }
 

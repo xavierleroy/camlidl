@@ -4,7 +4,6 @@
 
 #include <wtypes.h>
 #include <winbase.h>
-#include <objbase.h>
 
 #else
 
@@ -36,7 +35,7 @@ extern IID IID_IUnknown;
 #define CO_E_IIDSTRING 0x800401f4
 #define FAILED(hr) ((hr) & 0x80000000)
 #define HRESULT_CODE(hr) ((hr) & 0xFFFF)
-#define SEVERITY_FAILURE 1
+#define SEVERITY_ERROR 1
 #define SEVERITY_SUCCESS 0
 #define FACILITY_NULL 0
 #define FACILITY_ITF 4
