@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.19 2002-05-01 15:24:19 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.20 2004-07-08 09:50:40 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -221,7 +221,11 @@ let make_param attrs tybase decl =
   merge_attributes None ty attrs
 
 let make_fun_declaration attrs ty_res name params quotes =
-  let call = ref None and dealloc = ref None in
+  let truename = ref name
+  and mlname = ref None
+  and call = ref None
+  and dealloc = ref None
+  and blocking = ref false in
   let parse_quote (label, text) =
     match String.lowercase label with
       "call" -> call := Some text
@@ -230,9 +234,12 @@ let make_fun_declaration attrs ty_res name params quotes =
         eprintf "%t: Warning: quote type `%s' unknown, ignoring the quote.\n"
                 print_location label in
   List.iter parse_quote quotes;
-  let truename = ref name in
   let rec merge_attributes ty = function
       [] -> ty
+    | ("mlname", [Expr_ident s]) :: rem ->
+          mlname := Some s; merge_attributes ty rem
+    | ("blocking", _) :: rem ->
+          blocking := true; merge_attributes ty rem
     | (("callback" | "local"), _) :: rem ->
           merge_attributes ty rem
     | ("propget", _) :: rem ->
@@ -243,12 +250,15 @@ let make_fun_declaration attrs ty_res name params quotes =
           truename := "putref_" ^ name; merge_attributes ty rem
     | attr :: rem ->
           merge_attributes (apply_type_attribute ty attr) rem in
+  let ty_res' = merge_attributes ty_res attrs in
   { fun_name = !truename;
     fun_mod = "";
-    fun_res = merge_attributes ty_res attrs;
+    fun_res = ty_res';
     fun_params = params;
+    fun_mlname = !mlname;
     fun_call = !call;
-    fun_dealloc = !dealloc }
+    fun_dealloc = !dealloc;
+    fun_blocking = !blocking }
 
 let make_field attrs tybase decl =
   let rec merge_attributes name ty = function
