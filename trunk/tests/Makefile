@@ -7,7 +7,7 @@ CFLAGS=-Wall -I.. -I$(OCAMLLIB)
 CCPP=gcc
 CPPFLAGS=-Wall -I.. -I$(OCAMLLIB)
 
-TESTS=basics.idl arrays.idl structs.idl unions.idl unix.idl
+TESTS=basics.idl arrays.idl structs.idl unions.idl typedefs.idl unix.idl
 
 all: ../caml/camlidlruntime.h $(TESTS:.idl=.o) testcomp
 
@@ -25,6 +25,9 @@ testcomp: comcomp.o component.o component.cmo testcomponent.cmo \
                 com.cmo comcomp.o component.o component.cmo testcomponent.cmo \
                 ../runtime/libcamlidl.a
 
+clean::
+	rm -f testcomp
+
 component.cmo testcomponent.cmo: component.cmi
 component.cmo component.cmi: component.o
 
@@ -39,7 +42,7 @@ component.cmo component.cmi: component.o
 	$(CAMLIDL) -header $*.idl
 	$(CAMLC) -c $*.mli
 	$(CAMLC) -c $*.ml
-	$(CC) $(CFLAGS) -c $*.c
+	$(CC) $(CFLAGS) -c -o $*.o $*_stubs.c
 
 .cpp.o:
 	$(CCPP) $(CPPFLAGS) -c $*.cpp
@@ -50,3 +53,8 @@ component.cmo component.cmi: component.o
 .mli.cmi:
 	$(CAMLC) -c $*.mli
 
+clean::
+	rm -f $(TESTS:.idl=.mli) $(TESTS:.idl=.ml) $(TESTS:.idl=.h) $(TESTS:.idl=_stubs.c)
+
+clean::
+	rm -f *.cm[io] *.o
