@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexpr.ml,v 1.3 1999-02-19 14:33:32 xleroy Exp $ *)
+(* $Id: lexpr.ml,v 1.4 1999-03-04 16:21:43 xleroy Exp $ *)
 
 (* Evaluation and pretty-printing of limited expressions *)
 
@@ -110,7 +110,7 @@ let eval = function
 
 (* Pretty-print a limited expression *)
 
-open Ebuff
+open Buffer
 
 let b = create 80
 
@@ -251,10 +251,11 @@ let tostr pref e =
   in ts e
 
 let tostring pref e =
-  Ebuff.reset b; tostr pref e; Ebuff.get_stored b
+  Buffer.clear b; tostr pref e;
+  let res = Buffer.contents b in Buffer.reset b; res
 
 let output oc (pref, e) =
-  Ebuff.reset b; tostr pref e; Ebuff.output oc b
+  Buffer.clear b; tostr pref e; Buffer.output_buffer oc b; Buffer.reset b
 
 (* Check if a variable is free in a limited expression *)
 

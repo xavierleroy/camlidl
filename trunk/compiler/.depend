@@ -36,8 +36,6 @@ cvtval.cmo: array.cmi cvttyp.cmi enum.cmi idltypes.cmi lexpr.cmi struct.cmi \
     union.cmi utils.cmi variables.cmi cvtval.cmi 
 cvtval.cmx: array.cmx cvttyp.cmx enum.cmx idltypes.cmi lexpr.cmx struct.cmx \
     union.cmx utils.cmx variables.cmx cvtval.cmi 
-ebuff.cmo: ebuff.cmi 
-ebuff.cmx: ebuff.cmi 
 enum.cmo: idltypes.cmi utils.cmi variables.cmi enum.cmi 
 enum.cmx: idltypes.cmi utils.cmx variables.cmx enum.cmi 
 enumdecl.cmo: cvttyp.cmi cvtval.cmi enum.cmi idltypes.cmi utils.cmi \
@@ -56,12 +54,10 @@ intf.cmo: cvttyp.cmi cvtval.cmi funct.cmi idltypes.cmi utils.cmi \
     variables.cmi intf.cmi 
 intf.cmx: cvttyp.cmx cvtval.cmx funct.cmx idltypes.cmi utils.cmx \
     variables.cmx intf.cmi 
-lexer_midl.cmo: ebuff.cmi parse_aux.cmi parser_midl.cmi utils.cmi \
-    lexer_midl.cmi 
-lexer_midl.cmx: ebuff.cmx parse_aux.cmx parser_midl.cmx utils.cmx \
-    lexer_midl.cmi 
-lexpr.cmo: ebuff.cmi idltypes.cmi utils.cmi lexpr.cmi 
-lexpr.cmx: ebuff.cmx idltypes.cmi utils.cmx lexpr.cmi 
+lexer_midl.cmo: parse_aux.cmi parser_midl.cmi utils.cmi lexer_midl.cmi 
+lexer_midl.cmx: parse_aux.cmx parser_midl.cmx utils.cmx lexer_midl.cmi 
+lexpr.cmo: idltypes.cmi utils.cmi lexpr.cmi 
+lexpr.cmx: idltypes.cmi utils.cmx lexpr.cmi 
 linenum.cmo: linenum.cmi 
 linenum.cmx: linenum.cmi 
 main.cmo: clflags.cmo file.cmi idltypes.cmi normalize.cmi utils.cmi 

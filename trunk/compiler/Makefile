@@ -1,6 +1,6 @@
 include ../config/Makefile
 
-OBJS=config.cmo utils.cmo ebuff.cmo clflags.cmo \
+OBJS=config.cmo utils.cmo clflags.cmo \
   lexpr.cmo cvttyp.cmo variables.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
   structdecl.cmo enumdecl.cmo uniondecl.cmo \
