@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexer_midl.mll,v 1.7 1999-02-19 14:33:32 xleroy Exp $ *)
+(* $Id: lexer_midl.mll,v 1.8 1999-03-04 16:21:43 xleroy Exp $ *)
 
 (* Lexer for IDL interface files *)
 
@@ -55,8 +55,7 @@ let _ =
       "void", VOID;
       "wchar_t", WCHAR_T ]
 
-let string_buffer = Ebuff.create 80
-let diversion_buffer = Ebuff.create 256
+let string_buffer = Buffer.create 80
 
 (* To translate escape sequences *)
 
@@ -113,9 +112,11 @@ rule token = parse
   | decimal_literal | hex_literal
       { INTEGER(int_of_string(Lexing.lexeme lexbuf)) }
   | "\""
-      { Ebuff.reset string_buffer;
+      { Buffer.reset string_buffer;
         string lexbuf;
-        STRING(Ebuff.get_stored string_buffer) }
+        let s = Buffer.contents string_buffer in
+        Buffer.reset string_buffer;
+        STRING s }
   | "'" [^ '\\' '\''] "'"
       { CHARACTER(Lexing.lexeme_char lexbuf 1) }
   | "'" '\\' ['\\' '\'' 'n' 't' 'b' 'r'] "'"
@@ -172,15 +173,15 @@ and string = parse
   | '\\' eol [' ' '\009'] *
       { string lexbuf }
   | '\\' ['\\' '"' 'n' 't' 'b' 'r']
-      { Ebuff.add_char string_buffer
+      { Buffer.add_char string_buffer
                        (char_for_backslash(Lexing.lexeme_char lexbuf 1));
         string lexbuf }
   | '\\' ['0'-'3'] ['0'-'7']? ['0'-'7']? 
-      { Ebuff.add_char string_buffer (char_for_code lexbuf 1 0);
+      { Buffer.add_char string_buffer (char_for_code lexbuf 1 0);
          string lexbuf }
   | eof
       { raise (Lex_error "Unterminated string") }
   | _
-      { Ebuff.add_char string_buffer (Lexing.lexeme_char lexbuf 0);
+      { Buffer.add_char string_buffer (Lexing.lexeme_char lexbuf 0);
         string lexbuf }
 
