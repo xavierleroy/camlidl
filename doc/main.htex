@@ -1,8 +1,0 @@
-\begin{rawhtml}
-  <TITLE>Camlidl user's manual</TITLE>
-  <H1 ALIGN="center">Camlidl user's manual</H1>
-  <H4 ALIGN="center">Version 1.0, March 1999</H4>
-  <H4 ALIGN="center">Xavier Leroy, INRIA Rocquencourt</H4>
-\end{rawhtml}
-
-\input manual.htex

@@ -901,7 +901,7 @@ IDL interfaces that do not have the @"object"@ attribute are
 essentially ignored.  That is, the declarations contained in the
 interface are processed as if they occurred at the top-level of the
 IDL file.  The @"pointer_default"@, @"int_default"@ and
-@"long_default" attributes to the interface can be
+@"long_default"@ attributes to the interface can be
 used to specify the default pointer kind and integer mappings
 for the declarations contained in the interface.  Other attributes, as
 well as the name of the super-interface if any, are ignored.
@@ -1094,7 +1094,7 @@ given on the command line.
 Use "regsvr32 /s "\var{file}".dll" to record the components in the
 system registry once it is compiled to a DLL.
 
-\input com.tex
+\input{com.tex}
 
 \section{Hints on writing IDL files}
 
