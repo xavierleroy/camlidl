@@ -13,7 +13,7 @@
 #*                                                                     *
 #***********************************************************************
 
-#* $Id: camlidldll.tpl,v 1.5 2002-04-22 09:23:54 xleroy Exp $
+#* $Id: camlidldll.tpl,v 1.6 2002-04-22 11:50:47 xleroy Exp $
 
 # Automates the creation of a DLL for a Caml component
 
@@ -91,10 +91,10 @@ fi
 if test "$exitcode" -eq 0; then
   link /nologo /incremental:no /dll /machine:ix86 \
     /out:${output} /libpath:$camllib \
-    /export:DllGetClassObject,@2,PRIVATE \
-    /export:DllCanUnloadNow,@3,PRIVATE \
-    /export:DllRegisterServer,@4,PRIVATE \
-    /export:DllUnregisterServer,@5,PRIVATE \
+    /export:DllGetClassObject,PRIVATE \
+    /export:DllCanUnloadNow,PRIVATE \
+    /export:DllRegisterServer,PRIVATE \
+    /export:DllUnregisterServer,PRIVATE \
     $resfile \
     $linkopts $camlobjfile $linkobjs \
     ${camllib}\\cfactory.obj libcamlidl.lib \

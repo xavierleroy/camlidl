@@ -73,13 +73,13 @@ Client.exe : Client.obj GUIDs.obj
 #
 camlclient : camlclient.exe
 
-camlclient.exe: component.obj GUIDs.obj component.cmo camlclient.cmo
+camlclient.exe: component_stubs.obj GUIDs.obj component.cmo camlclient.cmo
 	ocamlc -ccopt /Zi -o camlclient.exe  -custom \
           com.cma component.cmo camlclient.cmo \
-          component.obj GUIDs.obj \
+          component_stubs.obj GUIDs.obj \
           -cclib -lcamlidl oleaut32.lib ole32.lib
 
-component.ml component.mli component.c: component.idl ../../compiler/camlidl
+component.ml component.mli component_stubs.c: component.idl ../../compiler/camlidl
 	../../compiler/camlidl -header component.idl
 
 component.cmo: component.ml component.cmi
@@ -88,19 +88,22 @@ camlclient.cmo: component.cmi
 
 camlcomponent: camlcomp.dll
 
-camlcomp.dll: component.obj GUIDs.obj \
-              component.cmo camlcomp.cmo camlcomp.cmo
+camlcomp.dll: component_stubs.obj GUIDs.obj \
+              component.cmo camlcomp.cmo
 	camlidldll -o camlcomp.dll \
-                component.obj GUIDs.obj \
-                component.cmo camlcomp.cmo camlcomp.cmo
+                component_stubs.obj GUIDs.obj \
+                component.cmo camlcomp.cmo
 	regsvr32 -s camlcomp.dll
 
 camlcomp.cmo: component.cmi
 
-.SUFFIXES: .ml .mli .cmo .cmi .c .obj
+.SUFFIXES: .ml .mli .cmo .cmx .cmi .c .obj
 
 .ml.cmo:
 	ocamlc -c $<
+
+.ml.cmx:
+	ocamlopt -c $<
 
 .mli.cmi:
 	ocamlc -c $<

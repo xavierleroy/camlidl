@@ -10,7 +10,7 @@
 #*                                                                     *
 #***********************************************************************
 
-#* $Id: Makefile,v 1.3 2000-08-19 11:04:59 xleroy Exp $
+#* $Id: Makefile,v 1.4 2002-04-22 11:50:47 xleroy Exp $
 
 include ../config/Makefile
 
@@ -29,8 +29,8 @@ $(NATIVELIB): $(NATIVEOBJS)
 	$(OCAMLOPT) -a -o $(NATIVELIB) $(NATIVEOBJS)
 
 install:
-	cp $(INTERFACES) $(BYTELIB) $(NATIVELIB) $(NATIVELIB:.cmxa=$(LIB)) $(OCAMLLIB)
-	cd $(OCAMLLIB); $(RANLIB) $(NATIVELIB:.cmxa=$(LIB))
+	cp $(INTERFACES) $(BYTELIB) $(NATIVELIB) $(NATIVELIB:.cmxa=.$(LIBEXT)) $(OCAMLLIB)
+	cd $(OCAMLLIB); $(RANLIB) $(NATIVELIB:.cmxa=.$(LIBEXT))
 
 .SUFFIXES: .mli .ml .cmi .cmo .cmx
 
