@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.21 1999-02-24 12:27:43 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.22 2000-08-11 13:26:02 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -33,10 +33,13 @@ type function_decl =
     fun_dealloc: string option }
 
 (* Remove dependent parameters (parameters that are size_is, length_is,
-   or switch_is of another parameter).  Also remove ignored pointers. *)
+   or switch_is of another in or inout parameter).
+   Also remove ignored pointers. *)
 
 let is_dependent_parameter name params =
-  List.exists (fun (_, _, ty) -> Lexpr.is_dependent name ty) params
+  List.exists (function (_, Out, _) -> false
+                      | (_, _, ty) -> Lexpr.is_dependent name ty)
+              params
 
 let is_ignored =
   function Type_pointer(Ignore, _) -> true | _ -> false
@@ -198,6 +201,10 @@ let emit_function oc fundecl ins outs locals emit_call =
     (function (name, Out, Type_pointer(attr, ty_arg)) ->
                   let c = new_c_variable ty_arg in
                   iprintf pc "%s = &%s;\n" name c
+            | (name, Out, Type_array(attr, ty_elt)) ->
+                  iprintf pc "%s = camlidl_malloc(%s * sizeof(%a), _ctx);\n"
+                          name (Array.size_out_param name attr)
+                          out_c_type ty_elt
             | _ -> ())
     fundecl.fun_params;
   (* Generate the call to C function *)

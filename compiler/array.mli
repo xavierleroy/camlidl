@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: array.mli,v 1.3 1999-02-19 14:33:26 xleroy Exp $ *)
+(* $Id: array.mli,v 1.4 2000-08-11 13:26:02 xleroy Exp $ *)
 
 (* Marshaling for arrays *)
 
@@ -23,4 +23,4 @@ val array_c_to_ml :
   (out_channel -> string -> idltype -> string -> string -> unit) ->
     out_channel -> string -> array_attributes -> idltype -> string -> string ->
       unit
-
+val size_out_param : string -> array_attributes -> string

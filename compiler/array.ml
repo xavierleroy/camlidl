@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: array.ml,v 1.10 1999-02-19 14:33:26 xleroy Exp $ *)
+(* $Id: array.ml,v 1.11 2000-08-11 13:26:02 xleroy Exp $ *)
 
 (* Handling of arrays *)
 
@@ -164,3 +164,17 @@ let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
       iprintf oc "End_roots()\n"
     end
   end
+
+(* Determine size of out array *)
+
+let size_out_param name attr =
+  match attr with
+    {length = Some re} ->
+      Lexpr.tostring "" re
+  | {size = Some re} ->
+      Lexpr.tostring "" re
+  | {bound = Some le} ->
+      let n = Lexpr.eval_int le in
+      string_of_int n
+  | _ ->
+      error ("Cannot determine array size for out parameter " ^ name)
