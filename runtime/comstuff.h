@@ -32,6 +32,8 @@ extern IID IID_IUnknown;
 #define S_TRUE S_OK
 #define S_FALSE 1
 #define E_NOINTERFACE 0x80004002
+#define CLASS_E_NOAGGREGATION 0x80040110
+#define CO_E_IIDSTRING 0x800401f4
 #define FAILED(hr) ((hr) & 0x80000000)
 #define HRESULT_CODE(hr) ((hr) & 0xFFFF)
 #define SEVERITY_FAILURE 1
@@ -40,4 +42,10 @@ extern IID IID_IUnknown;
 #define FACILITY_ITF 4
 #define MAKE_HRESULT(s,f,c) (((s) << 31) | ((f) << 16) | (c))
 
+#endif
+
+/* Internal functions */
+
+#ifdef _WIN32
+struct ISupportErrorInfo * camlidl_support_error_info(struct camlidl_intf * i);
 #endif

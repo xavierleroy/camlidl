@@ -104,13 +104,15 @@ let c_declaration oc fundecl =
   end;
   fprintf oc ");\n\n"
 
-(* If heap allocation is needed, set up allocation arena *)
+(* If context is needed, set it up (transient allocation, transient
+   interface refs) *)
 
-let output_deallocate before after =
-  if !need_deallocation then begin
-    fprintf before "  camlidl_arena _fun_arena = NULL;\n";
-    fprintf before "  camlidl_arena * _arena = &_fun_arena;\n";
-    iprintf after "camlidl_free(_fun_arena);\n"
+let output_context before after =
+  if !need_context then begin
+    fprintf before
+      "  struct camlidl_ctx _ctxs = { CAMLIDL_TRANSIENT, NULL };\n";
+    fprintf before "  camlidl_ctx _ctx = &_ctxs;\n";
+    iprintf after "camlidl_free(_ctx);\n"
   end
 
 (* Call an error checking function if needed *)
@@ -129,7 +131,7 @@ let rec call_error_check oc name ty =
 (* Shared code between emit_wrapper and emit_method_wrapper *)
 
 let emit_function oc fundecl ins outs locals emit_call =
-  need_deallocation := false;
+  need_context := false;
   (* Emit function header *)
   fprintf oc "value camlidl_%s_%s(" fundecl.fun_mod fundecl.fun_name;
   begin match ins with
@@ -185,13 +187,13 @@ let emit_function oc fundecl ins outs locals emit_call =
   begin match outs with
     [] ->
       output_variable_declarations oc;
-      output_deallocate oc pc;
+      output_context oc pc;
       iprintf pc "return Val_unit;\n"
   | [name, ty] ->
       c_to_ml pc "" ty name "_vres";
       output_variable_declarations oc;
       fprintf oc "  value _vres;\n\n";
-      output_deallocate oc pc;
+      output_context oc pc;
       iprintf pc "return _vres;\n";
   | _ ->
       let num_outs = List.length outs in
@@ -207,7 +209,7 @@ let emit_function oc fundecl ins outs locals emit_call =
       copy_values_to_block pc "_vres" "_vresult" num_outs;
       decrease_indent();
       iprintf pc "End_roots()\n";
-      output_deallocate oc pc;
+      output_context oc pc;
       iprintf pc "return _vresult;\n";
       output_variable_declarations oc;
       fprintf oc "  value _vresult;\n";
@@ -262,7 +264,10 @@ let emit_wrapper oc fundecl =
 
 let emit_method_call intfname methname oc fundecl =
   (* Extract "this" parameter *)
-  iprintf oc "this = camlidl_unpack_interface(_v_this);\n";
+  iprintf oc "this = camlidl_unpack_interface(_v_this, NULL);\n";
+  (* Reset the error mechanism *)
+  iprintf oc "SetErrorInfo(0L, NULL);\n";
+  (* Emit the call *)
   match fundecl.fun_call with
     Some s ->
       iprintf oc "/* begin user-supplied calling sequence */\n";

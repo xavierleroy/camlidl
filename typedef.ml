@@ -49,14 +49,14 @@ let declare_transl oc td =
     Some s ->
       fprintf oc "#define camlidl_ml2c_%s_%s %s\n\n" td.td_mod td.td_name s
   | None ->
-      fprintf oc "extern void camlidl_ml2c_%s_%s(value, %s *, camlidl_arena * _arena);\n"
+      fprintf oc "extern void camlidl_ml2c_%s_%s(value, %s *, camlidl_ctx _ctx);\n"
                  td.td_mod td.td_name td.td_name
   end;
   begin match td.td_c2ml with
     Some s ->
       fprintf oc "#define camlidl_c2ml_%s_%s %s\n\n" td.td_mod td.td_name s
   | None ->
-      fprintf oc "extern value camlidl_c2ml_%s_%s(%s *);\n\n"
+      fprintf oc "extern value camlidl_c2ml_%s_%s(%s *, camlidl_ctx _ctx);\n\n"
                  td.td_mod td.td_name td.td_name
   end
 
@@ -66,7 +66,7 @@ let transl_ml_to_c oc td =
   current_function := sprintf "typedef %s" td.td_name;
   let v = new_var "_v" in
   let c = new_var "_c" in
-  fprintf oc "void camlidl_ml2c_%s_%s(value %s, %s * %s, camlidl_arena * _arena)\n"
+  fprintf oc "void camlidl_ml2c_%s_%s(value %s, %s * %s, camlidl_ctx _ctx)\n"
              td.td_mod td.td_name v td.td_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
@@ -86,7 +86,7 @@ let transl_c_to_ml oc td =
   current_function := sprintf "typedef %s" td.td_name;
   let v = new_ml_variable() in
   let c = new_var "_c" in
-  fprintf oc "value camlidl_c2ml_%s_%s(%s * %s)\n"
+  fprintf oc "value camlidl_c2ml_%s_%s(%s * %s, camlidl_ctx _ctx)\n"
              td.td_mod td.td_name td.td_name c;
   fprintf oc "{\n";
   let pc = divert_output() in

@@ -32,9 +32,9 @@ let c_forward_declaration oc sd =
 (* External (forward) declaration of the translation functions *)
 
 let declare_transl oc sd =
-  fprintf oc "extern void camlidl_ml2c_%s_struct_%s(value, struct %s *, camlidl_arena * _arena);\n"
+  fprintf oc "extern void camlidl_ml2c_%s_struct_%s(value, struct %s *, camlidl_ctx _ctx);\n"
              sd.sd_mod sd.sd_name sd.sd_name;
-  fprintf oc "extern value camlidl_c2ml_%s_struct_%s(struct %s *);\n\n"
+  fprintf oc "extern value camlidl_c2ml_%s_struct_%s(struct %s *, camlidl_ctx _ctx);\n\n"
              sd.sd_mod sd.sd_name sd.sd_name
 
 (* Translation function from an ML record to a C struct *)
@@ -43,7 +43,7 @@ let transl_ml_to_c oc sd =
   current_function := sprintf "struct %s" sd.sd_name;
   let v = new_var "_v" in
   let c = new_var "_c" in
-  fprintf oc "void camlidl_ml2c_%s_struct_%s(value %s, struct %s * %s, camlidl_arena * _arena)\n"
+  fprintf oc "void camlidl_ml2c_%s_struct_%s(value %s, struct %s * %s, camlidl_ctx _ctx)\n"
              sd.sd_mod sd.sd_name v sd.sd_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
@@ -58,7 +58,7 @@ let transl_ml_to_c oc sd =
 let transl_c_to_ml oc sd =
   current_function := sprintf "struct %s" sd.sd_name;
   let c = new_var "_c" in
-  fprintf oc "value camlidl_c2ml_%s_struct_%s(struct %s * %s)\n"
+  fprintf oc "value camlidl_c2ml_%s_struct_%s(struct %s * %s, camlidl_ctx _ctx)\n"
              sd.sd_mod sd.sd_name sd.sd_name c;
   fprintf oc "{\n";
   let pc = divert_output() in

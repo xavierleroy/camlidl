@@ -49,33 +49,33 @@ mlsize_t camlidl_ptrarray_size(void ** array)
 
 /* Malloc-like allocation with en masse deallocation */
 
-void * camlidl_malloc(size_t sz, camlidl_arena * arena)
+void * camlidl_malloc(size_t sz, camlidl_ctx ctx)
 {
   void * res = stat_alloc(sz);
-  if (arena != NULL) {
+  if (ctx->flags & CAMLIDL_TRANSIENT) {
     struct camlidl_block_list * l =
       stat_alloc(sizeof(struct camlidl_block_list));
     l->block = res;
-    l->next = *arena;
-    *arena = l;
+    l->next = ctx->head;
+    ctx->head = l;
   }
   return res;
 }
 
-void camlidl_free(camlidl_arena arena)
+void camlidl_free(camlidl_ctx ctx)
 {
-  camlidl_arena tmp;
-  while (arena != NULL) {
+  struct camlidl_block_list * arena, * tmp;
+  for (arena = ctx->head; arena != NULL; /*nothing*/) {
     tmp = arena;
     arena = arena->next;
     stat_free(tmp);
   }
 }
 
-char * camlidl_malloc_string(value mlstring, camlidl_arena * arena)
+char * camlidl_malloc_string(value mlstring, camlidl_ctx ctx)
 {
   mlsize_t len = string_length(mlstring);
-  char * res = camlidl_malloc(len + 1, arena);
+  char * res = camlidl_malloc(len + 1, ctx);
   memcpy(res, String_val(mlstring), len + 1);
   return res;
 }

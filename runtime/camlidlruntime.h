@@ -26,11 +26,19 @@ struct camlidl_block_list {
   struct camlidl_block_list * next;
 };
 
-typedef struct camlidl_block_list * camlidl_arena;
+struct camlidl_ctx {
+  int flags;
+  struct camlidl_block_list * head;
+};
 
-void * camlidl_malloc(size_t sz, camlidl_arena * arena);
-void camlidl_free(camlidl_arena arena);
-char * camlidl_malloc_string(value mlstring, camlidl_arena * arena);
+#define CAMLIDL_TRANSIENT 1
+#define CAMLIDL_ADDREF 2
+
+typedef struct camlidl_ctx * camlidl_ctx;
+
+void * camlidl_malloc(size_t sz, camlidl_ctx ctx);
+void camlidl_free(camlidl_ctx ctx);
+char * camlidl_malloc_string(value mlstring, camlidl_ctx ctx);
 
 /* Helper functions for handling COM interfaces */
 
@@ -39,6 +47,7 @@ char * camlidl_malloc_string(value mlstring, camlidl_arena * arena);
 typedef struct { unsigned char data[16]; } IID;
 typedef int HRESULT;
 typedef unsigned long ULONG;
+#define SetErrorInfo(x,y)
 #endif
 
 #if defined(_WIN32)
@@ -51,8 +60,8 @@ typedef unsigned long ULONG;
 
 value camlidl_lookup_method(char * name);
 
-void * camlidl_unpack_interface(value vintf);
-value camlidl_pack_interface(void * intf);
+void * camlidl_unpack_interface(value vintf, camlidl_ctx ctx);
+value camlidl_pack_interface(void * intf, camlidl_ctx ctx);
 
 struct camlidl_component;
 
@@ -65,7 +74,7 @@ struct camlidl_intf {
 
 struct camlidl_component {
   int numintfs;
-  int refcount;
+  long refcount;
   struct camlidl_intf intf[1];
 };
 
@@ -86,6 +95,9 @@ ULONG camlidl_Release(struct camlidl_intf * this);
   Field (Field (Field (obj, 0), ((lab) >> 16) / sizeof (value)), \
          ((lab) / sizeof (value)) & 0xFF)
 
+/* Raise an error */
+void camlidl_error(HRESULT errcode, char * who, char * msg);
+
 /* Handle HRESULTs */
 
 void camlidl_check_hresult(HRESULT hr);
@@ -96,7 +108,6 @@ void camlidl_ml2c_hresult_int(value v, HRESULT * hr);
 
 /* Handle uncaught exceptions in C-to-ML callbacks */
 
-HRESULT camlidl_result_exception(void * intf, value exn_bucket);
-void camlidl_warn_exception(char * methname, value exn_bucket);
-void camlidl_abort_exception(char * methname, value exn_bucket);
+HRESULT camlidl_result_exception(char * methname, value exn_bucket);
+void camlidl_uncaught_exception(char * methname, value exn_bucket);
 
