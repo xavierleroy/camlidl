@@ -1,0 +1,6 @@
+// --!! Toplevel constants
+
+const int x = 2;
+const int y = 0xff;
+// const int y = sizeof(int); /*FIXME*/
+const int z = y + 1;

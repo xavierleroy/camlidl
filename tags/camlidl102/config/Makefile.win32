@@ -1,0 +1,45 @@
+#***********************************************************************
+#*                                                                     *
+#*                              CamlIDL                                *
+#*                                                                     *
+#*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *
+#*                                                                     *
+#*  Copyright 1999 Institut National de Recherche en Informatique et   *
+#*  en Automatique.  All rights reserved.  This file is distributed    *
+#*  under the terms of the GNU Library General Public License.         *
+#*                                                                     *
+#***********************************************************************
+
+#* $Id: Makefile.win32,v 1.4 2000-08-19 11:04:59 xleroy Exp $
+
+## Configuration section
+
+# Type of system
+OSTYPE=win32
+
+# How to invoke the C preprocessor
+CPP=cl /nologo /E
+
+# Suffixes for executables and libraries
+EXE=.exe
+LIB=.lib
+
+# We don't need ranlib
+RANLIB=echo
+
+# Location of the Objective Caml library in your installation
+OCAMLLIB=/ocaml/lib
+
+# Where to install the binaries
+BINDIR=/ocaml/bin
+
+# The Objective Caml compilers (the defaults below should be OK)
+OCAMLC=ocamlc -g
+OCAMLOPT=ocamlopt
+OCAMLDEP=ocamldep
+OCAMLYACC=ocamlyacc -v
+OCAMLLEX=ocamllex
+
+# C/C++ compiler and its flags
+CC=cl
+CFLAGS=/nologo /MT /Zi

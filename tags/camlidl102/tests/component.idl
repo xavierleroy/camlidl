@@ -1,0 +1,21 @@
+[object, uuid(00000000-0000-0000-0000-000000000081)]
+interface IX : IUnknown {
+  void F(int x);
+}
+
+[object, uuid(00000000-0000-0000-0000-000000000082), pointer_default(ref)]
+interface IY : IUnknown {
+  HRESULT_int G(int x);
+  HRESULT_bool H();
+  HRESULT K([out,string*] char ** str);
+}
+
+[pointer_default(ref)] interface Test {
+
+IUnknown * create_instance(void);
+void test_component(IUnknown * c);
+void test_ix(IX * c);
+void test_iy(IY * c);
+
+}
+

@@ -1,0 +1,15 @@
+
+[
+  uuid(00000000-0000-0000-C000-000000000046),
+  pointer_default(unique)
+]
+interface IFoo
+{
+typedef struct _S1_TYPE {
+        unsigned int f1;
+       double d2;
+} S1_TYPE;
+ void f([in]S1_TYPE x);
+}
+
+

@@ -1,0 +1,48 @@
+/* Integers */
+
+[pointer_default(ref)] 
+interface Basics {
+
+int f1([in] int x);
+
+unsigned long f2([in] long x);
+
+void f3([out] int * p);
+
+void f4([in,out] int * p);
+
+int f5([in] int x, [out] int * p);
+
+/* Pointers */
+
+[unique] int * f6([in, unique] int * x);
+
+[ptr] int * f7([in, ptr] int * x);
+
+void f8([in, out] int * p, [in, out] long * q);
+
+/* Many arguments */
+
+int f9(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8);
+
+/* Boxed ints */
+[nativeint] int f10([int64] long x);
+[int64] long f11([int32] int x);
+[int32] unsigned int f12([nativeint] unsigned long x);
+
+/* Default ints */
+[int_default(int32), long_default(int64)] interface Basics_Integers {
+  int f13(int x);
+  long f14(long x);
+}
+
+int f15(int x);
+
+/* Const madness */
+void f16([string] const char * p);
+[string] const char * f17();
+
+/* 64-bit integers */
+hyper int f18(unsigned __int64 x, long long y);
+
+}
