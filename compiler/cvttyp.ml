@@ -5,11 +5,12 @@
 (*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
 (*                                                                     *)
 (*  Copyright 1999 Institut National de Recherche en Informatique et   *)
-(*  en Automatique.  Distributed only by permission.                   *)
+(*  en Automatique.  All rights reserved.  This file is distributed    *)
+(*  under the terms of the Q Public License version 1.0                *)
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.ml,v 1.18 2000-08-18 11:23:02 xleroy Exp $ *)
+(* $Id: cvttyp.ml,v 1.19 2000-08-19 11:04:56 xleroy Exp $ *)
 
 open Utils
 open Printf

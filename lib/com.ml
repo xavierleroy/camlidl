@@ -5,11 +5,12 @@
 (*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
 (*                                                                     *)
 (*  Copyright 1999 Institut National de Recherche en Informatique et   *)
-(*  en Automatique.  Distributed only by permission.                   *)
+(*  en Automatique.  All rights reserved.  This file is distributed    *)
+(*  under the terms of the GNU Library General Public License.         *)
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: com.ml,v 1.7 1999-03-15 15:21:39 xleroy Exp $ *)
+(* $Id: com.ml,v 1.8 2000-08-19 11:04:59 xleroy Exp $ *)
 
 (* Run-time library for COM components *)
 

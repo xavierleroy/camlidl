@@ -5,11 +5,12 @@
 /*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         */
 /*                                                                     */
 /*  Copyright 1999 Institut National de Recherche en Informatique et   */
-/*  en Automatique.  Distributed only by permission.                   */
+/*  en Automatique.  All rights reserved.  This file is distributed    */
+/*  under the terms of the GNU Library General Public License.         */
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: cfactory.cpp,v 1.6 1999-03-16 15:42:25 xleroy Exp $ */
+/* $Id: cfactory.cpp,v 1.7 2000-08-19 11:05:00 xleroy Exp $ */
 
 /* The class factory and DLL support */
 

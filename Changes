@@ -18,6 +18,8 @@ CamlIDL 1.01:
 * Added minimal support for COM dispatch interfaces.
 * Fixed lack of initialization of ignored pointers for structs with
   only one significant field.
+* Relicensed under the QPL (for the compiler) and the LGPL (for
+  everything else).
 
 
 CamlIDL 1.00:

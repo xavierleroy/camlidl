@@ -1,3 +1,17 @@
+/***********************************************************************/
+/*                                                                     */
+/*                              CamlIDL                                */
+/*                                                                     */
+/*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         */
+/*                                                                     */
+/*  Copyright 1999 Institut National de Recherche en Informatique et   */
+/*  en Automatique.  All rights reserved.  This file is distributed    */
+/*  under the terms of the GNU Library General Public License.         */
+/*                                                                     */
+/***********************************************************************/
+
+/* $Id: camlidlcompat.h,v 1.3 2000-08-19 11:05:01 xleroy Exp $ */
+
 /* Compatibility macros to share IDL source between CamlIDL and MIDL */
 
 #ifdef CAMLIDL
