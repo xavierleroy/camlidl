@@ -16,15 +16,15 @@ objects as COM components that can then be used from C++ or C.
 COPYRIGHT:
 
 All files marked "Copyright INRIA" in this distribution are copyright
-1999 Institut National de Recherche en Informatique et en Automatique
-(INRIA) and distributed under the conditions stated in file LICENSE.
-They can be freely redistributed for non-commercial purposes, provided
-the copyright notice remains attached.
+1999, 2000, 2001 Institut National de Recherche en Informatique et en
+Automatique (INRIA) and distributed under the conditions stated in
+file LICENSE.  They can be freely redistributed for non-commercial
+purposes, provided the copyright notice remains attached.
 
 
 REQUIREMENTS:
 
-Camlidl requires Objective Caml 2.02 or later.  Under MS Windows,
+Camlidl requires Objective Caml 3.02 or later.  Under MS Windows,
 Microsoft's Visual C++ 6.0 is required, as well as the Cygnus CYGWIN32
 tools (http://sourceware.cygnus.com/cygwin/).
 
@@ -53,5 +53,5 @@ DOCUMENTATION:
 
 SUPPORT:
 
-- Please send bug reports and comments to caml-light@inria.fr
+- Please send bug reports and comments to caml@inria.fr
 
