@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: union.ml,v 1.7 2000-08-19 11:04:58 xleroy Exp $ *)
+(* $Id: union.ml,v 1.8 2002-01-16 09:42:04 xleroy Exp $ *)
 
 (* Handling of unions *)
 
@@ -23,7 +23,7 @@ open Cvttyp
 (* Translate an ML datatype [v] and store its argument in the C union [c]
    and its discriminant in the C integer [discr]. *)
 
-let union_ml_to_c ml_to_c oc onstack ud v c discr =
+let union_ml_to_c ml_to_c oc onstack pref ud v c discr =
   let tag_constant = ref 0
   and tag_constr = ref 0 in
   let emit_case = function
@@ -40,7 +40,7 @@ let union_ml_to_c ml_to_c oc onstack ud v c discr =
       iprintf oc "%s = Int_val(Field(%s, 0));\n" discr v;
       let v' = new_ml_variable() in
       iprintf oc "%s = Field(%s, 1);\n" v' v;
-      ml_to_c oc onstack "_badprefix." ty v' (sprintf "%s.%s" c n);
+      ml_to_c oc onstack pref ty v' (sprintf "%s.%s" c n);
       iprintf oc "break;\n";
       decrease_indent()
   | {case_field = None; case_labels = lbls} -> (* named case, no args *)
@@ -61,7 +61,7 @@ let union_ml_to_c ml_to_c oc onstack ud v c discr =
           iprintf oc "%s = %s;\n" discr lbl;
           let v' = new_ml_variable() in
           iprintf oc "%s = Field(%s, 0);\n" v' v;
-          ml_to_c oc onstack "_badprefix." ty v' (sprintf "%s.%s" c n);
+          ml_to_c oc onstack pref ty v' (sprintf "%s.%s" c n);
           iprintf oc "break;\n";
           decrease_indent())
         lbls in
@@ -96,7 +96,7 @@ let union_ml_to_c ml_to_c oc onstack ud v c discr =
 (* Translate a C union [c] with its discriminant [discr]
    to an ML datatype [v]. *)
 
-let union_c_to_ml c_to_ml oc ud c v discr =
+let union_c_to_ml c_to_ml oc pref ud c v discr =
   let tag_constant = ref 0 and tag_constr = ref 0 in
   let have_default = ref false in
   let emit_case = function
@@ -114,7 +114,7 @@ let union_c_to_ml c_to_ml oc ud c v discr =
       iprintf oc "default:\n";
       increase_indent();
       let v' = new_ml_variable() in
-      c_to_ml oc "_badprefix." ty (sprintf "%s.%s" c n) v';
+      c_to_ml oc pref ty (sprintf "%s.%s" c n) v';
       iprintf oc "Begin_root(%s)\n" v';
       increase_indent();
       iprintf oc "%s = camlidl_alloc_small(2, %d);\n" v !tag_constr;
@@ -141,7 +141,7 @@ let union_c_to_ml c_to_ml oc ud c v discr =
           iprintf oc "case %s:\n" lbl;
           increase_indent();
           let v' = new_ml_variable() in
-          c_to_ml oc "_badprefix." ty (sprintf "%s.%s" c n) v';
+          c_to_ml oc pref ty (sprintf "%s.%s" c n) v';
           iprintf oc "Begin_root(%s)\n" v';
           increase_indent();
           iprintf oc "%s = camlidl_alloc_small(1, %d);\n" v !tag_constr;

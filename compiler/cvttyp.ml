@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.ml,v 1.24 2001-08-08 15:54:21 xleroy Exp $ *)
+(* $Id: cvttyp.ml,v 1.25 2002-01-16 09:42:01 xleroy Exp $ *)
 
 open Utils
 open Printf
@@ -112,7 +112,7 @@ and out_enum_const oc cst =
   fprintf oc "%s" cst.const_name;
   begin match cst.const_val with
     None -> ()
-  | Some le -> fprintf oc " = %a" Lexpr.output ("", le)
+  | Some le -> fprintf oc " = %a" Lexpr.output (Prefix.empty, le)
   end;
   fprintf oc ",\n"
 

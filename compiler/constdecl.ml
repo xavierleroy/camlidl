@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: constdecl.ml,v 1.12 2001-06-29 13:29:59 xleroy Exp $ *)
+(* $Id: constdecl.ml,v 1.13 2002-01-16 09:42:00 xleroy Exp $ *)
 
 (* Handling of constant declarations *)
 
@@ -37,7 +37,8 @@ let ml_declaration oc c =
 (* #define the constant in C *)
 
 let c_declaration oc c =
-  fprintf oc "#define %s (%a)\n\n" c.cd_name Lexpr.output ("", c.cd_value)
+  fprintf oc "#define %s (%a)\n\n"
+             c.cd_name Lexpr.output (Prefix.empty, c.cd_value)
 
 (* Generate the ML let binding corresponding to the constant declaration *)
 

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.mli,v 1.8 2001-06-29 13:30:00 xleroy Exp $ *)
+(* $Id: parse_aux.mli,v 1.9 2002-01-16 09:42:02 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -56,6 +56,7 @@ val make_fields :
   idltype -> (idltype -> string * idltype) list -> field list
     (* Build a list of field declarations *)
 val make_discriminated_union :
+  string ->
   string ->
   string ->
   idltype -> union_case list -> struct_decl

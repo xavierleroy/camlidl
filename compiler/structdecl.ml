@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: structdecl.ml,v 1.14 2000-08-19 11:04:58 xleroy Exp $ *)
+(* $Id: structdecl.ml,v 1.15 2002-01-16 09:42:03 xleroy Exp $ *)
 
 (* Handling of structure declarations *)
 
@@ -67,7 +67,7 @@ let transl_ml_to_c oc sd =
   fprintf oc "{\n";
   let pc = divert_output() in
   increase_indent();
-  struct_ml_to_c ml_to_c pc false sd v (sprintf "(*%s)" c);
+  struct_ml_to_c ml_to_c pc false Prefix.empty sd v (sprintf "(*%s)" c);
   output_variable_declarations oc;
   end_diversion oc;
   decrease_indent();
@@ -85,7 +85,7 @@ let transl_c_to_ml oc sd =
   let pc = divert_output() in
   increase_indent();
   let v = new_ml_variable() in
-  struct_c_to_ml c_to_ml pc sd (sprintf "(*%s)" c) v;
+  struct_c_to_ml c_to_ml pc Prefix.empty sd (sprintf "(*%s)" c) v;
   iprintf pc "return %s;\n" v;
   output_variable_declarations oc;
   end_diversion oc;

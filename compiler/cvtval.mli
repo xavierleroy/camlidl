@@ -10,15 +10,15 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvtval.mli,v 1.10 2000-08-19 11:04:56 xleroy Exp $ *)
+(* $Id: cvtval.mli,v 1.11 2002-01-16 09:42:01 xleroy Exp $ *)
 
 (* Conversion of values between ML and C *)
 
 open Idltypes
 
 val ml_to_c :
-  out_channel -> bool -> string -> idltype -> string -> string -> unit
+  out_channel -> bool -> Prefix.t -> idltype -> string -> string -> unit
 val c_to_ml :
-  out_channel -> string -> idltype -> string -> string -> unit
+  out_channel -> Prefix.t -> idltype -> string -> string -> unit
 val allocate_output_space :
-  out_channel -> string -> idltype -> unit
+  out_channel -> Prefix.t -> string -> idltype -> unit

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: typedef.ml,v 1.14 2000-08-19 11:04:58 xleroy Exp $ *)
+(* $Id: typedef.ml,v 1.15 2002-01-16 09:42:04 xleroy Exp $ *)
 
 (* Handling of typedefs *)
 
@@ -87,7 +87,7 @@ let transl_ml_to_c oc td =
   if td.td_abstract then begin
     iprintf pc "*%s = *((%a *) Bp_val(%s));\n" c out_c_type td.td_type v
   end else begin
-    ml_to_c pc false "_badprefix." td.td_type v (sprintf "(*%s)" c);
+    ml_to_c pc false Prefix.empty td.td_type v (sprintf "(*%s)" c);
   end;
   output_variable_declarations oc;
   end_diversion oc;
@@ -110,7 +110,7 @@ let transl_c_to_ml oc td =
     iprintf pc "*((%a *) Bp_val(%s)) = *%s;\n"
             out_c_type td.td_type v c
   end else begin
-    c_to_ml pc "_badprefix." td.td_type (sprintf "(*%s)" c) v
+    c_to_ml pc Prefix.empty td.td_type (sprintf "(*%s)" c) v
   end;
   iprintf pc "return %s;\n" v;
   output_variable_declarations oc;

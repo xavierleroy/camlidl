@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexpr.ml,v 1.9 2001-06-29 13:29:59 xleroy Exp $ *)
+(* $Id: lexpr.ml,v 1.10 2002-01-16 09:42:02 xleroy Exp $ *)
 
 (* Evaluation and pretty-printing of limited expressions *)
 
@@ -246,7 +246,7 @@ let tostr pref e =
             Cst_int n -> add_string b (string_of_int n)
           | Cst_string s -> add_escaped_string s
         with Not_found ->
-          add_string b pref; add_string b s
+          add_string b (Prefix.for_ident pref s); add_string b s
         end
     | Expr_int n ->
         add_string b (string_of_int n)

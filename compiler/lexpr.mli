@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexpr.mli,v 1.3 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: lexpr.mli,v 1.4 2002-01-16 09:42:02 xleroy Exp $ *)
 
 (* Evaluation and pretty-printing of limited expressions *)
 
@@ -23,8 +23,8 @@ val bind_const: string -> constant_value -> unit
 val eval_int: lexpr -> int
 val eval: lexpr -> constant_value
 
-val tostring: string -> lexpr -> string
-val output: out_channel -> string * lexpr -> unit
+val tostring: Prefix.t -> lexpr -> string
+val output: out_channel -> Prefix.t * lexpr -> unit
 
 val is_free: string -> lexpr -> bool
 val is_dependent: string -> idltype -> bool

@@ -10,29 +10,29 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: array.mli,v 1.6 2000-08-19 11:04:56 xleroy Exp $ *)
+(* $Id: array.mli,v 1.7 2002-01-16 09:42:00 xleroy Exp $ *)
 
 (* Marshaling for arrays and bigarrays *)
 
 open Idltypes
 
 val array_ml_to_c : 
-  (out_channel -> bool -> string -> idltype -> string -> string -> unit) ->
-    out_channel -> bool -> string -> array_attributes -> idltype -> string -> string ->
+  (out_channel -> bool -> Prefix.t -> idltype -> string -> string -> unit) ->
+    out_channel -> bool -> Prefix.t -> array_attributes -> idltype -> string -> string ->
       unit
 val array_c_to_ml : 
-  (out_channel -> string -> idltype -> string -> string -> unit) ->
-    out_channel -> string -> array_attributes -> idltype -> string -> string ->
+  (out_channel -> Prefix.t -> idltype -> string -> string -> unit) ->
+    out_channel -> Prefix.t -> array_attributes -> idltype -> string -> string ->
       unit
 val array_allocate_output_space :
-  out_channel -> array_attributes -> idltype -> string -> unit
+  out_channel -> Prefix.t -> array_attributes -> idltype -> string -> unit
 
 val bigarray_ml_to_c :
-  out_channel -> string -> bigarray_attributes -> idltype ->
+  out_channel -> Prefix.t -> bigarray_attributes -> idltype ->
     string -> string -> unit
 val bigarray_c_to_ml :
-  out_channel -> string -> bigarray_attributes -> idltype ->
+  out_channel -> Prefix.t -> bigarray_attributes -> idltype ->
     string -> string -> unit
 val bigarray_allocate_output_space :
-  out_channel -> bigarray_attributes -> idltype -> string -> unit
+  out_channel -> Prefix.t -> bigarray_attributes -> idltype -> string -> unit
 

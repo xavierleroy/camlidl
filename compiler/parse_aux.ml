@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.14 2001-08-08 15:54:58 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.15 2002-01-16 09:42:02 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -270,14 +270,14 @@ let make_field attrs tybase decl =
 let make_fields attrs tybase decls =
   List.map (make_field attrs tybase) decls
 
-let make_discriminated_union name switch_name switch_type body =
+let make_discriminated_union name union_name switch_name switch_type body =
   let ty_union =
     Type_union({ud_name = ""; ud_mod = ""; ud_stamp = 0; ud_cases = body},
                {discriminant = Expr_ident switch_name}) in
   { sd_name = name; sd_mod = ""; sd_stamp = 0;
     sd_fields = [ {field_name = switch_name; field_mlname = switch_name;
                    field_typ = switch_type};
-                  {field_name = "u"; field_mlname = "u";
+                  {field_name = union_name; field_mlname = union_name;
                    field_typ = ty_union} ] }
 
 let type_names =

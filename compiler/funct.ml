@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.26 2001-07-30 14:33:34 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.27 2002-01-16 09:42:01 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -199,13 +199,14 @@ let emit_function oc fundecl ins outs locals emit_call =
             | _ -> ())
     fundecl.fun_params;
   (* Convert ins from ML to C *)
+  let pref = Prefix.enter_function fundecl.fun_params in
   List.iter
-    (fun (name, ty) -> ml_to_c pc true "" ty (sprintf "_v_%s" name) name)
+    (fun (name, ty) -> ml_to_c pc true pref ty (sprintf "_v_%s" name) name)
     ins;
   (* Initialize outs that are pointers or arrays so that they point
      to suitable storage *)
   List.iter
-    (function (name, Out, ty) -> allocate_output_space pc name ty
+    (function (name, Out, ty) -> allocate_output_space pc pref name ty
             | _ -> ())
     fundecl.fun_params;
   (* Generate the call to the C function *)
@@ -225,7 +226,7 @@ let emit_function oc fundecl ins outs locals emit_call =
       output_dealloc pc fundecl.fun_dealloc;
       iprintf pc "return Val_unit;\n"
   | [name, ty] ->
-      c_to_ml pc "" ty name "_vres";
+      c_to_ml pc pref ty name "_vres";
       output_variable_declarations oc;
       fprintf oc "  value _vres;\n\n";
       output_context oc pc;
@@ -238,7 +239,7 @@ let emit_function oc fundecl ins outs locals emit_call =
       let pos = ref 0 in
       List.iter
         (fun (name, ty) ->
-          c_to_ml pc "" ty name (sprintf "_vres[%d]" !pos);
+          c_to_ml pc pref ty name (sprintf "_vres[%d]" !pos);
           incr pos)
         outs;
       iprintf pc "_vresult = camlidl_alloc_small(%d, 0);\n" num_outs;
