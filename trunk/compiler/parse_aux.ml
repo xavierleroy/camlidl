@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.10 2001-06-09 14:48:20 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.11 2001-06-17 10:50:25 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -63,6 +63,8 @@ let rec merge_array_attr merge_fun rexps ty =
   | (_, Type_bigarray(attr, ty_elt)) ->
       let dims' = merge_bigarray_dims merge_fun rexps attr.dims in
       Type_bigarray({attr with dims = dims'}, ty_elt)
+  | (_, Type_const ty') ->
+      Type_const (merge_array_attr merge_fun rexps ty')
   | (_, _) ->
       eprintf "Warning: size_is or length_is attribute applied to \
                type `%a', ignored.\n" out_c_type ty;
@@ -86,11 +88,14 @@ let make_bigarray ty =
       extract_spine (no_bounds :: dims) ty
   | Type_array(attr, ty) ->
       extract_spine (attr :: dims) ty
+  | Type_const((Type_pointer(_,_) | Type_array(_,_)) as ty') ->
+      extract_spine dims ty'
   | ty ->
       (List.rev dims, ty) in
   let (dims, ty_tail) = extract_spine [] ty in
   match ty_tail with
-    Type_int(_,_) | Type_float | Type_double ->
+    Type_int(_,_) | Type_float | Type_double 
+  | Type_const(Type_int(_,_) | Type_float | Type_double) ->
       Type_bigarray({dims = dims; fortran_layout = false; malloced = false},
                     ty_tail)
   | _ ->
@@ -161,6 +166,8 @@ let rec apply_type_attribute ty attr =
   | ((name, rexps), Type_array(attr, ty_elt)) when is_star_attribute name ->
       Type_array(attr,
                  apply_type_attribute ty_elt (star_attribute name, rexps))
+  | (_, Type_const ty') ->
+      Type_const(apply_type_attribute ty' attr)
   | ((name, _), _) ->
       eprintf
         "Warning: attribute `%s' unknown, malformed or not applicable here, \
@@ -169,6 +176,15 @@ let rec apply_type_attribute ty attr =
       ty
 
 let apply_type_attributes = List.fold_left apply_type_attribute
+
+let rec ref_pointer = function
+    Type_pointer(_, ty_elt) ->
+      Type_pointer(Ref, ty_elt)
+  | Type_array(attr, ty_elt) ->
+      Type_array({attr with maybe_null = false}, ty_elt)
+  | Type_const ty ->
+      Type_const(ref_pointer ty)
+  | ty -> ty
 
 let make_param attrs tybase decl =
   let (name, ty) = decl tybase in
@@ -187,9 +203,7 @@ let make_param attrs tybase decl =
         match mode with Some InOut -> mode
                       | Some In -> Some InOut
                       | _ -> Some Out in
-      let ty' = 
-        match ty with Type_pointer(_, ty_elt) -> Type_pointer(Ref, ty_elt)
-                    | _ -> ty in
+      let ty' = ref_pointer ty in
       merge_attributes mode' ty' rem
   | attr :: rem ->
       merge_attributes mode (apply_type_attribute ty attr) rem in
@@ -463,6 +477,15 @@ let wchar_t_type() =
 (* Apply a "star" modifier to an attribute *)
 
 let make_star_attribute (name, args) = ("*" ^ name, args)
+
+(* Add a "const" modifier to a type *)
+
+let make_type_const ty =
+  match ty with
+    Type_const _ ->
+      eprintf "Warning: multiple `const' modifiers on a type.\n";
+      ty
+  | _ -> Type_const ty
 
 (* Forward declaration for Parse.read_file *)
 

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: normalize.ml,v 1.19 2001-06-09 14:48:19 xleroy Exp $ *)
+(* $Id: normalize.ml,v 1.20 2001-06-17 10:50:25 xleroy Exp $ *)
 
 (* Normalization of IDL types after parsing *)
 
@@ -59,6 +59,7 @@ let make_module_name filename =
 let rec is_char_type = function
     Type_int((Char | UChar | Byte), _) -> true
   | Type_named(modname, tyname) -> is_char_type (expand_typedef tyname)
+  | Type_const ty -> is_char_type ty
   | _ -> false
 
 (* Generic function to handle declarations and definitions of struct,
@@ -130,6 +131,8 @@ let rec normalize_type = function
       with Not_found ->
         error("Unknown type name " ^ s)
       end
+  | Type_const ty ->
+      Type_const(normalize_type ty)
   | ty -> ty
 
 and normalize_field f =

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: idltypes.mli,v 1.19 2000-08-19 11:04:56 xleroy Exp $ *)
+(* $Id: idltypes.mli,v 1.20 2001-06-17 10:50:25 xleroy Exp $ *)
 
 type integer_kind =
     Int | Long | Small | Short | Char
@@ -35,6 +35,7 @@ type idltype =
   | Type_enum of enum_decl * enum_attributes
   | Type_named of string * string (* module name, type name *)
   | Type_interface of string * string (* module name, interface name *)
+  | Type_const of idltype
 
 and array_attributes =
   { bound: lexpr option;

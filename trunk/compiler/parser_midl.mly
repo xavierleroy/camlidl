@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: parser_midl.mly,v 1.14 2000-08-19 11:04:57 xleroy Exp $ */
+/* $Id: parser_midl.mly,v 1.15 2001-06-17 10:50:25 xleroy Exp $ */
 
 /* Parser for Microsoft IDL */
 
@@ -181,7 +181,7 @@ component:
 /* Constant declaration */
 
 const_decl:
-    CONST simple_type_spec pointer_opt IDENT EQUAL lexpr
+    CONST type_spec pointer_opt IDENT EQUAL lexpr
         { {cd_name = $4; cd_type = $3($2); cd_value = $6} }
 ;
 /* Typedef */
@@ -254,6 +254,10 @@ type_spec:
                     no_enum_attr) }
   | enum_declarator
         { Type_enum($1, no_enum_attr) }
+  | CONST type_spec
+        { make_type_const $2 }
+  | type_spec CONST
+        { make_type_const $1 }
 ;
 
 simple_type_spec:
@@ -305,6 +309,8 @@ pointer_opt:
         { fun ty -> ty }
   | pointer_opt STAR
         { fun ty -> $1(Type_pointer(!pointer_default, ty)) }
+  | pointer_opt STAR CONST
+        { fun ty -> $1(Type_const(Type_pointer(!pointer_default, ty))) }
 ;
 direct_declarator:
     ident

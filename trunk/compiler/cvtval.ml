@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvtval.ml,v 1.21 2000-08-19 11:04:56 xleroy Exp $ *)
+(* $Id: cvtval.ml,v 1.22 2001-06-17 10:50:24 xleroy Exp $ *)
 
 open Printf
 open Utils
@@ -144,6 +144,8 @@ let rec ml_to_c oc onstack pref ty v c =
       Array.bigarray_ml_to_c oc pref attr ty_elt v c
   | Type_interface(modl, name) ->
       error (sprintf "Reference to interface %s that is not a pointer" name)
+  | Type_const ty' ->
+      ml_to_c oc onstack pref ty' v c
 
 (* Translate the C value [c] and store it into the ML variable [v].
    [ty] is the IDL type of the value being converted.
@@ -212,10 +214,12 @@ let rec c_to_ml oc pref ty c v =
       Array.bigarray_c_to_ml oc pref attr ty_elt c v
   | Type_interface(modl, name) ->
       error (sprintf "Reference to interface %s that is not a pointer" name)
+  | Type_const ty' ->
+      c_to_ml oc pref ty' c v
 
 (* Allocate suitable space for the C out parameter [c]. *)
 
-let allocate_output_space oc c ty =
+let rec allocate_output_space oc c ty =
   match ty with
     Type_pointer(attr, ty_arg) ->
       let c' = new_c_variable ty_arg in
@@ -224,4 +228,6 @@ let allocate_output_space oc c ty =
       Array.array_allocate_output_space oc attr ty_arg c
   | Type_bigarray(attr, ty_arg) ->
       Array.bigarray_allocate_output_space oc attr ty_arg c
+  | Type_const ty' -> (* does this make sense? *)
+      allocate_output_space oc c ty'
   | _ -> ()

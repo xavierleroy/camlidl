@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.mli,v 1.6 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: parse_aux.mli,v 1.7 2001-06-17 10:50:25 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -94,6 +94,8 @@ val wchar_t_type : unit -> idltype
     (* Warn about unsupported types [handle_t] [hyper] [wchar_t] *)
 val make_star_attribute : string * 'a -> string * 'a
     (* Apply a [*] modifier to an attribute *)
+val make_type_const : idltype -> idltype
+    (* Add a "const" modifier to a type *)
 val read_file : (string -> components) ref
     (* Forward declaration of [Parse.read_file] *)
 val read_import : string -> components

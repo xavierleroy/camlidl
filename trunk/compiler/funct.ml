@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.24 2000-08-19 11:04:56 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.25 2001-06-17 10:50:25 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -42,9 +42,6 @@ let is_dependent_parameter name params =
                       | (_, _, ty) -> Lexpr.is_dependent name ty)
               params
 
-let is_ignored =
-  function Type_pointer(Ignore, _) -> true | _ -> false
-
 let remove_dependent_parameters params =
   list_filter
     (fun (name, _, ty) ->
@@ -73,6 +70,7 @@ let rec split_in_out = function
 let rec is_errorcode = function
     Type_named(modl, name) -> (!Typedef.find name).td_errorcode
   | Type_pointer(kind, ty) -> is_errorcode ty
+  | Type_const ty -> is_errorcode ty
   | _ -> false
 
 (* Convert the C view of parameters and result into the ML view:
@@ -160,6 +158,8 @@ let rec call_error_check oc name ty =
       end
   | Type_pointer(kind, ty_elt) ->
       call_error_check oc ("*" ^ name) ty_elt
+  | Type_const ty' ->
+      call_error_check oc name ty'
   | _ -> ()
 
 (* Shared code between emit_wrapper and emit_method_wrapper *)
@@ -191,7 +191,8 @@ let emit_function oc fundecl ins outs locals emit_call =
   (* Initialize dependent parameters that are pointers so that they
      point to suitable storage *)
   List.iter
-    (function (name, (In|InOut), Type_pointer(attr, ty_arg))
+    (function (name, (In|InOut),
+               (Type_pointer(_, ty_arg) | Type_const(Type_pointer(_, ty_arg))))
               when is_dependent_parameter name fundecl.fun_params ->
                   let c = new_c_variable ty_arg in
                   iprintf pc "%s = &%s;\n" name c
