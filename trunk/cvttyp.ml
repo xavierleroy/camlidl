@@ -23,10 +23,17 @@ let rec out_c_decl oc (id, ty) =
   | Type_float -> fprintf oc "float %s" id
   | Type_double -> fprintf oc "double %s" id
   | Type_void -> fprintf oc "void %s" id
-  | Type_struct s -> fprintf oc "struct %s %s" s id
-  | Type_union(s, discr) -> fprintf oc "union %s %s" s id
-  | Type_enum s -> fprintf oc "enum %s %s" s id
-  | Type_named s -> fprintf oc "%s %s" s id
+  | Type_struct sd ->
+      assert (sd.sd_name <> "");
+      fprintf oc "struct %s %s" sd.sd_name id
+  | Type_union(ud, discr) ->
+      assert (ud.ud_name <> "");
+      fprintf oc "union %s %s" ud.ud_name id
+  | Type_enum en ->
+      assert (en.en_name <> "");
+      fprintf oc "enum %s %s" en.en_name id
+  | Type_named s ->
+      fprintf oc "%s %s" s id
   | Type_pointer(attr, (Type_array(_, _) as ty)) ->
       out_c_decl oc (sprintf "(*%s)" id, ty)
   | Type_pointer(attr, ty) ->
@@ -51,10 +58,19 @@ let rec out_ml_type oc ty =
   | Type_int kind -> output_string oc "int"
   | Type_float | Type_double -> output_string oc "float"
   | Type_void -> output_string oc "void"
-  | Type_struct s -> fprintf oc "struct_%s" s
-  | Type_union(s, discr) -> fprintf oc "union_%s" s
-  | Type_enum s -> fprintf oc "enum_%s" s
   | Type_named s -> output_string oc s
+  | Type_struct sd ->
+      if sd.sd_name = ""
+      then fprintf oc "struct_%d" sd.sd_stamp
+      else fprintf oc "struct_%s" sd.sd_name
+  | Type_union(ud, discr) ->
+      if ud.ud_name = ""
+      then fprintf oc "union_%d" ud.ud_stamp
+      else fprintf oc "union_%s" ud.ud_name
+  | Type_enum en ->
+      if en.en_name = ""
+      then fprintf oc "enum_%d" en.en_stamp
+      else fprintf oc "enum_%s" en.en_name
   | Type_pointer(kind, ty) ->
       begin match kind with
         Ref -> out_ml_type oc ty

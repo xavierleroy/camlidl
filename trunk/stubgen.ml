@@ -16,18 +16,18 @@ let gen_c_stub oc incl intf =
   output_string oc incl;
   (* Generate forward declarations for all conversion functions *)
   List.iter
-    (function Comp_typedecl tdl -> List.iter (Typedef.declare_transl oc) tdl
-            | Comp_structdecl sd -> Struct.declare_transl oc sd
-            | Comp_uniondecl ud -> Union.declare_transl oc ud
-            | Comp_enumdecl en -> Enum.declare_transl oc en
+    (function Comp_typedecl td -> Typedef.declare_transl oc td
+            | Comp_structdecl sd -> Structdecl.declare_transl oc sd
+            | Comp_uniondecl ud -> Uniondecl.declare_transl oc ud
+            | Comp_enumdecl en -> Enumdecl.declare_transl oc en
             | Comp_fundecl fd -> ())
     intf;
   (* Generate conversion functions for named types *)
   List.iter
-    (function Comp_typedecl tdl -> List.iter (Typedef.emit_transl oc) tdl
-            | Comp_structdecl sd -> Struct.emit_transl oc sd
-            | Comp_uniondecl ud -> Union.emit_transl oc ud
-            | Comp_enumdecl en -> Enum.emit_transl oc en
+    (function Comp_typedecl td -> Typedef.emit_transl oc td
+            | Comp_structdecl sd -> Structdecl.emit_transl oc sd
+            | Comp_uniondecl ud -> Uniondecl.emit_transl oc ud
+            | Comp_enumdecl en -> Enumdecl.emit_transl oc en
             | Comp_fundecl fd -> ())
     intf;
   (* Generate stub code for functions *)

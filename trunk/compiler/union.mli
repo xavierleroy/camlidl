@@ -1,7 +1,10 @@
-(* Generation of converters for unions *)
+(* Marshalling for unions *)
 
 open Idltypes
 
-val ml_declaration : out_channel -> union_decl -> unit
-val declare_transl: out_channel -> union_decl -> unit
-val emit_transl : out_channel -> union_decl -> unit
+val union_ml_to_c : 
+  (out_channel -> string -> idltype -> string -> string -> unit) ->
+    out_channel -> union_decl -> string -> string -> string -> unit
+val union_c_to_ml : 
+  (out_channel -> string -> idltype -> string -> string -> unit) ->
+    out_channel -> union_decl -> string -> string -> string -> unit

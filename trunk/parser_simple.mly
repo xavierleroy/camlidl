@@ -120,16 +120,6 @@ let make_unsigned = function
                              | Short -> UShort | Char -> UChar | k -> k)
   | ty -> ty
 
-(* Provide names for anonymous struct, union, enum *)
-
-let anonymous_decl_counter = ref 0
-
-(* Record struct, union, enum declared in the middle of a type expression *)
-
-let extra_components = ref ([] : interface_component list)
-
-let add_comp c = extra_components := c :: !extra_components
-
 %}
 
 /* Tokens */
@@ -217,8 +207,7 @@ let add_comp c = extra_components := c :: !extra_components
 
 /* Main entry point */
 
-file: opt_diversion interface_components EOF
-                              { ($1, List.rev ($2 @ !extra_components)) }
+file: opt_diversion interface_components EOF    { ($1, List.rev $2) }
 ;
 
 /* Initial C text */
@@ -231,14 +220,14 @@ opt_diversion:
 
 interface_components:
     /* empty */                                 { [] }
-  | interface_components interface_component    { $2 :: $1 }
+  | interface_components interface_component    { $2 @ $1 }
 ;
 interface_component:
-    type_declarator SEMI                        { Comp_typedecl $1 }
-  | struct_declarator SEMI                      { Comp_structdecl $1 }
-  | union_declarator SEMI                       { Comp_uniondecl $1 }
-  | enum_declarator SEMI                        { Comp_enumdecl $1 }
-  | op_declarator SEMI                          { Comp_fundecl $1 }
+    type_declarator SEMI    { List.map (fun td -> Comp_typedecl td) $1 }
+  | struct_declarator SEMI                      { [Comp_structdecl $1] }
+  | union_declarator SEMI                       { [Comp_uniondecl $1] }
+  | enum_declarator SEMI                        { [Comp_enumdecl $1] }
+  | op_declarator SEMI                          { [Comp_fundecl $1] }
 ;
 
 /* Type declaration */
@@ -251,16 +240,14 @@ type_declarator:
 /* Type specifications */
 
 type_spec:
-    simple_type_spec                    { $1 }
-  | STRUCT IDENT                        { Type_struct $2 }
-  | struct_declarator                   { add_comp(Comp_structdecl $1);
-                                          Type_struct $1.sd_name }
-  | UNION IDENT                         { Type_union($2, no_switch) }
-  | union_declarator                    { add_comp(Comp_uniondecl $1);
-                                          Type_union($1.ud_name, no_switch) }
-  | ENUM IDENT                          { Type_enum $2 }
-  | enum_declarator                     { add_comp(Comp_enumdecl $1);
-                                          Type_enum $1.en_name }
+    simple_type_spec     { $1 }
+  | STRUCT IDENT         { Type_struct {sd_name=$2; sd_stamp=0; sd_fields=[]} }
+  | struct_declarator    { Type_struct $1 }
+  | UNION IDENT          { Type_union({ud_name=$2; ud_stamp=0; ud_cases=[]},
+                                      no_switch) }
+  | union_declarator     { Type_union($1, no_switch) }
+  | ENUM IDENT           { Type_enum {en_name=$2; en_stamp=0; en_consts=[]} }
+  | enum_declarator      { Type_enum $1 }
 ;
 simple_type_spec:
     FLOAT                                       { Type_float }
@@ -291,7 +278,7 @@ opt_int:
 
 struct_declarator:
     STRUCT opt_ident LBRACE field_declarators RBRACE
-                        { {sd_name = $2; sd_fields = $4} } 
+                        { {sd_name = $2; sd_stamp = 0; sd_fields = $4} } 
 ;
 field_declarators:
     field_declarator                            { $1 }
@@ -304,17 +291,17 @@ field_declarator:
 
 union_declarator:
   | UNION opt_ident LBRACE union_body RBRACE
-                        { {ud_name = $2; ud_cases = List.rev $4} }
+                      { {ud_name = $2; ud_stamp = 0; ud_cases = List.rev $4} }
 ;
 union_body:
-    union_case                                          { [$1] }
-  | union_body union_case                               { $2 :: $1 }
+    union_case                                          { $1 }
+  | union_body union_case                               { $2 @ $1 }
 ;
 union_case:
     case_list opt_field_declarator SEMI
-                        { {case_labels = List.rev $1; case_field = $2} }
+      { List.map (fun lbl -> {case_label = Some lbl; case_field = $2}) $1 }
   | DEFAULT COLON opt_field_declarator SEMI
-                        { {case_labels = []; case_field = $3} }
+      { [{case_label = None; case_field = $3}] }
 ;
 case_list:
     case_label                                          { [$1] }
@@ -332,7 +319,7 @@ opt_field_declarator:
 
 enum_declarator:
     ENUM opt_ident LBRACE enum_cases RBRACE
-                          { {en_name = $2; en_consts = List.rev $4} }
+                   { {en_name = $2; en_stamp = 0; en_consts = List.rev $4} }
 ;
 enum_cases:
     enum_case                                           { [$1] }
@@ -419,6 +406,5 @@ param_declarator:
 
 opt_ident:
     IDENT                       { $1 }
-  | /*empty*/                   { incr anonymous_decl_counter;
-                                  "_" ^ string_of_int !anonymous_decl_counter }
+  | /*empty*/                   { "" }
 ;

@@ -1,5 +1,24 @@
 /* Structs and typedefs */
 
+%{
+struct s1 {
+  int x;
+  double d;
+  float f;
+  long l[3];
+};
+typedef struct {
+  int x;
+  struct { int y; int z; } t;
+  double d;
+} t;
+struct s2 {
+  int n;
+  long *l;
+};
+
+%}
+
 struct s1 {
   int x;
   double d;

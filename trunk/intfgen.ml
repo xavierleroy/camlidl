@@ -4,32 +4,22 @@ open Printf
 open Utils
 open Idltypes
 
-let gen_ml_decls oc intf =
+let gen_ml_decls oc intf all_type_decls =
+  fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
   (* Generate the type definitions *)
   let first = ref true in
   let start_decl () =
     if !first then fprintf oc "type " else fprintf oc "and ";
     first := false in
-  List.iter
-    (function
-        Comp_typedecl tdl ->
-          List.iter
-            (fun td -> start_decl(); Typedef.ml_declaration oc td)
-            tdl
-      | Comp_structdecl sd ->
-          start_decl(); Struct.ml_declaration oc sd
-      | Comp_enumdecl en ->
-          start_decl(); Enum.ml_declaration oc en
-      | Comp_uniondecl ud ->
-          start_decl(); Union.ml_declaration oc ud
-      | Comp_fundecl fd -> ())
-    intf;
-  fprintf oc "\n";
+  let emit_typedef = function
+      Comp_typedecl td -> start_decl(); Typedef.ml_declaration oc td
+    | Comp_structdecl s -> start_decl(); Structdecl.ml_declaration oc s
+    | Comp_uniondecl u -> start_decl(); Uniondecl.ml_declaration oc u
+    | Comp_enumdecl e -> start_decl(); Enumdecl.ml_declaration oc e
+    | _ -> () in
+  List.iter emit_typedef all_type_decls;
   (* Generate the function declarations *)
-  List.iter
-    (function
-        Comp_fundecl fd -> Funct.ml_declaration oc fd
-      | _ -> ())
-    intf
-
-      
+  let emit_fundecl = function
+      Comp_fundecl fd -> Funct.ml_declaration oc fd
+    | _ -> () in
+  List.iter emit_fundecl intf

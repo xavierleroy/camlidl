@@ -42,14 +42,22 @@ let rec ml_to_c oc pref ty v c =
       iprintf oc "%s = Double_val(%s);\n" c v
   | Type_void ->
       ()
-  | Type_struct s ->
-      iprintf oc "_camlidl_ml2c_%s_struct_%s(%s, &%s);\n" !module_name s v c
-  | Type_union(s, discr) ->
-      iprintf oc "%s%a = _camlidl_ml2c_%s_union_%s(%s, &%s);\n"
-              pref out_restr_expr discr !module_name s v c
-  | Type_enum s ->
-      iprintf oc "_camlidl_ml2c_%s_enum_%s(%s, &%s);\n"
-              !module_name s v c
+  | Type_struct sd ->
+      if sd.sd_name = ""
+      then Struct.struct_ml_to_c ml_to_c oc sd v c
+      else iprintf oc "_camlidl_ml2c_%s_struct_%s(%s, &%s);\n"
+                      !module_name sd.sd_name v c
+  | Type_union(ud, discr) ->
+      if ud.ud_name = ""
+      then Union.union_ml_to_c ml_to_c oc ud v c
+                               (pref ^ string_of_restr_expr discr)
+      else iprintf oc "%s%a = _camlidl_ml2c_%s_union_%s(%s, &%s);\n"
+                      pref out_restr_expr discr !module_name ud.ud_name v c
+  | Type_enum en ->
+      if en.en_name = ""
+      then Enum.enum_ml_to_c ml_to_c oc en v c
+      else iprintf oc "_camlidl_ml2c_%s_enum_%s(%s, &%s);\n"
+                      !module_name en.en_name v c
   | Type_named s ->
       iprintf oc "_camlidl_ml2c_%s_%s(%s, &%s);\n" !module_name s v c
   | Type_pointer(kind, ty_elt) ->
@@ -151,14 +159,22 @@ let rec c_to_ml oc pref ty c v =
       iprintf oc "%s = copy_double(%s);\n" v c
   | Type_void ->
       ()
-  | Type_struct s ->
-      iprintf oc "%s = _camlidl_c2ml_%s_struct_%s(&%s);\n" v !module_name s c
-  | Type_union(s, discr) ->
-      iprintf oc "%s = _camlidl_c2ml_%s_union_%s(%s%a, &%s);\n"
-              v !module_name s pref out_restr_expr discr c
-  | Type_enum s ->
-      iprintf oc "%s = _camlidl_c2ml_%s_enum_%s(&%s);\n"
-              v !module_name s c
+  | Type_struct sd ->
+      if sd.sd_name = ""
+      then Struct.struct_c_to_ml c_to_ml oc sd c v
+      else iprintf oc "%s = _camlidl_c2ml_%s_struct_%s(&%s);\n"
+                      v !module_name sd.sd_name c
+  | Type_union(ud, discr) ->
+      if ud.ud_name = ""
+      then Union.union_c_to_ml c_to_ml oc ud c v
+                               (pref ^ string_of_restr_expr discr)
+      else iprintf oc "%s = _camlidl_c2ml_%s_union_%s(%s%a, &%s);\n"
+                      v !module_name ud.ud_name pref out_restr_expr discr c
+  | Type_enum en ->
+      if en.en_name = ""
+      then Enum.enum_c_to_ml c_to_ml oc en c v
+      else iprintf oc "%s = _camlidl_c2ml_%s_enum_%s(&%s);\n"
+                      v !module_name en.en_name c
   | Type_named s ->
       iprintf oc "%s = _camlidl_c2ml_%s_%s(&%s);\n" v !module_name s c
   | Type_pointer(kind, ty_elt) ->
