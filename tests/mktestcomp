@@ -1,9 +1,0 @@
-#!/bin/sh -x
-
-egcs -g -I/usr/local/lib/ocaml -c -Wall comcomp.cpp
-../camlidl -noheader component.idl
-egcs -g -I/usr/local/lib/ocaml -c component.c
-ocamlc -c -I .. component.mli
-ocamlc -c -I .. component.ml
-ocamlc -c -I .. testcomponent.ml
-ocamlc -cc egcs -ccopt -g -custom -o testcomp -I .. ../camlidlruntime.o comcomp.o component.o com.cmo component.cmo testcomponent.cmo
