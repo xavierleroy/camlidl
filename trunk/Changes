@@ -1,0 +1,26 @@
+CamlIDL 1.01:
+-------------
+
+* Added support for Caml boxed int types (int32, int64, nativeint)
+  and for big arrays (module Bigarray)
+* Fixed bug in allocation of working space for out parameters
+  of array types.
+* Disambiguation of record labels that belong to several struct types.
+* Support for [unique] attribute on strings and arrays, turned into
+  option types in the Caml interface.
+* Fixed bug with anonymous enum types (forgot to define the
+  corresponding translation table).
+* Fixed bug with dependent parameters depending on out parameters
+  (these must not be omitted in the Caml function declaration).
+* "in,out" parameters of type string or big array are now presented
+  as an "in,out" parameter of the Caml function and modified in place,
+  rather than presented as a parameter and a result.
+* Added minimal support for COM dispatch interfaces.
+* Fixed lack of initialization of ignored pointers for structs with
+  only one significant field.
+
+
+CamlIDL 1.00:
+-------------
+
+First public release.
