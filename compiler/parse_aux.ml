@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.12 2001-06-29 13:30:00 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.13 2001-07-30 14:45:40 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -95,11 +95,18 @@ let make_bigarray ty =
       extract_spine dims ty'
   | ty ->
       (List.rev dims, ty) in
+  let rec extract_unique = function
+    Type_array(attr, ty) -> attr.maybe_null
+  | Type_pointer(kind, ty) -> kind = Unique
+  | Type_const((Type_pointer(_,_) | Type_array(_,_)) as ty') ->
+      extract_unique ty'
+  | _ -> false in
   let (dims, ty_tail) = extract_spine [] ty in
   match ty_tail with
     Type_int(_,_) | Type_float | Type_double 
   | Type_const(Type_int(_,_) | Type_float | Type_double) ->
-      Type_bigarray({dims = dims; fortran_layout = false; malloced = false},
+      Type_bigarray({dims = dims; fortran_layout = false; malloced = false;
+                     bigarray_maybe_null = extract_unique ty},
                     ty_tail)
   | _ ->
       eprintf "%t: Warning: bigarray attribute applied to type `%a', ignored\n"
@@ -127,6 +134,8 @@ let rec apply_type_attribute ty attr =
       Type_pointer(Unique, ty_elt)
   | (("unique", _), Type_array(attr, ty_elt)) ->
       Type_array({attr with maybe_null = true}, ty_elt)
+  | (("unique", _), Type_bigarray(attr, ty_elt)) ->
+      Type_bigarray({attr with bigarray_maybe_null = true}, ty_elt)
   | (("ptr", _), Type_pointer(attr, ty_elt)) ->
       Type_pointer(Ptr, ty_elt)
   | (("ignore", _), Type_pointer(attr, ty_elt)) ->
