@@ -4,6 +4,10 @@
 
 open Printf
 open Idltypes
+open Funct
+open Typedef
+open Constdecl
+open File
 
 let null_attr_var = Var ""
 
@@ -129,6 +133,10 @@ let make_typedef attrs tybase decls =
       merge_attributes ty {td with td_ml2c = Some f} rem
   | ("mltype", [Var f]) :: rem ->
       merge_attributes ty {td with td_mltype = Some f} rem
+  | ("errorcode", _) :: rem ->
+      merge_attributes ty {td with td_errorcode = true} rem
+  | ("errorcheck", [Var f]) :: rem ->
+      merge_attributes ty {td with td_errorcheck = Some f} rem
   | attr :: rem ->
       merge_attributes (apply_type_attribute ty attr) td rem in
   List.map
@@ -136,7 +144,8 @@ let make_typedef attrs tybase decls =
       let (name, ty) = decl tybase in
       let td = {td_name = name; td_type = Type_void; (* dummy *)
                 td_abstract = false; td_mltype = None;
-                td_c2ml = None; td_ml2c = None} in
+                td_c2ml = None; td_ml2c = None;
+                td_errorcode = false; td_errorcheck = None} in
       let (ty', td') = merge_attributes ty td attrs in
       {td' with td_type = ty'})
     decls
@@ -236,7 +245,7 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 /* Start symbol */
 
 %start file
-%type <Idltypes.interface> file
+%type <File.idl_file> file
 
 %%
 
