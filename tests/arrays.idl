@@ -24,6 +24,7 @@ void optarray1([in,null_terminated,unique] int options[]);
 /* Multidimensional arrays */
 
 void multarray1([in] int i, [in] int j, [in, size_is(i,j)] int t[][]);
+void multarray2([in] int i, [in, size_is(,i)] int t[10][]);
 
 /* Big arrays */
 
