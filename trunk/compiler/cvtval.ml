@@ -18,10 +18,10 @@ let allocate_space oc onstack ty c =
     let c' = new_c_variable repr_ty in
     if repr_ty = ty
     then iprintf oc "%s = &%s;\n" c c'
-    else iprintf oc "%s = (%a) &%s;\n" c out_c_type ty c';
+    else iprintf oc "%s = (%a *) &%s;\n" c out_c_type ty c';
     c'
   end else begin
-    iprintf oc "%s = (%a) camlidl_malloc(_arena, sizeof(%a));\n"
+    iprintf oc "%s = (%a *) camlidl_malloc(_arena, sizeof(%a));\n"
             c out_c_type ty out_c_type repr_ty;
     "*" ^ c
   end
@@ -77,7 +77,7 @@ let rec ml_to_c oc onstack pref ty v c =
   | Type_pointer(kind, ty_elt) ->
       begin match kind with
         Ref ->
-          let c' = allocate_space oc onstack ty c in
+          let c' = allocate_space oc onstack ty_elt c in
           ml_to_c oc onstack pref ty_elt v c'
       | Unique ->
           iprintf oc "if (%s == Val_int(0)) {\n" v;
@@ -87,7 +87,7 @@ let rec ml_to_c oc onstack pref ty v c =
           iprintf oc "} else {\n";
           increase_indent();
           let v' = new_ml_variable() in
-          let c' = allocate_space oc onstack ty c in
+          let c' = allocate_space oc onstack ty_elt c in
           iprintf oc "%s = Field(%s, 0);\n" v' v;
           ml_to_c oc onstack pref ty_elt v' c';
           decrease_indent();

@@ -155,8 +155,7 @@ let emit_function oc fundecl ins outs locals emit_call =
   List.iter
     (function (name, (In|InOut), Type_pointer(attr, ty_arg))
               when is_dependent_parameter name fundecl.fun_params ->
-                  let c = new_c_variable ty_arg in
-                  iprintf pc "%s = &%s;\n" name c
+                  let _ = allocate_space oc true ty_arg name in ()
             | _ -> ())
     fundecl.fun_params;
   (* Convert ins from ML to C *)

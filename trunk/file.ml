@@ -106,6 +106,7 @@ let gen_c_stub oc intf =
     #include <caml/memory.h>\n\
     #include <caml/alloc.h>\n\
     #include <caml/fail.h>\n\
+    #include <caml/callback.h>\n\
     #include <caml/camlidlruntime.h>\n\n";
   (* Process the interface *)
   List.iter (process_comp oc) intf

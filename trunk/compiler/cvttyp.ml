@@ -63,20 +63,20 @@ let rec out_ml_type oc ty =
   | Type_int kind -> output_string oc "int"
   | Type_float | Type_double -> output_string oc "float"
   | Type_void -> output_string oc "void"
-  | Type_named s -> output_string oc s
-  | Type_interface s -> output_string oc s
+  | Type_named s -> output_string oc (String.uncapitalize s)
+  | Type_interface s -> output_string oc (String.uncapitalize s)
   | Type_struct sd ->
       if sd.sd_name = ""
       then fprintf oc "struct_%d" sd.sd_stamp
-      else fprintf oc "%s" sd.sd_name
+      else fprintf oc "%s" (String.uncapitalize sd.sd_name)
   | Type_union(ud, discr) ->
       if ud.ud_name = ""
       then fprintf oc "union_%d" ud.ud_stamp
-      else fprintf oc "%s" ud.ud_name
+      else fprintf oc "%s" (String.uncapitalize ud.ud_name)
   | Type_enum (en, attr) ->
       if en.en_name = ""
       then fprintf oc "enum_%d" en.en_stamp
-      else fprintf oc "%s" en.en_name;
+      else fprintf oc "%s" (String.uncapitalize en.en_name);
       if attr.bitset then fprintf oc " list"
   | Type_pointer(kind, ty) ->
       begin match kind with

@@ -3,29 +3,47 @@
 #include <stddef.h>
 #include <caml/mlvalues.h>
 
+/* Functions for allocating in the Caml heap */
+
+#if !defined(CAMLVERSION) || CAMLVERSION >= 201
+#define camlidl_alloc alloc
+#define camlidl_alloc_small alloc_small
+#else
+value camlidl_alloc(mlsize_t size, tag_t tag);
+#define camlidl_alloc_small alloc
+#endif
+
+/* Helper functions for conversion */
+
 value camlidl_find_enum(int n, int *flags, int nflags, char *errmsg);
 value camlidl_alloc_flag_list (int n, int *flags, int nflags);
 mlsize_t camlidl_ptrarray_size(void ** array);
 
-#if defined(CAMLVERSION) && CAMLVERSION < 201
-value camlidl_alloc(mlsize_t size, tag_t tag);
-#define camlidl_alloc_small alloc
-#else
-#define camlidl_alloc alloc
-#define camlidl_alloc_small alloc_small
-#endif
+/* Malloc-like allocation with en masse deallocation */
 
-struct camlidl_block_list { void * block; struct camlidl_block_list * next; };
+struct camlidl_block_list {
+  void * block;
+  struct camlidl_block_list * next;
+};
 
 typedef struct camlidl_block_list * camlidl_arena;
 
 void * camlidl_malloc(size_t sz, camlidl_arena * arena);
-void * camlidl_free(camlidl_arena arena);
+void camlidl_free(camlidl_arena arena);
+
+/* Helper functions for handling COM interfaces */
+
+#ifndef _WIN32
+#define interface struct
+typedef struct { unsigned char data[16]; } IID;
+typedef int HRESULT;
+typedef unsigned long ULONG;
+#endif
+
+value camlidl_lookup_method(char * name);
 
 void * camlidl_unpack_interface(value vintf);
 value camlidl_pack_interface(void * intf);
-
-value camlidl_lookup_method(char * name);
 
 struct camlidl_intf {
   void * vtbl;
@@ -34,6 +52,20 @@ struct camlidl_intf {
   IID * iid;
 };
 
-void * camlidl_make_interface(void * vtbl, value caml_object,
-                              IID * iid, camlidl_arena * arena);
+void camlidl_make_interface(void * vtbl, value caml_object,
+                            struct camlidl_intf * intf, IID * iid);
 
+/* Basic methods (QueryInterface, AddRef, Release) for COM objects
+   encapsulating a Caml object */
+
+HRESULT camlidl_unknwn_IUnknown_QueryInterface_callback
+          (struct camlidl_intf * this, IID * iid, void ** object);
+ULONG camlidl_unknwn_IUnknown_AddRef_callback(struct camlidl_intf * this);
+ULONG camlidl_unknwn_IUnknown_Release_callback(struct camlidl_intf * this);
+
+/* TODO: class factories? */
+
+/* Should be in mlvalues.h? */
+#define Lookup(obj, lab) \
+  Field (Field (Field (obj, 0), ((lab) >> 16) / sizeof (value)), \
+         ((lab) / sizeof (value)) & 0xFF)

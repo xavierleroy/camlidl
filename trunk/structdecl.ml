@@ -13,7 +13,7 @@ open Struct
 let ml_declaration oc sd =
   if sd.sd_name = ""
   then fprintf oc "struct_%d = {\n" sd.sd_stamp
-  else fprintf oc "%s = {\n" sd.sd_name;
+  else fprintf oc "%s = {\n" (String.uncapitalize sd.sd_name);
   List.iter
     (fun f ->
       fprintf oc "  %s: %a;\n"
