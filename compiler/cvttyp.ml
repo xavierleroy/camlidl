@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.ml,v 1.23 2001-07-30 14:45:39 xleroy Exp $ *)
+(* $Id: cvttyp.ml,v 1.24 2001-08-08 15:54:21 xleroy Exp $ *)
 
 open Utils
 open Printf
@@ -35,6 +35,9 @@ let integer_type = function
   | Byte -> "unsigned char"
   | Boolean -> "int"
 
+let parenthesize_if_pointer id =
+  if String.length id > 0 && id.[0] = '*' then "(" ^ id ^ ")" else id
+
 let rec out_c_decl oc (id, ty) =
   match ty with
     Type_int(kind, repr) -> fprintf oc "%s %s" (integer_type kind) id
@@ -55,15 +58,15 @@ let rec out_c_decl oc (id, ty) =
       else fprintf oc "%a %s" out_enum en id
   | Type_named(modl, ty_name) ->
       fprintf oc "%s %s" ty_name id
-  | Type_pointer(attr, (Type_array(_, _) as ty)) ->
-      out_c_decl oc (sprintf "(*%s)" id, ty)
   | Type_pointer(attr, ty) ->
       out_c_decl oc (sprintf "*%s" id, ty)
   | Type_array(attr, ty) ->
       let id' =
         match attr.bound with
-          Some n -> sprintf "%s[%d]" id (Lexpr.eval_int n)
-        | None -> sprintf "*%s" id in
+          Some n ->
+            sprintf "%s[%d]" (parenthesize_if_pointer id) (Lexpr.eval_int n)
+        | None ->
+            sprintf "*%s" id in
       out_c_decl oc (id', ty)
   | Type_bigarray(attr, ty) ->
       out_c_decl oc (sprintf "*%s" id, ty)
