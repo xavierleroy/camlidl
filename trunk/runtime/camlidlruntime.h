@@ -46,7 +46,11 @@ char * camlidl_malloc_string(value mlstring, camlidl_ctx ctx);
 #include <objbase.h>
 #else
 #define interface struct
-typedef struct { unsigned char data[16]; } IID;
+typedef struct {
+  unsigned int Data1;
+  unsigned short Data2, Data3;
+  unsigned char Data4[8];
+} GUID, IID;
 typedef IID * REFIID;
 typedef int HRESULT;
 typedef unsigned long ULONG;

@@ -1,3 +1,0 @@
-cfactory.o: cfactory.c camlidlruntime.h comstuff.h
-comintf.o: comintf.c camlidlruntime.h comstuff.h
-idlalloc.o: idlalloc.c camlidlruntime.h
