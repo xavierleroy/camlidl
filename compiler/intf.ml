@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: intf.ml,v 1.22 2002-01-16 09:42:02 xleroy Exp $ *)
+(* $Id: intf.ml,v 1.23 2004-07-08 09:51:21 xleroy Exp $ *)
 
 (* Handling of COM-style interfaces *)
 
@@ -180,8 +180,10 @@ let ml_class_definition oc intf =
           fun_mod = intf.intf_mod;
           fun_res = meth.fun_res;
           fun_params = ("this", In, self_type) :: meth.fun_params;
+          fun_mlname = None;
           fun_call = None;
-          fun_dealloc = None } in
+          fun_dealloc = None;
+          fun_blocking = false } in
       Funct.ml_declaration oc prim)
     intf.intf_methods;
   fprintf oc "\n";
@@ -238,7 +240,6 @@ let emit_callback_wrapper oc intf meth =
   for i = 0 to num_ins do fprintf oc "0, " done;
   fprintf oc "};\n";
   fprintf oc "  value _vres;\n";
-  fprintf oc "  static value _vlabel = 0;\n";
   if meth.fun_res <> Type_void then 
     fprintf oc "  %a;\n" out_c_decl ("_res", meth.fun_res);
   (* Convert inputs from C to Caml *)
@@ -251,15 +252,15 @@ let emit_callback_wrapper oc intf meth =
   iter_index
     (fun pos (name, ty) -> c_to_ml pc pref ty name (sprintf "_varg[%d]" pos))
     1 ins;
-  (* Recover the label.
-     _vlabel is not registered as a root because it's an integer. *)
-  iprintf pc "if (_vlabel == 0) _vlabel = camlidl_lookup_method(\"%s\");\n"
-             (String.uncapitalize meth.fun_name);
   decrease_indent();
   iprintf pc "End_roots();\n";
+  (* The method label *)
+  let label =
+    (Obj.magic
+      (Oo.public_method_label (String.uncapitalize meth.fun_name)) : int) in
   (* Do the callback *)
-  iprintf pc "_vres = callbackN_exn(Lookup(_varg[0], _vlabel), %d, _varg);\n"
-             (num_ins + 1);
+  iprintf pc "_vres = callbackN_exn(caml_get_public_method(_varg[0], Val_int(%d)), %d, _varg);\n"
+             label (num_ins + 1);
   (* Check if exception occurred *)
   begin match meth.fun_res with
     Type_named(_, "HRESULT") ->
