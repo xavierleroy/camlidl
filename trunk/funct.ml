@@ -165,6 +165,7 @@ let emit_wrapper oc fundecl =
   (* Convert outs from C to ML *)
   begin match outs with
     [] ->
+      output_variable_declarations oc;
       output_deallocate pc;
       iprintf pc "return Val_unit;\n"
   | [name, ty] ->

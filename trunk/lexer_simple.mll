@@ -115,8 +115,12 @@ rule token = parse
       { CHARACTER(char_for_code lexbuf 2 1) }
   | "{|"
       { reset diversion_buffer;
-        diversion lexbuf;
-        DIVERSION(get_stored diversion_buffer) }
+        c_diversion lexbuf;
+        C_DIVERSION(get_stored diversion_buffer) }
+  | "{{"
+      { reset diversion_buffer;
+        ml_diversion lexbuf;
+        ML_DIVERSION(get_stored diversion_buffer) }
   | "#" [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] *
     ('\n' | '\r' | "\r\n")
       (* # linenum "filename" flags \n *)
@@ -179,7 +183,7 @@ and string = parse
       { store string_buffer (Lexing.lexeme_char lexbuf 0);
         string lexbuf }
 
-and diversion = parse
+and c_diversion = parse
     "|}"
       { () }
   (* TODO: skip strings correctly *)
@@ -187,4 +191,15 @@ and diversion = parse
       { error "Unterminated {| section" }
   | _
       { store diversion_buffer (Lexing.lexeme_char lexbuf 0);
-        diversion lexbuf }
+        c_diversion lexbuf }
+
+and ml_diversion = parse
+    "}}"
+      { () }
+  (* TODO: skip strings correctly *)
+  | eof
+      { error "Unterminated {{ section" }
+  | _
+      { store diversion_buffer (Lexing.lexeme_char lexbuf 0);
+        ml_diversion lexbuf }
+

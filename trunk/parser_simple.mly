@@ -173,7 +173,8 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 %token COMMA
 %token CONST
 %token DEFAULT
-%token <string> DIVERSION
+%token <string> C_DIVERSION
+%token <string> ML_DIVERSION
 %token DOT
 %token DOUBLE
 %token ENUM
@@ -257,7 +258,8 @@ interface_component:
   | enum_declarator SEMI                        { [Comp_enumdecl $1] }
   | op_declarator SEMI                          { [Comp_fundecl $1] }
   | const_declarator SEMI                       { [Comp_constdecl $1] }
-  | DIVERSION                                   { [Comp_diversion $1] }
+  | C_DIVERSION                                 { [Comp_diversion(Div_c, $1)] }
+  | ML_DIVERSION                                { [Comp_diversion(Div_ml, $1)]}
 ;
 
 /* Type declaration */
@@ -423,7 +425,7 @@ op_declarator:
       { make_op_declaration $1 ($3 $2) $4 $6 $8 }
 ;
 opt_diversion:
-    DIVERSION                                   { Some $1 }
+    C_DIVERSION                                 { Some $1 }
   | /*empty*/                                   { None }
 ;
 

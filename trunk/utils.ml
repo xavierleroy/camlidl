@@ -68,3 +68,8 @@ let rec list_partition pred = function
 let rec map_index f i = function
     [] -> []
   | hd :: tl -> f i hd :: map_index f (i + 1) tl
+
+let rec iter_index f i = function
+    [] -> ()
+  | hd :: tl -> f i hd; iter_index f (i + 1) tl
+
