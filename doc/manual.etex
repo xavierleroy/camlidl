@@ -169,34 +169,22 @@ arguments.
 \begin{tableau}{|l|l|}{Attribute}{Context where it can appear}
 \entree{@"abstract"@      }
        {"typedef" }
-\entree{@"auto_handle"@}
-       {interface, ignored}
-\entree{@"callback"@      }
-       {function declaration, ignored }
-\entree{@"cl2ml"'('fun-name')'@ }
+\entree{@"c2ml"'('fun-name')'@ }
        {"typedef" }
-\entree{@"context_handle"@ }
-       {any type, ignored }
-\entree{@"endpoint"@      }
-       {interface, ignored }
 \entree{@"errorcheck"'('fun-name')'@ }
        {"typedef" }
 \entree{@"errorcode"@     }
        {"typedef" }
 \entree{@"ignore"@        }
        {any pointer type  }
-\entree{@"implicit_handle"@ }
-       {interface, ignored }
 \entree{@"in"@            }
        {function parameter }
 \entree{@"length_is"'('le_1','le_2','\ldots')'@  }
        {array type  }
-\entree{@"local"@         }
-       {function declaration, (ignored) }
-\entree{@"local"@         }
-       {interface, ignored }
 \entree{@"ml2c"'('fun-name')'@ }
        {"typedef" }
+\entree{@'mlname(' label-name ')' @ }
+       {"struct" field }
 \entree{@'mltype("' caml-type-expr '")' @ }
        {"typedef" }
 \entree{@"null_terminated"@ }
@@ -207,6 +195,9 @@ arguments.
        {function parameter }
 \entree{@"pointer_default"'(' 'ref'||'unique'||'ptr'')'@ }
        {interface }
+\entree{@"propget"@}{function declaration}
+\entree{@"propput"@}{function declaration}
+\entree{@"propputref"@}{function declaration}
 \entree{@"ptr"@           }
        {any pointer type  }
 \entree{@"ref"@           }
@@ -225,8 +216,6 @@ arguments.
        {any pointer type  }
 \entree{@"uuid"'(' uuid ')'@ }
        {interface }
-\entree{@"version"'(' version-number ')'@ }
-       {interface, ignored }
 \end{tableau}
 
 \subsection{Types and declarators}
@@ -483,10 +472,10 @@ IDL structs are mapped to Caml record types.  The names and types of
 the IDL struct fields determine the names and types of the Caml record
 type:
 \begin{alltt}
-struct \var{s} \{ ... ; \nth{ty}{i} \nth{id}{i} ; ... \} {\rm becomes}  type struct_\var{s} = \{ ... ; \nth{id}{i} : \transl{\nth{ty}{i}} ; ... \}
+struct \var{s} \{ ... ; \nth{ty}{i} \nth{id}{i} ; ... \} {\rm becomes}  type \var{s} = \{ ... ; \nth{id}{i} : \transl{\nth{ty}{i}} ; ... \}
 \end{alltt}
 Example: "struct s { int n; double d[4]; }" becomes
-"type struct_s = {n: int; d: float array}".
+"type s = {n: int; d: float array}".
 
 Exceptions to this rule are as follows:
 \begin{itemize}
@@ -513,6 +502,49 @@ and translate the IDL struct type directly to the Caml type
 \transl{\var{ty}}.
 Example: "struct s { int len; [size_is(len)] double d[]; }"
 is translated to the Caml type abbreviation "type struct_s = double array".
+
+\item The names of labels in the Caml record type can be changed by
+using the @"mlname"@ attribute on struct field declarations.  For instance,
+\begin{alltt}
+struct s \{ int n; [mlname(p)] int q; \}
+        {\rm becomes} type s = \{ n : int; p : int \}
+\end{alltt}
+
+\item The Caml type system makes it difficult to use two record types
+defined in the same module and having some label names in common.
+Thus, if CamlIDL encounters two or more structs having
+identically-named fields, it prefixes the Caml label names by the names
+of the structs in order to distinguish them.  For instance:
+\begin{alltt}
+struct s1 \{ int x; int y; \}
+struct s2 \{ double x; double t; \}
+struct s3 \{ int z; \}
+        {\rm becomes} type s1 = \{ s1_x: int; s1_y: int \}
+                 and s2 = \{ s2_x: float; s2_t: float \}
+                 and s3 = \{ z: int \}
+\end{alltt}
+The labels for "s1" and "s2" have been prefixed by "s1_" and
+"s2_" respectively, to avoid ambiguity on the "x" label.  However, the
+label "z" for "s3" is not prefixed, since it is not used elsewhere.
+
+The prefix added in front of multiply-defined labels is taken from the
+struct name, if any, and otherwise from the name of the nearest
+enclosing struct, union or typedef.  For instance:
+\begin{alltt}
+typedef struct \{ int x; \} t;
+struct s4 \{ struct \{ int x; \} z; \};
+        {\rm becomes} type t = \{ t_x: int \}
+                 and s4 = \{ z: struct_1 \}
+                 and struct_1 = \{ s4_x: int \}
+\end{alltt}
+
+The ``minimal prefixing'' strategy described above is the default
+behavior of "camlidl".  If the "-prefix-all-labels" option is given,
+all record labels are prefixed, whether they occur several times or
+not.  If the "-keep-labels" option is given, no automatic prefixing
+takes place; the naming of record labels is left entirely under the
+user's control, via @"mlname"@ annotations.
+
 \end{itemize}
 
 \subsection{Unions}
@@ -527,12 +559,12 @@ the union has a "default" case, an extra constructor
 and possibly another argument corresponding to the default field.
 Examples:
 \begin{alltt}
-union u1 { case A: int x; case B: case C: double d; case D: ; }
-        {\rm becomes} type union_u1 = A of int | B of float | C of float | D
-union u2 { case A: int x; case B: double d; default: ; }
-        {\rm becomes} type union_u2 = A of int | B of float | Default_u of int
-union u3 { case A: int x; default: double d; }
-        {\rm becomes} type union_u3 = A of int | Default_v of int * double
+union u1 \{ case A: int x; case B: case C: double d; case D: ; \}
+        {\rm becomes} type u1 = A of int | B of float | C of float | D
+union u2 \{ case A: int x; case B: double d; default: ; \}
+        {\rm becomes} type u2 = A of int | B of float | Default_u of int
+union u3 \{ case A: int x; default: double d; \}
+        {\rm becomes} type u3 = A of int | Default_v of int * double
 \end{alltt}
 All IDL unions must be discriminated, either via the special syntax
 "union "\var{name}" switch(int "\var{discr}")"\ldots, or via the
@@ -591,14 +623,16 @@ the typedef-ed type, instead of using the "camlidl"-generated
 conversion functions.  This allows user-controlled translation of data
 structures.  The prototypes of the conversion functions must be
 \begin{alltt}
-        value c2ml(\var{ty} * input);
-        void ml2c(value input, \var{ty} * output);
+        value c2ml(\var{ty} * input, camlidl_ctx ctx);
+        void ml2c(value input, \var{ty} * output, camlidl_ctx ctx);
 \end{alltt}
 where \var{ty} is the name of the type defined by "typedef".  In other
 terms, the "c2ml" function is passed a reference to a \var{ty} and
 returns the corresponding Caml value, while the "ml2c" function is
 passed a Caml value as first argument and stores the corresponding C
-value in the \var{ty} reference passed as second argument.
+value in the \var{ty} reference passed as second argument.  (The extra
+"camlidl_ctx" argument is for internal use by the generated stub code;
+just ignore it.)
 
 If the @"errorcheck("fn")"@ attribute is provided for the "typedef" \var{ty},
 the error checking function @fn@ is called each time a function result
@@ -631,7 +665,7 @@ of a type name that carries the "errorcode" attribute.  In the latter
 two cases, the return value of the IDL function is not transmitted to
 Caml.
 \item The Caml function is then given type
-@in_1 " -> " \ldots " -> " in_p " -> " out_1 " * " \ldots " * " out_q@
+@in_1 "->" \ldots "->" in_p "->" out_1 "*" \ldots "*" out_q@
 where @in_1 \ldots in_p@ are the types of its inputs
 and @out_1 \ldots out_q@ are the types of its outputs.
 If there are no inputs, a "unit" parameter is added.
@@ -897,7 +931,7 @@ the remainder of the Caml program.
 
 \subsection{Options}
 
-The followign command-line options are recognized by "camlidl".
+The following command-line options are recognized by "camlidl".
 
 \begin{options}
 
@@ -919,6 +953,11 @@ Add the directory \var{dir} to the list of directories searched for
 ".idl" files, as given on the command line or recursively loaded
 by @"import"@ statements.
 
+\item["-keep-labels"]
+Keep the Caml names of record labels as specified in the IDL file.
+Do not prefix them with the name of the enclosing struct, even if they
+appear in several struct definitions.
+
 \item["-nocpp"]
 Suppresses the pre-processing of source IDL files.
 
@@ -934,6 +973,11 @@ The "-no-include" option suppresses the automatic inclusion of the
 \var{f}".h" file.  The IDL file should then include the right header
 files and provide the right type declarations via @"quote"@ statements.
 
+\item["-prefix-all-labels"]
+Prefix all Caml names of record labels with the name of the enclosing
+struct.  The default is to prefix only those labels that could cause
+ambiguity because they appear in several struct definitions.
+
 \item["-prepro" \var{preprocessing-command}]
 Set the command that is executed to pre-process the source IDL files.
 The default is the C preprocessor.
@@ -946,11 +990,16 @@ Under Windows, a "bash" script called "camlidldll" is provided to
 automate the construction of a DLL containing a COM component written
 in Caml.
 
-The script "camlidldll" accepts the same command-line arguments and
-options as the "ocamlc" compiler.  It produces a DLL file that
-encapsulates the Caml and C object files given on the command line.
+The script "camlidldll" accepts essentially the same command-line
+arguments and options as the "ocamlc" compiler.  (It also accepts
+".tlb" type library files on the command-line; see
+section~\ref{s-dispatch}, ``Dispatch interfaces'', for more
+information on type libraries.)
+It produces a DLL file that encapsulates the Caml and C object files
+given on the command line.
+
 Use "regsvr32 /s "\var{file}".dll" to record the components in the
-system registry.
+system registry once it is compiled to a DLL.
 
 \input com.tex
 
@@ -1013,34 +1062,73 @@ This way, "time" will have the expected Caml type "unit -> float".
 Again, the stub code ``knows'' that "time" actually returns an integer,
 and therefore will insert the right integer-float coercions.
 
-\subsection{Reusing Microsoft-provided IDL files}
+\subsection{Sharing IDL files between MIDL and CamlIDL}
 
 The Microsoft software development kit provides a number of IDL files
 describing various libraries and components.  In its current state,
 "camlidl" cannot exploit those files directly: they use many
-(undocumented) Microsoft IDL features that are not implemented yet in
-"camlidl"; symmetrically, "camlidl" introduces several new annotations
-that are not recognized by Microsoft's "MIDL" compiler.  So, significant
-editing work on the IDL files is required.
+(often poorly documented) Microsoft IDL features that are not
+implemented yet in "camlidl"; symmetrically, "camlidl" introduces
+several new annotations that are not recognized by Microsoft's "midl"
+compiler.  So, significant editing work on the IDL files is required.
 
-The C preprocessor can be used to alleviate the "camlidl"-"MIDL"
+The C preprocessor can be used to alleviate the "camlidl"-"midl"
 incompatibilities: "camlidl" defines the preprocessor symbol "CAMLIDL"
-when preprocessing its input files, while "MIDL" does not.  Hence,
+when preprocessing its input files, while "midl" does not.  Hence,
 one can bracket incompatible definitions in 
-"#ifdef CAMLIDL ... #else ... #endif".  Similarly, the
-"camlidl"-specific attributes can be encapsulated in preprocessor
-macros, as follows:
+"#ifdef CAMLIDL ... #else ... #endif".  Along these lines, a C
+preprocessor header file, "camlidlcompat.h", is provided: it uses
+"#define" to remove "camlidl"-specific attributes when compiling with
+"midl", and to remove "midl"-specific attributes when compiling with
+"camlidl".  Thus, an IDL file compatible with both "midl" and
+"camlidl" would look like this:
 \begin{verbatim}
-        #ifdef CAMLIDL
-        #define ABSTRACT abstract
-        #define MLTYPE(x) mltype(x)
-        #else
-        #define ABSTRACT
-        #define MLTYPE(x)
-        #endif
+        #include <camlidlcompat.h>
 
-        typedef [ABSTRACT,MLTYPE(int)] char t;
+        #ifndef CAMLIDL
+        import "unknwn.idl";    // imports specific to MIDL
+        import "oaidl.idl";
+        #endif
+        import "mymodule.idl";  // imports common to MIDL and CamlIDL
+
+        typedef [abstract,marshal_as(int)] void * ptr;
+
+        ...
+
+        #ifndef CAMLIDL
+        [...] library MyTypeLib {
+          importlib("stdole32.tlb");
+          [...] coclass MyComponent { [default] interface IX; }
+        }
+        #endif
 \end{verbatim}
+Notice that since "camlidl" doesn't handle type libraries, the type
+library part of an "midl" file must be enclosed in "#ifndef CAMLIDL".
+
+\subsection{Dispatch interfaces and type libraries} \label{s-dispatch}
+
+A dispatch interface, in COM lingo, is an interface that supports
+dynamic, interpreted dispatch of method interfaces.  This form of
+interpreted dispatch is used by Visual Basic and other scripting
+languages to perform calls to methods of COM components.
+
+CamlIDL provides minimal support for dispatch interfaces.  To equip a
+Caml component with a dispatch interface (thus making it callable from
+Visual Basic), you need to do the following:
+\begin{enumerate}
+\item Use "IDispatch" instead of "IUnknown" as the super-interface of
+the component's interfaces.
+\item Write a type library for your component and compile it using
+"midl".  A type library is a run-time representation of the interfaces
+supported by an object.  The "midl" compiler can generate a type
+library from the IDL description of the component, enriched with some
+special-purpose declarations (the "library" and "coclass"
+statements).  Refer to the documentation of "midl" for more
+information.
+\item Pass the type library files (".tlb" files) generated by "midl"
+as extra arguments to "camlidldll" when generating the DLL for your
+Caml component.
+\end{enumerate}
 
 \section{Release notes}
 
@@ -1059,7 +1147,7 @@ that space for "out" data structures must be allocated
 with "CoTaskMemAlloc" by the callee, and automatically freed
 using "CoTaskMemFree" by the generated stub code.  (The specs don't
 say what happens with the return value of the function.)
-value.  However, there are many functions in Win32 (not to mention the
+However, there are many functions in Win32 (not to mention the
 Unix world) that do not follow this convention, and
 return data structures (e.g. strings) that are statically
 allocated, or require special deallocation functions.  Hence,
@@ -1085,9 +1173,9 @@ implemented.  However, "in,out" parameters that are interfaces are not
 correctly handled.  Again, avoid "in,out" parameters.
 
 \paragraph{COM support:}
-The support for COM is currently minimal.  COM components registered
-in the system registry can be imported via "Com.create_instance".
-Components written in Caml can be exported as DLLs, but not yet as
-standalone servers.  Dispatch interfaces and the Automation framework
-are not supported yet, thus Caml components cannot be used from Visual
-Basic.
+The support for COM is currently quite small.  COM components
+registered in the system registry can be imported via
+"Com.create_instance". Components written in Caml can be exported as
+DLLs, but not yet as standalone servers.  Preliminary support for
+dispatch interfaces is available, however many of the data types used
+in the Automation framework are not supported yet (e.g. "SAFEARRAY").
