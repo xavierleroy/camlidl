@@ -10,9 +10,13 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: config.mli,v 1.3 2000-08-19 11:04:56 xleroy Exp $ *)
+(* $Id: config.mli,v 1.4 2001-06-29 13:29:59 xleroy Exp $ *)
 
 (* Compile-time configuration *)
 
 (* How to invoke the C preprocessor *)
 val cpp: string
+
+(* The C names for 64-bit signed and unsigned integers *)
+val int64_type: string
+val uint64_type: string

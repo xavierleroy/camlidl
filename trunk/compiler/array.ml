@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: array.ml,v 1.15 2001-06-17 10:50:24 xleroy Exp $ *)
+(* $Id: array.ml,v 1.16 2001-06-29 13:29:58 xleroy Exp $ *)
 
 (* Handling of arrays and bigarrays *)
 
@@ -212,6 +212,7 @@ let bigarray_alloc_kind = function
   | Type_int((Int | UInt), _) -> "BIGARRAY_INT32"
   | Type_int((Long | ULong), I64) -> "BIGARRAY_INT64"
   | Type_int((Long | ULong), _) -> "BIGARRAY_NATIVE_INT"
+  | Type_int((Hyper | UHyper), _) -> "BIGARRAY_INT64"
   | Type_float -> "BIGARRAY_FLOAT32"
   | Type_double -> "BIGARRAY_FLOAT64"
   | _ -> assert false

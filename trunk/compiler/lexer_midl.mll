@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexer_midl.mll,v 1.10 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: lexer_midl.mll,v 1.11 2001-06-29 13:29:59 xleroy Exp $ *)
 
 (* Lexer for IDL interface files *)
 
@@ -39,6 +39,7 @@ let _ =
       "hyper", HYPER;
       "import", IMPORT;
       "int", INT;
+      "__int64", INT64;
       "interface", INTERFACE;
       "long", LONG;
       "NULL", NULL;

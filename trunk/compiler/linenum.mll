@@ -10,26 +10,14 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: linenum.mll,v 1.5 2000-08-19 11:04:57 xleroy Exp $ *)
-
-(***********************************************************************)
-(*                                                                     *)
-(*                           Objective Caml                            *)
-(*                                                                     *)
-(*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
-(*                                                                     *)
-(*  Copyright 1997 Institut National de Recherche en Informatique et   *)
-(*  en Automatique.  All rights reserved.  This file is distributed    *)
-(*  under the terms of the Q Public License version 1.0                *)
-(*                                                                     *)
-(***********************************************************************)
-
-(* $Id: linenum.mll,v 1.5 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: linenum.mll,v 1.6 2001-06-29 13:30:00 xleroy Exp $ *)
 
 (* An auxiliary lexer for determining the line number corresponding to
    a file position, honoring the directives # linenum "filename" *)
 
 {
+open Printf
+
 let filename = ref ""
 let linenum = ref 0
 let linebeg = ref 0
@@ -85,4 +73,14 @@ let for_position file loc =
   close_in ic;
   (!filename, !linenum - 1, !linebeg)
 
+let current_file = ref ""
+let current_lexbuf = ref (Lexing.from_channel stdin)
+
+let print_location oc =
+  let pos = Lexing.lexeme_start !current_lexbuf in
+  let (sourcename, lineno, startline) = for_position !current_file pos in
+  fprintf oc "File %s, line %d, column %d"
+             sourcename lineno (pos - startline)
+
 }
+

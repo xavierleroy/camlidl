@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexpr.ml,v 1.8 2001-06-17 10:50:25 xleroy Exp $ *)
+(* $Id: lexpr.ml,v 1.9 2001-06-29 13:29:59 xleroy Exp $ *)
 
 (* Evaluation and pretty-printing of limited expressions *)
 
@@ -150,11 +150,13 @@ let rec tstype trail = function
 and integer_type = function
     Int -> "int"
   | Long -> "long"
+  | Hyper -> Config.int64_type
   | Small -> "signed char"
   | Short -> "short"
   | Char -> "char"
   | UInt -> "unsigned int"
   | ULong -> "unsigned long"
+  | UHyper -> Config.uint64_type
   | USmall -> "unsigned char"
   | UShort -> "unsigned short"
   | UChar -> "unsigned char"

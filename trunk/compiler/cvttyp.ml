@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.ml,v 1.21 2001-06-17 10:50:24 xleroy Exp $ *)
+(* $Id: cvttyp.ml,v 1.22 2001-06-29 13:29:59 xleroy Exp $ *)
 
 open Utils
 open Printf
@@ -21,11 +21,13 @@ open Idltypes
 let integer_type = function
     Int -> "int"
   | Long -> "long"
+  | Hyper -> Config.int64_type
   | Small -> "signed char"
   | Short -> "short"
   | Char -> "char"
   | UInt -> "unsigned int"
   | ULong -> "unsigned long"
+  | UHyper -> Config.uint64_type
   | USmall -> "unsigned char"
   | UShort -> "unsigned short"
   | UChar -> "unsigned char"
@@ -140,6 +142,7 @@ let ml_bigarray_kind ty =
   | Type_int((Int | UInt), _) -> "Bigarray.int32_elt"
   | Type_int((Long | ULong), I64) -> "Bigarray.int64_elt"
   | Type_int((Long | ULong), _) -> "Bigarray.nativeint_elt"
+  | Type_int((Hyper | UHyper), _) -> "Bigarray.int64_elt"
   | Type_float -> "Bigarray.float32_elt"
   | Type_double -> "Bigarray.float64_elt"
   | _ -> assert false

@@ -10,20 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: linenum.mli,v 1.3 2000-08-19 11:04:57 xleroy Exp $ *)
-
-(***********************************************************************)
-(*                                                                     *)
-(*                           Objective Caml                            *)
-(*                                                                     *)
-(*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
-(*                                                                     *)
-(*  Copyright 1997 Institut National de Recherche en Informatique et   *)
-(*  Automatique.  Distributed only by permission.                      *)
-(*                                                                     *)
-(***********************************************************************)
-
-(* $Id: linenum.mli,v 1.3 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: linenum.mli,v 1.4 2001-06-29 13:30:00 xleroy Exp $ *)
 
 (* An auxiliary lexer for determining the line number corresponding to
    a file position, honoring the directives # linenum "filename" *)
@@ -34,3 +21,10 @@ val for_position: string -> int -> string * int * int
            First result is name of actual source file.
            Second result is line number in that source file.
            Third result is position of beginning of that line in [file]. *)
+
+val print_location: out_channel -> unit
+        (* Print the current location as determined by [for_position]. *)
+
+val current_file: string ref
+val current_lexbuf: Lexing.lexbuf ref
+        (* Name and lexbuf on file currently read *)
