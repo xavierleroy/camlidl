@@ -19,6 +19,7 @@ let _ =
       "false", FALSE;
       "float", FLOAT;
       "int", INT;
+      "interface", INTERFACE;
       "long", LONG;
       "NULL", NULL;
       "short", SHORT;
@@ -37,8 +38,8 @@ type buffer =
     mutable buff: string;
     mutable index: int }
 
-let new_buffer() =
-  let s = String.create 256 in { initial = s; buff = s; index = 0 }
+let new_buffer sz =
+  let s = String.create sz in { initial = s; buff = s; index = 0 }
 
 let reset b =
   b.buff <- b.initial; b.index <- 0
@@ -57,8 +58,9 @@ let get_stored b =
   b.buff <- b.initial;
   s
 
-let string_buffer = new_buffer()
-let diversion_buffer = new_buffer()
+let string_buffer = new_buffer 80
+let diversion_buffer = new_buffer 256
+let uuid_buffer = new_buffer 16
 
 (* To translate escape sequences *)
 
@@ -113,14 +115,12 @@ rule token = parse
       { CHARACTER(char_for_backslash (Lexing.lexeme_char lexbuf 2)) }
   | "'" '\\' ['0'-'3'] ['0'-'7']? ['0'-'7']? "'"
       { CHARACTER(char_for_code lexbuf 2 1) }
-  | "{|"
-      { reset diversion_buffer;
-        c_diversion lexbuf;
-        C_DIVERSION(get_stored diversion_buffer) }
-  | "{{"
-      { reset diversion_buffer;
-        ml_diversion lexbuf;
-        ML_DIVERSION(get_stored diversion_buffer) }
+  | "{" ['a'-'z''A'-'Z']* "|"
+      { let s = Lexing.lexeme lexbuf in
+        let kind = String.lowercase (String.sub s 1 (String.length s - 1)) in
+        reset diversion_buffer;
+        diversion lexbuf;
+        DIVERSION(kind, get_stored diversion_buffer) }
   | "#" [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] *
     ('\n' | '\r' | "\r\n")
       (* # linenum "filename" flags \n *)
@@ -155,10 +155,10 @@ rule token = parse
   | "/" { SLASH }
   | "*" { STAR }
   | "~" { TILDE }
-(**
-  | hex8 '-' hex4 '-' hex4 '-' hex4 '-' hex12
-        { UUID_REPR(Lexing.lexeme lexbuf) }
-**)
+  | '(' hex8 '-' hex4 '-' hex4 '-' hex4 '-' hex12 ')'
+        { reset uuid_buffer;
+          scan_uuid (Lexing.from_string (Lexing.lexeme lexbuf));
+          UUID(get_stored uuid_buffer) }
   | eof { EOF }
 
 and comment = parse
@@ -183,7 +183,7 @@ and string = parse
       { store string_buffer (Lexing.lexeme_char lexbuf 0);
         string lexbuf }
 
-and c_diversion = parse
+and diversion = parse
     "|}"
       { () }
   (* TODO: skip strings correctly *)
@@ -191,15 +191,14 @@ and c_diversion = parse
       { error "Unterminated {| section" }
   | _
       { store diversion_buffer (Lexing.lexeme_char lexbuf 0);
-        c_diversion lexbuf }
+        diversion lexbuf }
 
-and ml_diversion = parse
-    "}}"
+and scan_uuid = parse
+    eof
       { () }
-  (* TODO: skip strings correctly *)
-  | eof
-      { error "Unterminated {{ section" }
+  | hex hex
+      { let n = int_of_string ("0x" ^ Lexing.lexeme lexbuf) in
+        store uuid_buffer (Char.chr n);
+        scan_uuid lexbuf }
   | _
-      { store diversion_buffer (Lexing.lexeme_char lexbuf 0);
-        ml_diversion lexbuf }
-
+      { scan_uuid lexbuf }

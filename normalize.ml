@@ -169,6 +169,7 @@ let normalize_interface i =
       let i' =
         {i with intf_super = super; intf_methods = methods} in
       Hashtbl.add intfs i.intf_name i';
+      all_type_decls := Comp_interface i' :: !all_type_decls;
       i'
 
 let normalize_component = function

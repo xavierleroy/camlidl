@@ -29,7 +29,9 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
   if attr.is_string then begin
     begin match attr.bound with
       None ->
-        iprintf oc "%s = String_val(%s);\n" c v
+        if onstack
+        then iprintf oc "%s = String_val(%s);\n" c v
+        else iprintf oc "%s = camlidl_malloc_string(_arena, %s);\n" c v
     | Some n ->
         iprintf oc
             "if (string_length(%s) >= %d) invalid_argument(\"%s\");\n"

@@ -7,6 +7,7 @@ open Idltypes
 open Funct
 open Typedef
 open Constdecl
+open Intf
 open File
 
 let null_attr_var = Var ""
@@ -109,8 +110,7 @@ let make_op_declaration attrs ty_res name params diversion =
   { fun_name = name;
     fun_res = apply_type_attributes ty_res attrs;
     fun_params = params;
-    fun_call = match diversion with None -> emit_standard_call
-                                  | Some s -> emit_custom_call s }
+    fun_call = diversion }
 
 let make_fields attrs tybase decls =
   List.map
@@ -151,6 +151,31 @@ let make_typedef attrs tybase decls =
       {td' with td_type = ty'})
     decls
 
+let make_interface attr name super methods =
+  let rec parse_attrs uid = function
+      [] -> uid
+    | ("uuid", [Var u]) :: rem -> parse_attrs u rem
+    | (name, _) :: rem ->
+        eprintf "Warning: attribute `%s' ignored.\n" name;
+        parse_attrs uid rem in
+  let uid = parse_attrs "" attr in
+  if uid = "" then
+    eprintf "Warning: no UUID provided for interface %s\n" name;
+  { intf_name = name; intf_super = super;
+    intf_methods = methods; intf_uid = uid }
+
+let make_diversion (id, txt) =
+  let kind =
+    match id with
+      "" | "c" -> Div_c
+    | "ml" -> Div_ml
+    | "mli" -> Div_mli
+    | "mlmli" -> Div_ml_mli
+    | _ ->
+      eprintf "Warning: diversion kind `%s' unknown, assuming C kind.\n" id;
+      Div_c in
+  (kind, txt)
+
 (* Apply an "unsigned" modifier to an integer type *)
 
 let make_unsigned = function
@@ -183,8 +208,7 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 %token COMMA
 %token CONST
 %token DEFAULT
-%token <string> C_DIVERSION
-%token <string> ML_DIVERSION
+%token <string * string> DIVERSION
 %token DOT
 %token DOUBLE
 %token ENUM
@@ -198,6 +222,7 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 %token GREATERGREATER
 %token <string> IDENT
 %token INT
+%token INTERFACE
 %token <int> INTEGER
 %token LBRACE
 %token LBRACKET
@@ -226,6 +251,7 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 %token TYPEDEF
 %token UNION
 %token UNSIGNED
+%token <string> UUID
 %token VOID
 
 /* Precedences and associativities. Lower precedences come first. */
@@ -268,8 +294,9 @@ interface_component:
   | enum_declarator SEMI                        { [Comp_enumdecl $1] }
   | op_declarator SEMI                          { [Comp_fundecl $1] }
   | const_declarator SEMI                       { [Comp_constdecl $1] }
-  | C_DIVERSION                                 { [Comp_diversion(Div_c, $1)] }
-  | ML_DIVERSION                                { [Comp_diversion(Div_ml, $1)]}
+  | intf_declarator                             { [Comp_interface $1] }
+  | DIVERSION               { let (kind, txt) = make_diversion $1 in
+                              [Comp_diversion(kind, txt)] }
 ;
 
 /* Type declaration */
@@ -415,6 +442,7 @@ attribute:
   | IDENT LPAREN attr_vars RPAREN               { ($1, List.rev $3) }
   | STAR attribute                              { make_star_attribute $2 }
   | attribute STAR                              { make_star_attribute $1 }
+  | IDENT UUID                                  { ($1, [Var $2]) }
 ;
 attr_vars:
     attr_var                                    { [$1] }
@@ -435,8 +463,8 @@ op_declarator:
       { make_op_declaration $1 ($3 $2) $4 $6 $8 }
 ;
 opt_diversion:
-    C_DIVERSION                                 { Some $1 }
-  | /*empty*/                                   { None }
+    DIVERSION                           { let (id, txt) = $1 in Some txt }
+  | /*empty*/                           { None }
 ;
 
 /* Parameter lists */
@@ -502,4 +530,22 @@ const_int:
   | TILDE const_int                             { lnot $2 }
   | BANG const_int                              { if $2 = 0 then 1 else 0 }
   | LPAREN const_int RPAREN                     { $2 }
+;
+
+/* Interface declaration */
+
+intf_declarator:
+    attributes INTERFACE IDENT opt_super_intf LBRACE intf_methods RBRACE
+      { make_interface $1 $3 $4 (List.rev $6) }
+;
+
+intf_methods:
+    /* nothing */                       { [] }
+  | intf_methods op_declarator SEMI     { $2 :: $1 }
+;
+
+opt_super_intf:
+    /* nothing */               { None }
+  | COLON IDENT                 { Some { intf_name = $2; intf_super = None;
+                                         intf_methods = []; intf_uid = "" } }
 ;
