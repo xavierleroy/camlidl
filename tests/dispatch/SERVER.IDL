@@ -1,0 +1,48 @@
+//
+// Server.idl - IDL source for Server.dll
+//
+// This file will be processed by the MIDL compiler to
+// produce the type library (Server.tlb) and marshaling code.
+//
+
+// Interface IX
+[
+	object,
+	uuid(32BB8326-B41B-11CF-A6BB-0080C7B2D682),
+	helpstring("IX Interface"),
+	pointer_default(unique),
+	dual,
+	oleautomation
+]
+interface IX : IDispatch
+{
+	import "oaidl.idl" ;
+
+	HRESULT Fx() ;
+	HRESULT FxStringIn([in] BSTR bstrIn) ; 
+	HRESULT FxStringOut([out, retval] BSTR* pbstrOut) ; 
+	HRESULT FxFakeError() ;
+} ;
+
+//
+// Component and type library descriptions
+//
+[
+	uuid(D3011EE1-B997-11CF-A6BB-0080C7B2D682),
+	version(1.0),
+	helpstring("Inside COM, Chapter 11 1.0 Type Library")
+]
+library ServerLib
+{
+	importlib("stdole32.tlb") ;
+
+	// Component
+	[
+		uuid(0C092C2C-882C-11CF-A6BB-0080C7B2D682),
+		helpstring("Component Class")
+	]
+	coclass Component
+	{
+		[default] interface IX ;
+	} ;
+} ;

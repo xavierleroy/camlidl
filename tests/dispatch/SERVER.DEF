@@ -1,0 +1,8 @@
+LIBRARY         Server.dll
+DESCRIPTION     'Chapter 11, Example COM Server (c)1996-1997 Dale E. Rogerson'
+
+EXPORTS
+                DllGetClassObject   @2	PRIVATE
+                DllCanUnloadNow     @3	PRIVATE
+                DllRegisterServer   @4	PRIVATE
+                DllUnregisterServer @5	PRIVATE
