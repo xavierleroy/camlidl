@@ -1,0 +1,20 @@
+/* Integers */
+
+int f1([in] int x);
+
+unsigned long f2([in] long x);
+
+void f3([out] int * p);
+
+void f4([in,out] int * p);
+
+int f5([in] int x, [out] int * p);
+
+/* Pointers */
+
+[unique] int * f6([in, unique] int * x);
+
+[ptr] int * f7([in, ptr] int * x);
+
+void f8([in, out] int * p, [in, out] long * q);
+
