@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse.ml,v 1.5 2001-06-29 13:30:00 xleroy Exp $ *)
+(* $Id: parse.ml,v 1.6 2001-07-30 14:23:31 xleroy Exp $ *)
 
 (* Source parsing *)
 
@@ -19,7 +19,7 @@ open Utils
 open Linenum
 
 let read_source_file sourcename filename =
-  let ic = open_in filename in
+  let ic = open_in_bin filename in
   let lb = Lexing.from_channel ic in
   Linenum.current_file := filename;
   Linenum.current_lexbuf := lb;
