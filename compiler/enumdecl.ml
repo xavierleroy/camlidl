@@ -17,19 +17,21 @@ let ml_declaration oc en =
     (fun c -> fprintf oc "  | %s\n" (String.capitalize c))
     en.en_consts
 
-(* Forward declaration of the translation functions *)
+(* External (forward) declaration of the translation functions *)
 
 let declare_transl oc en =
-  fprintf oc "int camlidl_ml2c_%s_enum_%s(value);\n"
-             !module_name en.en_name;
-  fprintf oc "value camlidl_c2ml_%s_enum_%s(int);\n\n"
-             !module_name en.en_name
+  fprintf oc "extern int camlidl_ml2c_%s_enum_%s(value);\n"
+             en.en_mod en.en_name;
+  fprintf oc "extern value camlidl_c2ml_%s_enum_%s(int);\n\n"
+             en.en_mod en.en_name;
+  fprintf oc "extern int camlidl_transl_table_%s_enum_%s[];\n\n"
+             en.en_mod en.en_name
 
 (* Translation function from an ML datatype to a C enum *)
 
 let transl_ml_to_c oc en =
-  fprintf oc "static int _transl_table_enum_%d[%d] = {\n"
-             en.en_stamp (List.length en.en_consts);
+  fprintf oc "int camlidl_transl_table_%s_enum_%d[%d] = {\n"
+             en.en_mod en.en_stamp (List.length en.en_consts);
   List.iter
     (fun c -> fprintf oc "  %s,\n" c)
     en.en_consts;
@@ -37,7 +39,7 @@ let transl_ml_to_c oc en =
   current_function := sprintf "enum %s" en.en_name;
   let v = new_var "_v" in
   fprintf oc "int camlidl_ml2c_%s_enum_%s(value %s)\n"
-             !module_name en.en_name v;
+             en.en_mod en.en_name v;
   fprintf oc "{\n";
   let pc = divert_output() in
   let c = new_c_variable (Type_int Int) in
@@ -54,7 +56,7 @@ let transl_c_to_ml oc en =
   current_function := sprintf "enum %s" en.en_name;
   let c = new_var "_c" in
   fprintf oc "value camlidl_c2ml_%s_enum_%s(int %s)\n"
-             !module_name en.en_name c;
+             en.en_mod en.en_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
   let v = new_ml_variable() in

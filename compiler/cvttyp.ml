@@ -1,3 +1,4 @@
+open Utils
 open Printf
 open Idltypes
 
@@ -35,8 +36,8 @@ let rec out_c_decl oc (id, ty) =
            assert (en.en_name <> "");
            fprintf oc "enum %s %s" en.en_name id
          but this forces the enum to be declared beforehand on the C side *)
-  | Type_named s ->
-      fprintf oc "%s %s" s id
+  | Type_named(modl, ty_name) ->
+      fprintf oc "%s %s" ty_name id
   | Type_pointer(attr, (Type_array(_, _) as ty)) ->
       out_c_decl oc (sprintf "(*%s)" id, ty)
   | Type_pointer(attr, ty) ->
@@ -47,12 +48,26 @@ let rec out_c_decl oc (id, ty) =
           Some n -> sprintf "%s[%d]" id n
         | None -> sprintf "*%s" id in
       out_c_decl oc (id', ty)
-  | Type_interface intf_name ->
+  | Type_interface(modl, intf_name) ->
       fprintf oc "interface %s %s" intf_name id
 
 (* Convert an IDL type to a C type *)
 
 let out_c_type oc ty = out_c_decl oc ("", ty)
+
+(* Print an ML type name, qualified if necessary *)
+
+let out_mltype_name oc (modl, name) =
+  if modl <> !module_name then fprintf oc "%s." (String.capitalize modl);
+  output_string oc (String.uncapitalize name)
+
+(* Same, but use stamp if no name is provided *)
+
+let out_mltype_stamp oc kind modl name stamp =
+  if modl <> !module_name then fprintf oc "%s." (String.capitalize modl);
+  if name = ""
+  then fprintf oc "%s_%d" kind stamp
+  else output_string oc (String.uncapitalize name)  
 
 (* Convert an IDL type to an ML type *)
 
@@ -63,33 +78,27 @@ let rec out_ml_type oc ty =
   | Type_int kind -> output_string oc "int"
   | Type_float | Type_double -> output_string oc "float"
   | Type_void -> output_string oc "void"
-  | Type_named s -> output_string oc (String.uncapitalize s)
+  | Type_named(modl, name) -> out_mltype_name oc (modl, name)
   | Type_struct sd ->
-      if sd.sd_name = ""
-      then fprintf oc "struct_%d" sd.sd_stamp
-      else fprintf oc "%s" (String.uncapitalize sd.sd_name)
+      out_mltype_stamp oc "struct" sd.sd_mod sd.sd_name sd.sd_stamp
   | Type_union(ud, discr) ->
-      if ud.ud_name = ""
-      then fprintf oc "union_%d" ud.ud_stamp
-      else fprintf oc "%s" (String.uncapitalize ud.ud_name)
+      out_mltype_stamp oc "union" ud.ud_mod ud.ud_name ud.ud_stamp
   | Type_enum (en, attr) ->
-      if en.en_name = ""
-      then fprintf oc "enum_%d" en.en_stamp
-      else fprintf oc "%s" (String.uncapitalize en.en_name);
+      out_mltype_stamp oc "enum" en.en_mod en.en_name en.en_stamp;
       if attr.bitset then fprintf oc " list"
   | Type_pointer(kind, ty) ->
       begin match kind with
         Ref -> out_ml_type oc ty
       | Unique -> fprintf oc "%a option" out_ml_type ty
-      | Ptr -> fprintf oc "%a opaque" out_ml_type ty
+      | Ptr -> fprintf oc "%a Com.opaque" out_ml_type ty
       | Ignore -> assert false
       end
   | Type_array(attr, ty) ->
       if attr.is_string
       then fprintf oc "string"
       else fprintf oc "%a array" out_ml_type ty
-  | Type_interface s ->
-      fprintf oc "%s Com.interface" (String.uncapitalize s)
+  | Type_interface(modl, name) ->
+      fprintf oc "%a Com.interface" out_mltype_name (modl, name)      
 
 (* Output a list of ML types *)
 

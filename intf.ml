@@ -10,8 +10,9 @@ open Funct
 
 type interface =
   { intf_name: string;                  (* Name of interface *)
+    intf_mod: string;                   (* Name of defining module *)
     intf_super: interface;              (* Super-interface *)
-    intf_methods: function_decl list;   (* Methods *)
+    mutable intf_methods: function_decl list;   (* Methods *)
     intf_uid: string }                  (* Unique interface ID *)
 
 (* Print a method type *)
@@ -53,8 +54,10 @@ let ml_class_declaration oc intf =
              mlintf mlintf mlintf;
   fprintf oc "val make_%s : #%s_class -> %s Com.interface\n"
              mlintf mlintf mlintf;
-  fprintf oc "val %s_of_%s : %s Com.interface -> %s Com.interface\n\n"
-             mlsuper mlintf mlintf mlsuper
+  fprintf oc "val %s_of_%s : %s Com.interface -> %a Com.interface\n\n"
+             mlsuper mlintf mlintf
+             out_mltype_name (intf.intf_super.intf_mod,
+                              intf.intf_super.intf_name)
 
 (* Define the wrapper classes *)
 
@@ -65,14 +68,17 @@ let ml_class_definition oc intf =
   fprintf oc "let iid_%s = (Obj.magic \"%s\" : %s Com.iid)\n"
              intfname (String.escaped intf.intf_uid) intfname;
   (* Define the coercion function to the super class *)
-  fprintf oc "let %s_of_%s (intf : %s Com.interface) = (Obj.magic intf : %s Com.interface)\n\n"
-             supername intfname intfname supername;
+  fprintf oc "let %s_of_%s (intf : %s Com.interface) = (Obj.magic intf : %a Com.interface)\n\n"
+             supername intfname intfname
+             out_mltype_name (intf.intf_super.intf_mod,
+                              intf.intf_super.intf_name);
   (* Declare the C wrappers for invoking the methods from Caml *)
-  let self_type = Type_pointer(Ref, Type_interface intf.intf_name) in
+  let self_type = Type_pointer(Ref, Type_interface("", intf.intf_name)) in
   List.iter
     (fun meth ->
       let prim =
         { fun_name = sprintf "%s_%s" intf.intf_name meth.fun_name;
+          fun_mod = intf.intf_mod;
           fun_res = meth.fun_res;
           fun_params = ("this", In, self_type) :: meth.fun_params;
           fun_call = None } in
@@ -115,7 +121,7 @@ let emit_callback_wrapper oc intf meth =
   let fun_name =
     sprintf "camlidl_%s_%s_%s_callback"
             !module_name intf.intf_name meth.fun_name in
-  fprintf oc "static %a(" out_c_decl (fun_name, meth.fun_res);
+  fprintf oc "%a(" out_c_decl (fun_name, meth.fun_res);
   fprintf oc "\n\tinterface %s * this" intf.intf_name;
   List.iter
     (fun (name, inout, ty) ->
@@ -175,6 +181,22 @@ let emit_callback_wrapper oc intf meth =
   end_diversion oc;
   fprintf oc "}\n\n"
 
+(* Declare external callback wrapper *)
+
+let declare_callback_wrapper oc intf meth =
+  let (ins, outs) = ml_view meth in
+  (* Emit function header *)
+  let fun_name =
+    sprintf "camlidl_%s_%s_%s_callback"
+            !module_name intf.intf_name meth.fun_name in
+  fprintf oc "extern %a(" out_c_decl (fun_name, meth.fun_res);
+  fprintf oc "\n\tinterface %s * this" intf.intf_name;
+  List.iter
+    (fun (name, inout, ty) ->
+    fprintf oc ",\n\t/* %a */ %a" out_inout inout out_c_decl (name, ty))
+    meth.fun_params;
+  fprintf oc ");\n\n"
+
 (* Generate the vtable for an interface (for the make_ conversion) *)
 
 let emit_vtable oc intf =
@@ -214,3 +236,8 @@ let emit_transl oc intf =
   List.iter (emit_callback_wrapper oc intf) intf.intf_methods;
   emit_vtable oc intf;
   emit_make_interface oc intf
+
+(* Declare the translation functions *)
+
+let declare_transl oc intf =
+  List.iter (declare_callback_wrapper oc intf) intf.intf_methods

@@ -8,35 +8,24 @@ let process_file name =
     if Filename.check_suffix name ".idl"
     then Filename.chop_suffix name ".idl"
     else name in
-  module_name := Filename.basename pref;
-  let ic = open_in name in
-  let lb = Lexing.from_channel ic in
-  let intf =
-    try
-      Parser_simple.file Lexer_simple.token lb
-    with Parsing.Parse_error ->
-      eprintf "File %s, character %d: syntax error\n"
-              name (Lexing.lexeme_start lb);
-      exit 2 in
-  close_in ic;
-  let (nintf, all_type_decls) = Normalize.file intf in
+  let (intf, import_decls, all_type_decls) = Normalize.process_file name in
   let oc = open_out (pref ^ ".mli") in
   begin try
-    gen_mli_file oc nintf all_type_decls;
+    gen_mli_file oc intf all_type_decls;
     close_out oc
   with x ->
     close_out oc; Sys.remove (pref ^ ".ml"); raise x
   end;
   let oc = open_out (pref ^ ".ml") in
   begin try
-    gen_ml_file oc nintf all_type_decls;
+    gen_ml_file oc intf all_type_decls;
     close_out oc
   with x ->
     close_out oc; Sys.remove (pref ^ ".ml"); raise x
   end;
   let oc = open_out (pref ^ ".c") in
   begin try
-    gen_c_stub oc nintf;
+    gen_c_stub oc import_decls intf;
     close_out oc
   with x ->
     close_out oc; Sys.remove (pref ^ ".c"); raise x
@@ -44,7 +33,10 @@ let process_file name =
 
 let _ =
   try
-    Arg.parse [] process_file
-      "Usage: camlidl <.idl file> ... <.idl file>\n"
+    Arg.parse
+      ["-I", Arg.String(fun s -> search_path := !search_path @ [s]),
+         "<dir>  Adds directory to search path"]
+      process_file
+      "Usage: camlidl [options]<.idl file> ... <.idl file>\nOptions are:\n"
   with Error ->
     exit 2

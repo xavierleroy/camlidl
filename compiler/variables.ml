@@ -19,7 +19,7 @@ let new_c_variable ty =
 
 let new_ml_variable () =
   let name = new_var "_v" in
-  temp_variables := (name, Type_named "value") :: !temp_variables;
+  temp_variables := (name, Type_named("", "value")) :: !temp_variables;
   name
 
 let new_ml_variable_block n =
@@ -27,7 +27,7 @@ let new_ml_variable_block n =
   let ty =
     Type_array({bound = Some n; size=None; length=None;
                 is_string=false; null_terminated=false},
-               Type_named "value") in
+               Type_named("", "value")) in
   temp_variables := (name, ty) :: !temp_variables;
   name
 

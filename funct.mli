@@ -7,6 +7,7 @@ type in_out =
 
 type function_decl =
   { fun_name: string;
+    fun_mod: string;
     fun_res: idltype;
     fun_params: (string * in_out * idltype) list;
     fun_call: string option }

@@ -42,7 +42,6 @@ let gen_type_def oc all_type_decls =
 
 let gen_mli_file oc intf all_type_decls =
   fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
-  fprintf oc "type iUnknown = Com.iUnknown\n\n";
   gen_type_def oc all_type_decls;
   (* Generate the function declarations *)
   let emit_fundecl = function
@@ -57,7 +56,6 @@ let gen_mli_file oc intf all_type_decls =
 
 let gen_ml_file oc intf all_type_decls =
   fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
-  fprintf oc "type iUnknown = Com.iUnknown\n\n";
   gen_type_def oc all_type_decls;
   (* Generate the function declarations and class definitions *)
   let emit_fundecl = function
@@ -67,8 +65,6 @@ let gen_ml_file oc intf all_type_decls =
     | Comp_interface i -> Intf.ml_class_definition oc i
     | _ -> () in
   List.iter emit_fundecl intf
-
-(* Generate the C stub file *)
 
 (* Process a component *)
 
@@ -97,7 +93,33 @@ let process_comp oc = function
       if i.intf_methods <> []
       then Intf.emit_transl oc i
 
-let gen_c_stub oc intf =
+(* Import a component *)
+
+let import_comp oc = function
+    Comp_typedecl td ->
+      Typedef.declare_transl oc td
+  | Comp_structdecl sd ->
+      if sd.sd_fields <> []
+      then Structdecl.declare_transl oc sd
+  | Comp_uniondecl ud ->
+      if ud.ud_cases <> []
+      then Uniondecl.declare_transl oc ud
+  | Comp_enumdecl en ->
+      if en.en_consts <> []
+      then Enumdecl.declare_transl oc en
+  | Comp_fundecl fd ->
+      ()
+  | Comp_constdecl cd ->
+      ()
+  | Comp_diversion(kind, txt) ->
+      ()
+  | Comp_interface i ->
+      if i.intf_methods <> []
+      then Intf.declare_transl oc i
+
+(* Generate the C stub file *)
+
+let gen_c_stub oc imports intf =
   (* Output the header *)
   fprintf oc "/* File generated from %s.idl */\n\n" !module_name;
   output_string oc "\
@@ -109,5 +131,8 @@ let gen_c_stub oc intf =
     #include <caml/fail.h>\n\
     #include <caml/callback.h>\n\
     #include <caml/camlidlruntime.h>\n\n";
+  (* Declare the conversion functions for the imports *)
+  List.iter (import_comp oc) imports;
   (* Process the interface *)
   List.iter (process_comp oc) intf
+

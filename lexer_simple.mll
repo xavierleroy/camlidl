@@ -18,6 +18,7 @@ let _ =
       "enum", ENUM;
       "false", FALSE;
       "float", FLOAT;
+      "import", IMPORT;
       "int", INT;
       "interface", INTERFACE;
       "long", LONG;

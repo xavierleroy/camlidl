@@ -32,8 +32,8 @@ type idltype =
   | Type_struct of struct_decl
   | Type_union of union_decl * union_attributes
   | Type_enum of enum_decl * enum_attributes
-  | Type_named of string
-  | Type_interface of string
+  | Type_named of string * string (* module name, type name *)
+  | Type_interface of string * string (* module name, interface name *)
 
 and field =
   { field_name: string; field_typ: idltype }
@@ -42,11 +42,14 @@ and union_case =
   { case_label: string option; case_field: field option }
 
 and struct_decl =
-  { sd_name: string; mutable sd_stamp: int; mutable sd_fields: field list }
+  { sd_name: string; sd_mod: string; mutable sd_stamp: int;
+     mutable sd_fields: field list }
 
 and union_decl =
-  { ud_name: string; mutable ud_stamp: int; mutable ud_cases: union_case list }
+  { ud_name: string; ud_mod: string; mutable ud_stamp: int;
+    mutable ud_cases: union_case list }
 
 and enum_decl =
-  { en_name: string; mutable en_stamp: int; mutable en_consts: string list }
+  { en_name: string; en_mod: string; mutable en_stamp: int;
+    mutable en_consts: string list }
 

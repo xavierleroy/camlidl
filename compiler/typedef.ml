@@ -9,6 +9,7 @@ open Cvtval
 
 type type_decl =
   { td_name: string;
+    td_mod: string;
     td_type: idltype;
     td_abstract: bool;
     td_c2ml: string option;
@@ -19,16 +20,8 @@ type type_decl =
 
 (* Record typedefs by name *)
 
-let all_typedefs = (Hashtbl.create 13 : (string, type_decl) Hashtbl.t)
-
-let record td =
-  Hashtbl.add all_typedefs td.td_name td
-
-let find name =
-  try
-    Hashtbl.find all_typedefs name
-  with Not_found ->
-    error (sprintf "unknown typedef %s" name)
+let find =
+  ref ((fun _ -> invalid_arg "Typedef.find") : string -> type_decl)
 
 (* Generate the ML type definition corresponding to the typedef *)
 
@@ -42,6 +35,24 @@ let ml_declaration oc td =
       fprintf oc "%s = %a\n"
               (String.uncapitalize td.td_name) out_ml_type td.td_type
 
+(* External (forward) declaration of the translation functions *)
+
+let declare_transl oc td =
+  begin match td.td_ml2c with
+    Some s ->
+      fprintf oc "#define camlidl_ml2c_%s_%s %s\n\n" td.td_mod td.td_name s
+  | None ->
+      fprintf oc "extern void camlidl_ml2c_%s_%s(value, %s *, camlidl_arena * _arena);\n"
+                 td.td_mod td.td_name td.td_name
+  end;
+  begin match td.td_c2ml with
+    Some s ->
+      fprintf oc "#define camlidl_c2ml_%s_%s %s\n\n" td.td_mod td.td_name s
+  | None ->
+      fprintf oc "extern value camlidl_c2ml_%s_%s(%s *);\n\n"
+                 td.td_mod td.td_name td.td_name
+  end
+
 (* Translation function from the ML type to the C type *)
 
 let transl_ml_to_c oc td =
@@ -49,7 +60,7 @@ let transl_ml_to_c oc td =
   let v = new_var "_v" in
   let c = new_var "_c" in
   fprintf oc "void camlidl_ml2c_%s_%s(value %s, %s * %s, camlidl_arena * _arena)\n"
-             !module_name td.td_name v td.td_name c;
+             td.td_mod td.td_name v td.td_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
   if td.td_abstract then begin
@@ -69,7 +80,7 @@ let transl_c_to_ml oc td =
   let v = new_ml_variable() in
   let c = new_var "_c" in
   fprintf oc "value camlidl_c2ml_%s_%s(%s * %s)\n"
-             !module_name td.td_name td.td_name c;
+             td.td_mod td.td_name td.td_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
   if td.td_abstract then begin
@@ -91,13 +102,13 @@ let transl_c_to_ml oc td =
 let emit_transl oc td =
   begin match td.td_ml2c with
     Some s ->
-      fprintf oc "#define camlidl_ml2c_%s_%s %s\n\n" !module_name td.td_name s
+      fprintf oc "#define camlidl_ml2c_%s_%s %s\n\n" td.td_mod td.td_name s
   | None ->
       transl_ml_to_c oc td
   end;
   begin match td.td_c2ml with
     Some s ->
-      fprintf oc "#define camlidl_c2ml_%s_%s %s\n\n" !module_name td.td_name s
+      fprintf oc "#define camlidl_c2ml_%s_%s %s\n\n" td.td_mod td.td_name s
   | None ->
       transl_c_to_ml oc td
   end

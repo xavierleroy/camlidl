@@ -4,6 +4,7 @@ open Idltypes
 
 type type_decl =
   { td_name: string;
+    td_mod: string;
     td_type: idltype;
     td_abstract: bool;
     td_c2ml: string option;
@@ -14,6 +15,6 @@ type type_decl =
 
 val ml_declaration: out_channel -> type_decl -> unit
 val emit_transl: out_channel -> type_decl -> unit
+val declare_transl: out_channel -> type_decl -> unit
 
-val find: string -> type_decl
-val record: type_decl -> unit
+val find: (string -> type_decl) ref

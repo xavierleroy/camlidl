@@ -33,13 +33,13 @@ let ml_declaration oc ud =
       fprintf oc "  | %a of %a\n" out_constr lbl out_ml_type f.field_typ in
   List.iter emit_case ud.ud_cases
 
-(* Forward declaration of the translation functions *)
+(* External (forward) declaration of the translation functions *)
 
 let declare_transl oc ud =
-  fprintf oc "int camlidl_ml2c_%s_union_%s(value, union %s *, camlidl_arena * _arena);\n"
-             !module_name ud.ud_name ud.ud_name;
-  fprintf oc "value camlidl_c2ml_%s_union_%s(int, union %s *);\n\n"
-             !module_name ud.ud_name ud.ud_name
+  fprintf oc "extern int camlidl_ml2c_%s_union_%s(value, union %s *, camlidl_arena * _arena);\n"
+             ud.ud_mod ud.ud_name ud.ud_name;
+  fprintf oc "extern value camlidl_c2ml_%s_union_%s(int, union %s *);\n\n"
+             ud.ud_mod ud.ud_name ud.ud_name
 
 (* Translation function from an ML datatype to a C union *)
 
@@ -48,7 +48,7 @@ let transl_ml_to_c oc ud =
   let v = new_var "_v" in
   let c = new_var "_c" in
   fprintf oc "int camlidl_ml2c_%s_union_%s(value %s, union %s * %s, camlidl_arena * _arena)\n"
-             !module_name ud.ud_name v ud.ud_name c;
+             ud.ud_mod ud.ud_name v ud.ud_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
   let discr = new_c_variable (Type_int Int) in
@@ -67,7 +67,7 @@ let transl_c_to_ml oc ud =
   let discr = new_var "_discr" in
   let c = new_var "_c" in
   fprintf oc "value camlidl_c2ml_%s_union_%s(int %s, union %s * %s)\n"
-             !module_name ud.ud_name discr ud.ud_name c;
+             ud.ud_mod ud.ud_name discr ud.ud_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
   let v = new_ml_variable() in

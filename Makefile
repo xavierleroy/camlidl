@@ -61,6 +61,6 @@ clean::
 # Dependencies
 depend: beforedepend
 	$(OCAMLDEP) $(INCLUDES) *.mli *.ml > .depend
-	$(CC) $(CFLAGS) -MM *c >> .depend
+	$(CC) $(CFLAGS) -MM *.c >> .depend
 
 include .depend

@@ -1,5 +1,7 @@
 (* Run-time library for COM components *)
 
+type 'a opaque
+
 type 'a interface
 
 type 'a iid

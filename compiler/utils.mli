@@ -17,3 +17,6 @@ val list_filter : ('a -> bool) -> 'a list -> 'a list
 val list_partition : ('a -> bool) -> 'a list -> 'a list * 'a list
 val map_index : (int -> 'a -> 'b) -> int -> 'a list -> 'b list
 val iter_index : (int -> 'a -> unit) -> int -> 'a list -> unit
+
+val search_path : string list ref
+val find_in_path : string -> string

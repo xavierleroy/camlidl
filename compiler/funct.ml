@@ -13,6 +13,7 @@ type in_out =
 
 type function_decl =
   { fun_name: string;
+    fun_mod: string;
     fun_res: idltype;
     fun_params: (string * in_out * idltype) list;
     fun_call: string option }
@@ -63,7 +64,7 @@ let rec split_in_out = function
 (* Determine if a typedef represents an error code *)
 
 let rec is_errorcode = function
-    Type_named s -> (Typedef.find s).td_errorcode
+    Type_named(modl, name) -> (!Typedef.find name).td_errorcode
   | Type_pointer(kind, ty) -> is_errorcode ty
   | _ -> false
 
@@ -92,9 +93,11 @@ let ml_declaration oc fundecl =
   fprintf oc " -> ";
   out_ml_types oc "*" outs;
   if List.length ins <= 5
-  then fprintf oc "\n\t= \"camlidl_%s_%s\"\n\n" !module_name fundecl.fun_name
+  then fprintf oc "\n\t= \"camlidl_%s_%s\"\n\n" 
+                  fundecl.fun_mod fundecl.fun_name
   else fprintf oc "\n\t= \"camlidl_%s_%s_bytecode\" \"camlidl_%s_%s\"\n\n"
-                  !module_name fundecl.fun_name !module_name fundecl.fun_name
+                  fundecl.fun_mod fundecl.fun_name
+                  fundecl.fun_mod fundecl.fun_name
 
 (* Print a warm fuzzy in/out comment *)
 
@@ -116,8 +119,8 @@ let output_deallocate before after =
 
 let rec call_error_check oc name ty =
   match ty with
-    Type_named s ->
-      begin match Typedef.find s with
+    Type_named(modl, name) ->
+      begin match !Typedef.find name with
         {td_errorcheck = Some fn} -> iprintf oc "%s(%s);\n" fn name
       | _ -> ()
       end
@@ -130,7 +133,7 @@ let rec call_error_check oc name ty =
 let emit_function oc fundecl ins outs locals emit_call =
   need_deallocation := false;
   (* Emit function header *)
-  fprintf oc "value camlidl_%s_%s(" !module_name fundecl.fun_name;
+  fprintf oc "value camlidl_%s_%s(" fundecl.fun_mod fundecl.fun_name;
   begin match ins with
     [] ->
       fprintf oc "value _unit)\n"
@@ -220,9 +223,9 @@ let emit_function oc fundecl ins outs locals emit_call =
      interface *)
   if List.length ins > 5 then begin
     fprintf oc "value camlidl_%s_%s_bytecode(value * argv, int argn)\n"
-               !module_name fundecl.fun_name;
+               fundecl.fun_mod fundecl.fun_name;
     fprintf oc "{\n";
-    fprintf oc "  camlidl_%s_%s(argv[0]" !module_name fundecl.fun_name;
+    fprintf oc "  camlidl_%s_%s(argv[0]" fundecl.fun_mod fundecl.fun_name;
     for i = 1 to List.length ins - 1 do
       fprintf oc ", argv[%d]" i
     done;
@@ -281,9 +284,10 @@ let emit_method_wrapper oc intf_name meth =
     {meth with fun_name = sprintf "%s_%s" intf_name meth.fun_name} in
   let (ins1, outs) = ml_view fundecl in
   (* Add an ML parameter and a C local for "this" *)
-  let intf_type = Type_pointer(Ignore, Type_interface intf_name) in
+  let intf_type = Type_pointer(Ignore, Type_interface("", intf_name)) in
   let ins = ("this", intf_type) :: ins1 in
   let locals = ("this", In, intf_type) :: fundecl.fun_params in
   emit_function oc fundecl ins outs locals
                    (emit_method_call intf_name meth.fun_name);
   current_function := ""
+
