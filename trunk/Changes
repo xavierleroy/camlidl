@@ -1,3 +1,16 @@
+CamlIDL 1.05:
+-------------
+
+* Update to the new representation of objects introduced in OCaml 3.08.
+* Fixed compiler failure with bigarrays of "const" elements.
+* Fixed bug in conversion from C's signed char to Caml's char type.
+* Function declarations support the [mlname] attribute (to set the
+  Caml name of the function) and the [blocking] attribute (for long-running
+  C functions).
+* Fixed cpp preprocessing problem on MacOS X 10.2 and later.
+* Fixed bug in conversion from a struct of floats to a Caml record of floats.
+* Fixed incorrect initialization of DLL generated for a COM component.
+
 CamlIDL 1.04:
 -------------
 
