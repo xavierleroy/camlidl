@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: struct.ml,v 1.11 2000-08-19 11:04:58 xleroy Exp $ *)
+(* $Id: struct.ml,v 1.12 2001-06-09 14:48:20 xleroy Exp $ *)
 
 (* Handling of structures *)
 
@@ -38,10 +38,10 @@ let remove_dependent_fields fields =
 (* Determine if all fields of a struct are floats *)
 
 let rec is_float_field f =
-  match f.field_typ with
+  match scrape_type f.field_typ with
     Type_float -> true
   | Type_double -> true
-  | _ -> false (* FIXME: typedef double foo *)
+  | _ -> false
 
 let all_float_fields fl =
   List.for_all is_float_field fl
