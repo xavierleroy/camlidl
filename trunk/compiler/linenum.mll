@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: linenum.mll,v 1.3 1999-02-19 14:33:33 xleroy Exp $ *)
+(* $Id: linenum.mll,v 1.4 1999-03-09 16:27:02 xleroy Exp $ *)
 
 (***********************************************************************)
 (*                                                                     *)
@@ -22,7 +22,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: linenum.mll,v 1.3 1999-02-19 14:33:33 xleroy Exp $ *)
+(* $Id: linenum.mll,v 1.4 1999-03-09 16:27:02 xleroy Exp $ *)
 
 (* An auxiliary lexer for determining the line number corresponding to
    a file position, honoring the directives # linenum "filename" *)
@@ -39,20 +39,20 @@ let parse_sharp_line s =
     while let c = s.[!l1] in c < '0' || c > '9' do incr l1 done;
     let l2 = ref (!l1 + 1) in
     while let c = s.[!l2] in c >= '0' && c <= '9' do incr l2 done;
-    let f1 = ref (!l2 + 1) in
-    while s.[!f1] <> '"' do incr f1 done;
-    let f2 = ref (!f1 + 1) in 
-    while s.[!f2] <> '"' do incr f2 done;
     linenum := int_of_string(String.sub s !l1 (!l2 - !l1));
-    filename := String.sub s (!f1 + 1) (!f2 - !f1 - 1)
+    let f1 = ref (!l2 + 1) in
+    while !f1 < String.length s && s.[!f1] <> '"' do incr f1 done;
+    let f2 = ref (!f1 + 1) in 
+    while !f2 < String.length s && s.[!f2] <> '"' do incr f2 done;
+    if !f1 < String.length s then
+      filename := String.sub s (!f1 + 1) (!f2 - !f1 - 1)
   with Failure _ | Invalid_argument _ ->
     assert false
 }
 
 rule skip_line = parse
-    "#" ("line")? [' ' '\t']*
-    ['0'-'9']+ [' ' '\t']*
-    "\"" [^ '\n' '\r' '"' (* '"' *) ] * "\""
+    "#" ("line")? [' ' '\t']* ['0'-'9']+ [' ' '\t']*
+    ("\"" [^ '\n' '\r' '"' (* '"' *) ] * "\"")?
     [^ '\n' '\r'] *
     ('\n' | '\r' | "\r\n")
       { parse_sharp_line(Lexing.lexeme lexbuf);

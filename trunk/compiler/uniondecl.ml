@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: uniondecl.ml,v 1.12 1999-02-22 09:59:56 xleroy Exp $ *)
+(* $Id: uniondecl.ml,v 1.13 1999-03-09 16:27:02 xleroy Exp $ *)
 
 (* Handling of union declarations *)
 
@@ -54,10 +54,9 @@ let ml_declaration oc ud =
 (* Convert an IDL union declaration to a C union declaration *)
 
 let c_declaration oc ud =
-  out_union oc ud; fprintf oc ";\n\n"
-
-let c_forward_declaration oc ud =
-  if ud.ud_name <> "" then fprintf oc "union %s;\n" ud.ud_name
+  if ud.ud_cases = []
+  then fprintf oc "union %s;\n" ud.ud_name
+  else begin out_union oc ud; fprintf oc ";\n\n" end
 
 (* External (forward) declaration of the translation functions *)
 
