@@ -28,31 +28,28 @@ let is_dependent_field name fields =
     fields
 
 let is_ignored =
-  function Type_pointer({ignore=true}, _) -> true | _ -> false
+  function Type_pointer(Ignore, _) -> true | _ -> false
 
 let remove_dependent_fields fields =
-  let rec remove = function
-    [] -> []
-  | field :: rem ->
-      if is_dependent_field field.field_name fields
-      || is_ignored field.field_typ
-      then remove rem
-      else field :: remove rem
-  in remove fields
+  list_filter
+    (fun f ->
+       not (is_dependent_field f.field_name fields || is_ignored f.field_typ))
+    fields
 
 (* Convert an IDL struct declaration to an ML record declaration *)
 
-let declare_ml_record oc sd =
-  fprintf oc "struct_%s = {\n" sd.sd_name;
+let ml_declaration oc sd =
+  fprintf oc "struct_%s = {\n" (String.uncapitalize sd.sd_name);
   List.iter
     (fun f ->
-      fprintf oc "  %s: %a; \n" f.field_name out_ml_type f.field_typ)
+      fprintf oc "  %s: %a; \n"
+              (String.uncapitalize f.field_name) out_ml_type f.field_typ)
     (remove_dependent_fields sd.sd_fields);
   fprintf oc "}\n"
 
 (* Forward declaration of the translation functions *)
 
-let declare_struct_transl oc sd =
+let declare_transl oc sd =
   fprintf oc "void _camlidl_ml2c_%s_struct_%s(value, struct %s *);\n"
              !module_name sd.sd_name sd.sd_name;
   fprintf oc "value _camlidl_c2ml_%s_struct_%s(struct %s *);\n\n"
@@ -70,7 +67,7 @@ let struct_ml_to_c oc sd =
   let pc = divert_output() in
   let rec convert_fields pos = function
     [] -> ()
-  | {field_typ = Type_pointer({ignore=true}, _); field_name = n} :: rem ->
+  | {field_typ = Type_pointer(Ignore, _); field_name = n} :: rem ->
       iprintf pc "%s->%s = NULL;\n" c n;
       convert_fields pos rem
   | {field_name = n} :: rem when is_dependent_field n sd.sd_fields ->
@@ -98,7 +95,7 @@ let struct_c_to_ml oc sd =
   let pc = divert_output() in
   let rec convert_fields pos = function
     [] -> pos
-  | {field_typ = Type_pointer({ignore=true}, _); field_name = n} :: rem ->
+  | {field_typ = Type_pointer(Ignore, _); field_name = n} :: rem ->
       convert_fields pos rem
   | {field_name = n} :: rem when is_dependent_field n sd.sd_fields ->
       convert_fields pos rem
@@ -114,6 +111,14 @@ let struct_c_to_ml oc sd =
   end_diversion oc;
   fprintf oc "  _vresult = alloc_small(%d, 0);\n" nfields;
   copy_values_to_block oc "_vres" "_vresult" nfields;
+  fprintf oc "  End_roots()\n";
   fprintf oc "  return _vresult;\n";
   fprintf oc "}\n\n";
   current_function := ""
+
+(* Emit the translation functions *)
+
+let emit_transl oc sd =
+  struct_ml_to_c oc sd;
+  struct_c_to_ml oc sd
+

@@ -2,6 +2,6 @@
 
 open Idltypes
 
-val declare_ml_function : out_channel -> function_decl -> unit
+val ml_declaration : out_channel -> function_decl -> unit
 
-val function_wrapper : out_channel -> function_decl -> unit
+val emit_wrapper : out_channel -> function_decl -> unit

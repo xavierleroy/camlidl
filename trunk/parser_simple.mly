@@ -11,7 +11,7 @@ let no_bounds = { bound = None; size = None; length = None; is_string = false }
 
 let one_bound n = { no_bounds with bound = Some n }
 
-let no_ptrattr = { ptrkind = Ref; ignore = false }
+let no_ptrattr = Ref
 
 let no_switch = null_attr_var
 
@@ -31,13 +31,13 @@ let rec merge_array_attr merge_fun rexps ty =
 let apply_type_attribute ty attr =
   match (attr, ty) with
     (("ref", _), Type_pointer(attr, ty_elt)) ->
-      Type_pointer({attr with ptrkind = Ref}, ty_elt)
+      Type_pointer(Ref, ty_elt)
   | (("unique", _), Type_pointer(attr, ty_elt)) ->
-      Type_pointer({attr with ptrkind = Unique}, ty_elt)
+      Type_pointer(Unique, ty_elt)
   | (("ptr", _), Type_pointer(attr, ty_elt)) ->
-      Type_pointer({attr with ptrkind = Ptr}, ty_elt)
+      Type_pointer(Ptr, ty_elt)
   | (("ignore", _), Type_pointer(attr, ty_elt)) ->
-      Type_pointer({attr with ignore = true}, ty_elt)
+      Type_pointer(Ignore, ty_elt)
   | (("string", _), Type_array(attr, (Type_int(Char|UChar|Byte) as ty_elt))) ->
       Type_array({attr with is_string = true}, ty_elt)
   | (("string", _), Type_pointer(attr, (Type_int(Char|UChar|Byte) as ty_elt))) ->
@@ -50,6 +50,8 @@ let apply_type_attribute ty attr =
                        rexps ty
   | (("switch_is", [rexp]), Type_union(name, discr)) ->
       Type_union(name, rexp)
+  | (("switch_is", [rexp]), Type_pointer(attr, Type_union(name, discr))) ->
+      Type_pointer(attr, Type_union(name, rexp))
   | ((name, _), _) ->
       eprintf
         "Warning: attribute `%s' unknown or not applicable here, ignored.\n"
@@ -92,11 +94,22 @@ let make_fields attrs tybase decls =
       { field_name = name; field_typ = apply_type_attributes ty attrs })
     decls
 
+let make_field attrs tybase decl =
+  let (name, ty) = decl tybase in
+  { field_name = name; field_typ = apply_type_attributes ty attrs }
+
 let make_typedef attrs tybase decls =
+  let rec merge_attributes ty abstract = function
+    [] -> (ty, abstract)
+  | ("abstract", _) :: rem ->
+      merge_attributes ty true rem
+  | attr :: rem ->
+      merge_attributes (apply_type_attribute ty attr) abstract rem in
   List.map
     (fun decl ->
       let (name, ty) = decl tybase in
-      {td_name = name; td_type = apply_type_attributes ty attrs})
+      let (ty', abstract) = merge_attributes ty false attrs in
+      {td_name = name; td_type = ty'; td_abstract = abstract})
     decls
 
 (* Apply an "unsigned" modifier to an integer type *)
@@ -136,6 +149,7 @@ let add_comp c = extra_components := c :: !extra_components
 %token COLON
 %token COMMA
 %token DEFAULT
+%token <string> DIVERSION
 %token DOT
 %token DOUBLE
 %token ENUM
@@ -197,13 +211,20 @@ let add_comp c = extra_components := c :: !extra_components
 /* Start symbol */
 
 %start file
-%type <Idltypes.interface_component list> file
+%type <string * Idltypes.interface> file
 
 %%
 
 /* Main entry point */
 
-file: interface_components EOF  { List.rev ($1 @ !extra_components) }
+file: opt_diversion interface_components EOF
+                              { ($1, List.rev ($2 @ !extra_components)) }
+;
+
+/* Initial C text */
+opt_diversion:
+    DIVERSION                                   { $1 }
+  | /*empty*/                                   { "" }
 ;
 
 /* Components */
@@ -291,9 +312,9 @@ union_body:
 ;
 union_case:
     case_list opt_field_declarator SEMI
-                        { {case_labels = List.rev $1; case_fields = $2} }
+                        { {case_labels = List.rev $1; case_field = $2} }
   | DEFAULT COLON opt_field_declarator SEMI
-                        { {case_labels = []; case_fields = $3} }
+                        { {case_labels = []; case_field = $3} }
 ;
 case_list:
     case_label                                          { [$1] }
@@ -303,8 +324,8 @@ case_label:
     CASE IDENT COLON                                    { $2 }
 ;
 opt_field_declarator:
-    /* empty */                                         { [] }
-  | field_declarator                                    { $1 }
+    /* empty */                                  { None }
+  | attributes type_spec declarator              { Some(make_field $1 $2 $3) }
 ;
 
 /* Enumerated types */
@@ -399,5 +420,5 @@ param_declarator:
 opt_ident:
     IDENT                       { $1 }
   | /*empty*/                   { incr anonymous_decl_counter;
-                                  string_of_int !anonymous_decl_counter }
+                                  "_" ^ string_of_int !anonymous_decl_counter }
 ;

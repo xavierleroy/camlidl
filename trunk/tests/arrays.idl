@@ -1,3 +1,7 @@
+%{
+#include <stdio.h>
+%}
+
 /* Strings */
 
 [string] char * str1([in,string] unsigned char * s);

@@ -85,7 +85,7 @@ rule token = parse
       { token lexbuf }
   | "/*"
       { comment lexbuf }
-  | "//" _ * '\n'
+  | "//" [ ^ '\n' ] * '\n'
       { token lexbuf }
   | identstart identchar *
       { let s = Lexing.lexeme lexbuf in
@@ -107,6 +107,10 @@ rule token = parse
       { CHARACTER(char_for_backslash (Lexing.lexeme_char lexbuf 2)) }
   | "'" '\\' ['0'-'3'] ['0'-'7']? ['0'-'7']? "'"
       { CHARACTER(char_for_code lexbuf 2 1) }
+  | "%{"
+      { reset_string_buffer();
+        diversion lexbuf;
+        DIVERSION(get_stored_string()) }
   | "#" [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] *
     ('\n' | '\r' | "\r\n")
       (* # linenum "filename" flags \n *)
@@ -168,3 +172,12 @@ and string = parse
   | _
       { store_string_char(Lexing.lexeme_char lexbuf 0);
         string lexbuf }
+
+and diversion = parse
+    "%}"
+      { () }
+  | eof
+      { error "Unterminated %{ section" }
+  | _
+      { store_string_char(Lexing.lexeme_char lexbuf 0);
+        diversion lexbuf }

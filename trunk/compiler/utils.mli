@@ -13,3 +13,6 @@ val current_function : string ref
 val error : string -> 'a
 exception Error
 
+val list_filter : ('a -> bool) -> 'a list -> 'a list
+val list_partition : ('a -> bool) -> 'a list -> 'a list * 'a list
+val map_index : (int -> 'a -> 'b) -> int -> 'a list -> 'b list

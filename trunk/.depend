@@ -1,5 +1,6 @@
 cvttyp.cmi: idltypes.cmi 
 cvtval.cmi: idltypes.cmi 
+enum.cmi: idltypes.cmi 
 funct.cmi: idltypes.cmi 
 intfgen.cmi: idltypes.cmi 
 lexer_simple.cmi: parser_simple.cmi 
@@ -7,6 +8,7 @@ parser_simple.cmi: idltypes.cmi
 struct.cmi: idltypes.cmi 
 stubgen.cmi: idltypes.cmi 
 typedef.cmi: idltypes.cmi 
+union.cmi: idltypes.cmi 
 variables.cmi: idltypes.cmi 
 all.cmo: idltypes.cmi 
 all.cmx: idltypes.cmi 
@@ -14,14 +16,16 @@ cvttyp.cmo: idltypes.cmi cvttyp.cmi
 cvttyp.cmx: idltypes.cmi cvttyp.cmi 
 cvtval.cmo: cvttyp.cmi idltypes.cmi utils.cmi variables.cmi cvtval.cmi 
 cvtval.cmx: cvttyp.cmx idltypes.cmi utils.cmx variables.cmx cvtval.cmi 
+enum.cmo: idltypes.cmi utils.cmi variables.cmi enum.cmi 
+enum.cmx: idltypes.cmi utils.cmx variables.cmx enum.cmi 
 funct.cmo: cvttyp.cmi cvtval.cmi idltypes.cmi utils.cmi variables.cmi \
     funct.cmi 
 funct.cmx: cvttyp.cmx cvtval.cmx idltypes.cmi utils.cmx variables.cmx \
     funct.cmi 
-intfgen.cmo: funct.cmi idltypes.cmi struct.cmi typedef.cmi utils.cmi \
-    intfgen.cmi 
-intfgen.cmx: funct.cmx idltypes.cmi struct.cmx typedef.cmx utils.cmx \
-    intfgen.cmi 
+intfgen.cmo: enum.cmi funct.cmi idltypes.cmi struct.cmi typedef.cmi union.cmi \
+    utils.cmi intfgen.cmi 
+intfgen.cmx: enum.cmx funct.cmx idltypes.cmi struct.cmx typedef.cmx union.cmx \
+    utils.cmx intfgen.cmi 
 lexer_simple.cmo: parser_simple.cmi utils.cmi lexer_simple.cmi 
 lexer_simple.cmx: parser_simple.cmx utils.cmx lexer_simple.cmi 
 main.cmo: idltypes.cmi intfgen.cmi lexer_simple.cmi parser_simple.cmi \
@@ -34,14 +38,18 @@ struct.cmo: cvttyp.cmi cvtval.cmi idltypes.cmi utils.cmi variables.cmi \
     struct.cmi 
 struct.cmx: cvttyp.cmx cvtval.cmx idltypes.cmi utils.cmx variables.cmx \
     struct.cmi 
-stubgen.cmo: funct.cmi idltypes.cmi struct.cmi typedef.cmi utils.cmi \
-    stubgen.cmi 
-stubgen.cmx: funct.cmx idltypes.cmi struct.cmx typedef.cmx utils.cmx \
-    stubgen.cmi 
+stubgen.cmo: enum.cmi funct.cmi idltypes.cmi struct.cmi typedef.cmi union.cmi \
+    utils.cmi stubgen.cmi 
+stubgen.cmx: enum.cmx funct.cmx idltypes.cmi struct.cmx typedef.cmx union.cmx \
+    utils.cmx stubgen.cmi 
 typedef.cmo: cvttyp.cmi cvtval.cmi idltypes.cmi utils.cmi variables.cmi \
     typedef.cmi 
 typedef.cmx: cvttyp.cmx cvtval.cmx idltypes.cmi utils.cmx variables.cmx \
     typedef.cmi 
+union.cmo: cvttyp.cmi cvtval.cmi idltypes.cmi utils.cmi variables.cmi \
+    union.cmi 
+union.cmx: cvttyp.cmx cvtval.cmx idltypes.cmi utils.cmx variables.cmx \
+    union.cmi 
 utils.cmo: utils.cmi 
 utils.cmx: utils.cmi 
 variables.cmo: cvttyp.cmi idltypes.cmi utils.cmi variables.cmi 

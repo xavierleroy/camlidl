@@ -1,0 +1,175 @@
+/* Parts of the Unix library */
+
+%{
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <fcntl.h>
+
+/* Wrapping of return code for wait */
+
+union process_status { int code; };
+
+enum { WEXITED, WSIGNALED, WSTOPPED };
+
+static void decode_status(int status, int * kind, union process_status * p)
+{
+  if (WIFEXITED(status)) {
+    *kind = WEXITED; p->code = WEXITSTATUS(status);
+  } else if (WIFSIGNALED(status)) {
+    *kind = WSIGNALED; p->code = WTERMSIG(status);
+  } else {
+    *kind = WSTOPPED; p->code = WSTOPSIG(status);
+  }
+}
+
+int wrapped_wait(int * kind, union process_status * p)
+{
+  int status;
+  pid_t ret;
+  ret = wait(&status);
+  if (ret != -1) decode_status(status, kind, p);
+  return ret;
+}
+
+void wrapped_system(char * cmd, int * kind, union process_status * p)
+{
+  int ret = system(cmd);
+  decode_status(ret, kind, p);
+}
+
+int read2(int fd, int len, int * rd, char * buf)
+{
+  int retcode = read(fd, buf, len);
+  if (retcode != -1) { *rd = retcode; retcode = 0; }
+  return retcode;
+}
+
+typedef DIR * dir_handle;
+typedef struct dirent dirent;
+typedef fd_set * file_descr_set;
+
+#define openfile open
+
+%}
+
+/* char ** environment(void)  // fails because of null-terminated array */
+
+[string] char * getenv([in,string] char * varname);
+
+void putenv([in,string] char * name_val);
+
+/* execv, etc  no null-terminated array */
+
+int fork(void);
+
+union process_status {
+  case WEXITED: int code;
+  case WSIGNALED: int code;
+  case WSTOPPED: int code;
+};
+
+int wrapped_wait([out] int * kind,
+                 [out,switch_is(*kind)] union process_status * p);
+void wrapped_system([in,string] char * cmd,
+                    [out] int * kind,
+                    [out,switch_is(*kind)] union process_status * p);
+
+int getpid(void);
+int getppid(void);
+int nice(int pid);
+
+/* open  no conversion between lists of flags and int */
+/* the best we can do is */
+int openfile([in,string] char * name, [in] int flags, [in] int perms);
+int close([in] int fd);
+
+/* read in place */
+int read([in] int fd, [in,string,size_is(len)] char * buf, [in] int len);
+
+/* read with copy */
+/* needs work to pre-allocate output array? */
+int read2([in] int fd, [in] int len, [out] int *rd, [out,string,size_is(len),length_is(*rd)] char * buf);
+
+/* write */
+int write([in] int fd, [in,string,size_is(len)] char * buf, [in] int len);
+
+/* seeking */
+enum seek_command { SEEK_SET, SEEK_CUR, SEEK_END };
+
+int lseek(int fd, int ofs, enum seek_command cmd);
+
+int truncate([string] char * filename, int size);
+
+int ftruncate(int fd, int size);
+
+/* stats */
+/* Note: the types given are not the C representation types, */
+/* but just the conversion types.  So it's OK to say st_dev is an int */
+/* even if actually it's a short.  We can even claim that st_?time */
+/* are doubles while actually they are integers! */
+struct stat {
+  int st_dev, st_ino;
+  int st_mode;
+  int st_nlink;
+  int st_uid, st_gid;
+  int st_rdev;
+  int st_size;
+  long st_blksize, st_blocks;
+  double st_atime, st_mtime, st_ctime;
+};
+
+int stat([string] char * filename, [out] struct stat * st);
+int lstat([string] char * filename, [out] struct stat * st);
+int fstat(int fd, [out] struct stat * st);
+
+/* Operations on file names */
+
+int unlink([string] char * filename);
+int rename([string] char * filename, [string] char * newname);
+int link([string] char * filename, [string] char * newname);
+
+/* Directories */
+
+typedef [abstract] DIR * dir_handle;
+
+/* problem: error detection? combine ptr and unique? */
+dir_handle opendir([string] char * filename);
+
+typedef struct {
+  [string] char d_name[];   // NAME_MAX in fact
+} dirent;
+
+[unique] dirent * readdir(dir_handle d);
+
+void rewinddir(dir_handle d);
+void closedir(dir_handle d);
+
+/* pipes */
+
+int pipe([out] int fds[2]);
+
+/* select */
+
+typedef [abstract] fd_set * file_descr_set;
+
+void FD_ZERO(file_descr_set s);
+void FD_SET(int fd, file_descr_set s);
+void FD_CLR(int fd, file_descr_set s);
+boolean FD_ISSET(int fd, file_descr_set s);
+
+struct timeval {
+  int tv_sec;
+  int tv_usec;
+};
+
+int select(int n,
+           file_descr_set read,
+           file_descr_set write,
+           file_descr_set except,
+           [unique] struct timeval * timeout);
+

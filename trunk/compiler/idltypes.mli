@@ -7,11 +7,7 @@ type integer_kind =
   | UInt | ULong | USmall | UShort | UChar
   | Byte | Boolean
 
-type pointer_kind = Ref | Unique | Ptr
-
-type pointer_attributes =
-  { ptrkind: pointer_kind;
-    ignore: bool }
+type pointer_kind = Ref | Unique | Ptr | Ignore
 
 type array_attributes =
   { bound: int option;
@@ -24,7 +20,7 @@ type idltype =
   | Type_float
   | Type_double
   | Type_void
-  | Type_pointer of pointer_attributes * idltype
+  | Type_pointer of pointer_kind * idltype
   | Type_array of array_attributes * idltype
   | Type_struct of string
   | Type_union of string * restricted_expr
@@ -41,7 +37,7 @@ type function_decl =
 
 type field = { field_name: string; field_typ: idltype }
 
-type union_case = { case_labels: string list; case_fields: field list }
+type union_case = { case_labels: string list; case_field: field option }
 
 type struct_decl = { sd_name: string; sd_fields: field list }
 
@@ -49,7 +45,7 @@ type union_decl = { ud_name: string; ud_cases: union_case list }
 
 type enum_decl = { en_name: string; en_consts: string list }
 
-type type_decl = { td_name: string; td_type: idltype }
+type type_decl = { td_name: string; td_type: idltype; td_abstract: bool }
 
 type interface_component =
     Comp_typedecl of type_decl list

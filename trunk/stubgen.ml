@@ -1,34 +1,38 @@
 (* Generate the C stub file *)
 
+open Printf
 open Utils
 open Idltypes
-open Typedef
-open Struct
-open Funct
 
-let gen_c_stub oc intf =
+let gen_c_stub oc incl intf =
+  (* Output the header *)
+  fprintf oc "/* File generated from %s.idl */\n\n" !module_name;
+  output_string oc "\
+    #include <stddef.h>\n\
+    #include <caml/mlvalues.h>\n\
+    #include <caml/memory.h>\n\
+    #include <caml/alloc.h>\n\
+    #include <caml/fail.h>\n\n";
+  output_string oc incl;
   (* Generate forward declarations for all conversion functions *)
   List.iter
-    (function Comp_typedecl tdl -> List.iter (declare_typedef_transl oc) tdl
-            | Comp_structdecl sd -> declare_struct_transl oc sd
-            | Comp_fundecl fd -> ()
-            | _ -> assert false)
+    (function Comp_typedecl tdl -> List.iter (Typedef.declare_transl oc) tdl
+            | Comp_structdecl sd -> Struct.declare_transl oc sd
+            | Comp_uniondecl ud -> Union.declare_transl oc ud
+            | Comp_enumdecl en -> Enum.declare_transl oc en
+            | Comp_fundecl fd -> ())
     intf;
   (* Generate conversion functions for named types *)
   List.iter
-    (function Comp_typedecl tdl ->
-                List.iter
-                  (fun td -> typedef_ml_to_c oc td; typedef_c_to_ml oc td)
-                  tdl
-            | Comp_structdecl sd ->
-                struct_ml_to_c oc sd;
-                struct_c_to_ml oc sd
-            | Comp_fundecl fd -> ()
-            | _ -> assert false)
+    (function Comp_typedecl tdl -> List.iter (Typedef.emit_transl oc) tdl
+            | Comp_structdecl sd -> Struct.emit_transl oc sd
+            | Comp_uniondecl ud -> Union.emit_transl oc ud
+            | Comp_enumdecl en -> Enum.emit_transl oc en
+            | Comp_fundecl fd -> ())
     intf;
   (* Generate stub code for functions *)
   List.iter
-    (function Comp_fundecl fd -> function_wrapper oc fd
+    (function Comp_fundecl fd -> Funct.emit_wrapper oc fd
             | _ -> ())
     intf
 

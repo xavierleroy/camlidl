@@ -46,18 +46,21 @@ let out_c_type oc ty = out_c_decl oc ("", ty)
 
 let rec out_ml_type oc ty =
   match ty with
-    Type_int kind -> output_string oc "int"
+    Type_int Boolean -> output_string oc "bool"
+  | Type_int (Char | UChar) -> output_string oc "char"
+  | Type_int kind -> output_string oc "int"
   | Type_float | Type_double -> output_string oc "float"
   | Type_void -> output_string oc "void"
   | Type_struct s -> fprintf oc "struct_%s" s
   | Type_union(s, discr) -> fprintf oc "union_%s" s
   | Type_enum s -> fprintf oc "enum_%s" s
   | Type_named s -> output_string oc s
-  | Type_pointer(attr, ty) ->
-      begin match attr.ptrkind with
+  | Type_pointer(kind, ty) ->
+      begin match kind with
         Ref -> out_ml_type oc ty
       | Unique -> fprintf oc "%a option" out_ml_type ty
       | Ptr -> fprintf oc "%a opaque" out_ml_type ty
+      | Ignore -> assert false
       end
   | Type_array(attr, ty) ->
       if attr.is_string
