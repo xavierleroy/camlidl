@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: struct.ml,v 1.14 2002-01-16 09:42:03 xleroy Exp $ *)
+(* $Id: struct.ml,v 1.15 2004-07-08 09:55:09 xleroy Exp $ *)
 
 (* Handling of structures *)
 
@@ -101,7 +101,8 @@ let struct_c_to_ml c_to_ml oc pref sd c v =
         let rec convert_fields pos = function
           [] -> ()
         | f :: rem ->
-            iprintf oc "Store_double_val(%s, %s.%s);\n" v c f.field_name;
+            iprintf oc "Store_double_field(%s, %d, %s.%s);\n" 
+                    v pos c f.field_name;
             convert_fields (pos + 1) rem in
         convert_fields 0 sd.sd_fields
       end else begin
