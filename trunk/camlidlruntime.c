@@ -113,6 +113,7 @@ value camlidl_lookup_method(char * name)
 interface IUnknown;
 
 struct IUnknownVtbl {
+  DECLARE_VTBL_PADDING
   HRESULT (*QueryInterface)(interface IUnknown * this,
                             IID * iid, void ** object);
   ULONG (*AddRef)(interface IUnknown * this);
@@ -142,14 +143,16 @@ void * camlidl_unpack_interface(value vintf)
   return (void *) Field(vintf, 1);
 }
 
-void camlidl_make_interface(void * vtbl, value caml_object,
-                            struct camlidl_intf * intf, IID * iid)
+value camlidl_make_interface(void * vtbl, value caml_object, IID * iid)
 {
+  struct camlidl_intf * intf =
+    (struct camlidl_intf *) stat_alloc(sizeof(struct camlidl_intf));
   intf->vtbl = vtbl;
   intf->caml_object = caml_object;
   intf->refcount = 1;
   intf->iid = iid;
   register_global_root(&(intf->caml_object));
+  return camlidl_pack_interface(intf);
 }
 
 /* Basic methods (QueryInterface, AddRef, Release) for COM objects
@@ -164,8 +167,8 @@ extern IID IID_IUnknown;
 #define E_NOINTERFACE (-1)
 #endif
 
-HRESULT camlidl_unknwn_IUnknown_QueryInterface_callback
-          (struct camlidl_intf * this, IID * iid, void ** object)
+HRESULT camlidl_QueryInterface(struct camlidl_intf * this, IID * iid,
+                               void ** object)
 {
   if (IsEqualIID(iid, this->iid) || IsEqualIID(this, &IID_IUnknown)) {
     *object = (void *) this;
@@ -177,12 +180,12 @@ HRESULT camlidl_unknwn_IUnknown_QueryInterface_callback
   }
 }
   
-ULONG camlidl_unknwn_IUnknown_AddRef_callback(struct camlidl_intf * this)
+ULONG camlidl_AddRef(struct camlidl_intf * this)
 {
   return InterlockedIncrement(&(this->refcount));
 }
 
-ULONG camlidl_unknwn_IUnknown_Release_callback(struct camlidl_intf * this)
+ULONG camlidl_Release(struct camlidl_intf * this)
 {
   ULONG newrefcount = InterlockedDecrement(&(this->refcount));
   if (newrefcount == 0) {
@@ -190,4 +193,18 @@ ULONG camlidl_unknwn_IUnknown_Release_callback(struct camlidl_intf * this)
     stat_free(this);
   }
   return newrefcount;
+}
+
+/* Query a COM interface */
+
+value camlidl_com_queryInterface(value vintf, value viid)
+{
+  void * res;
+  interface IUnknown * intf =
+    (interface IUnknown *) camlidl_unpack_interface(vintf);
+  if (string_length(viid) != 16) failwith("badly formed IID");
+  if (intf->lpVtbl->QueryInterface(intf, (IID *) String_val(viid),
+                                   &res) != S_OK)
+    failwith("interface not supported");
+  return camlidl_pack_interface(res);
 }

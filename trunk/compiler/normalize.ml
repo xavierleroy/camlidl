@@ -14,9 +14,17 @@ let unions =  (Hashtbl.create 13 : (string, union_decl) Hashtbl.t)
 let enums =   (Hashtbl.create 13 : (string, enum_decl) Hashtbl.t)
 let intfs =   (Hashtbl.create 13 : (string, interface) Hashtbl.t)
 
+let rec iunknown =
+  { intf_name = "IUnknown"; intf_super = iunknown;
+    intf_methods = [];
+    intf_uid = "\000\000\000\000\000\000\000\000\192\000\000\000\000\000\000\070" }
+    (* 00000000-0000-0000-C000-000000000046 *)
+
+let _ = Hashtbl.add intfs "IUnknown" iunknown
+
 module StringSet = Set.Make(struct type t = string let compare = compare end)
 
-let intf_names = ref StringSet.empty
+let intf_names = ref (StringSet.singleton "IUnknown")
 
 let all_type_decls = ref ([] : component list)
 
@@ -156,14 +164,11 @@ let normalize_interface i =
     [] -> i
   | _  ->
       let super =
-        match i.intf_super with
-          None -> None
-        | Some s ->
-            try
-              Some(Hashtbl.find intfs s.intf_name)
-            with Not_found ->
-              error (sprintf "unknown interface %s as super-interface of %s"
-                             s.intf_name i.intf_name) in
+        try
+          Hashtbl.find intfs i.intf_super.intf_name
+        with Not_found ->
+          error (sprintf "unknown interface %s as super-interface of %s"
+                         i.intf_super.intf_name i.intf_name) in
       let methods =
         List.map normalize_fundecl i.intf_methods in
       let i' =

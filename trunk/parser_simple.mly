@@ -151,7 +151,11 @@ let make_typedef attrs tybase decls =
       {td' with td_type = ty'})
     decls
 
-let make_interface attr name super methods =
+let make_interface attr name supername methods =
+  let rec super =
+    (* All fields are ignored except intf_name *)
+    { intf_name = supername; intf_super = super;
+      intf_methods = []; intf_uid = "" } in
   let rec parse_attrs uid = function
       [] -> uid
     | ("uuid", [Var u]) :: rem -> parse_attrs u rem
@@ -535,17 +539,11 @@ const_int:
 /* Interface declaration */
 
 intf_declarator:
-    attributes INTERFACE IDENT opt_super_intf LBRACE intf_methods RBRACE
-      { make_interface $1 $3 $4 (List.rev $6) }
+    attributes INTERFACE IDENT COLON IDENT LBRACE intf_methods RBRACE
+      { make_interface $1 $3 $5 (List.rev $7) }
 ;
 
 intf_methods:
     /* nothing */                       { [] }
   | intf_methods op_declarator SEMI     { $2 :: $1 }
-;
-
-opt_super_intf:
-    /* nothing */               { None }
-  | COLON IDENT                 { Some { intf_name = $2; intf_super = None;
-                                         intf_methods = []; intf_uid = "" } }
 ;

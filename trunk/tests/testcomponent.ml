@@ -13,18 +13,12 @@ let test_iy c =
 
 class my_ix =
   object
-    method queryInterface (x : string) = (failwith "my_ix : queryInterface" : Com.interface)
-    method addRef = (failwith "my_ix : addRef" : int)
-    method release = (failwith "my_ix : release" : int)
     method f x =
       print_string "my_ix: f "; print_int x; print_newline()
   end
 
 class my_iy =
   object
-    method queryInterface (x : string) = (failwith "my_iy : queryInterface" : Com.interface)
-    method addRef = (failwith "my_iy : addRef" : int)
-    method release = (failwith "my_iy : release" : int)
     method g x =
       print_string "my_iy: g "; print_int x; print_newline();
       let res = x / 2 in
@@ -32,24 +26,23 @@ class my_iy =
       res
   end
 
-let _ =
+let make_test() =
   let c = Component.create_instance() in
   begin try
-    test_ix (new Component.iX_class c)
-  with Failure s ->
+    test_ix (Component.use_iX (Com.queryInterface c Component.iid_iX))
+  with Com.Error s ->
     print_string "Lookup of IX interface failed: ";
     print_string s; print_newline()
   end;
   begin try
-    test_iy (new Component.iY_class c)
-  with Failure s ->
+    test_iy (Component.use_iY (Com.queryInterface c Component.iid_iY))
+  with Com.Error s ->
     print_string "Lookup of IY interface failed: ";
     print_string s; print_newline()
   end;
-  Component.test_ix (new my_ix);
-  Component.test_iy (new my_iy);
+  Component.test_ix (Component.make_iX (new my_ix));
+  Component.test_iy (Component.make_iY (new my_iy))
+
+let _ =
+  make_test();
   Gc.full_major()
-
-
-
-  

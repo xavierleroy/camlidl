@@ -3,8 +3,7 @@ extern IID IID_IUnknown, IID_IX, IID_IY;
 struct IUnknown;
 
 struct IUnknownVtbl {
-  void * padding;
-  void * constr;
+  DECLARE_VTBL_PADDING
   HRESULT (*QueryInterface)(struct IUnknown * this, IID * iid, void ** res);
   ULONG (*AddRef)(struct IUnknown * this);
   ULONG (*Release)(struct IUnknown * this);
@@ -17,8 +16,7 @@ struct IUnknown {
 struct IX;
 
 struct IXVtbl {
-  void * padding;
-  void * constr;
+  DECLARE_VTBL_PADDING
   HRESULT (*QueryInterface)(struct IX * this, IID * iid, void ** res);
   ULONG (*AddRef)(struct IX * this);
   ULONG (*Release)(struct IX * this);
@@ -32,8 +30,7 @@ struct IX {
 struct IY;
 
 struct IYVtbl {
-  void * padding;
-  void * constr;
+  DECLARE_VTBL_PADDING
   HRESULT (*QueryInterface)(struct IY * this, IID * iid, void ** res);
   ULONG (*AddRef)(struct IY * this);
   ULONG (*Release)(struct IY * this);

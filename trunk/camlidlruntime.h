@@ -40,6 +40,11 @@ typedef int HRESULT;
 typedef unsigned long ULONG;
 #endif
 
+#ifdef __GNUC__
+#define DECLARE_VTBL_PADDING void * padding; void * constr;
+#define VTBL_PADDING 0, 0,
+#endif
+
 value camlidl_lookup_method(char * name);
 
 void * camlidl_unpack_interface(value vintf);
@@ -52,16 +57,15 @@ struct camlidl_intf {
   IID * iid;
 };
 
-void camlidl_make_interface(void * vtbl, value caml_object,
-                            struct camlidl_intf * intf, IID * iid);
+value camlidl_make_interface(void * vtbl, value caml_object, IID * iid);
 
 /* Basic methods (QueryInterface, AddRef, Release) for COM objects
    encapsulating a Caml object */
 
-HRESULT camlidl_unknwn_IUnknown_QueryInterface_callback
-          (struct camlidl_intf * this, IID * iid, void ** object);
-ULONG camlidl_unknwn_IUnknown_AddRef_callback(struct camlidl_intf * this);
-ULONG camlidl_unknwn_IUnknown_Release_callback(struct camlidl_intf * this);
+HRESULT camlidl_QueryInterface(struct camlidl_intf * this, IID * iid,
+                               void ** object);
+ULONG camlidl_AddRef(struct camlidl_intf * this);
+ULONG camlidl_Release(struct camlidl_intf * this);
 
 /* TODO: class factories? */
 
