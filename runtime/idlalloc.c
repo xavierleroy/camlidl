@@ -19,6 +19,7 @@ value camlidl_find_enum(int n, int *flags, int nflags, char *errmsg)
     if (n == flags[i]) return Val_int(i);
   }
   invalid_argument(errmsg);
+  return Val_unit;              /* not reached, keeps CL happy */
 }
 
 value camlidl_alloc_flag_list(int n, int *flags, int nflags)
