@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.3 1999-02-19 14:33:35 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.4 1999-02-22 09:59:56 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -184,6 +184,8 @@ let make_typedef attrs tybase decls =
   | ("ml2c", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_ml2c = Some f} rem
   | ("mltype", [Expr_ident f]) :: rem ->
+      merge_attributes ty {td with td_mltype = Some f} rem
+  | ("mltype", [Expr_string f]) :: rem ->
       merge_attributes ty {td with td_mltype = Some f} rem
   | ("errorcode", _) :: rem ->
       merge_attributes ty {td with td_errorcode = true} rem

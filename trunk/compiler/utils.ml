@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: utils.ml,v 1.8 1999-02-19 14:33:42 xleroy Exp $ *)
+(* $Id: utils.ml,v 1.9 1999-02-22 09:59:56 xleroy Exp $ *)
 
 (* Utility functions *)
 
@@ -17,7 +17,7 @@ open Printf
 
 (* Indented printf *)
 
-let current_indentation = ref 2
+let current_indentation = ref 0
 
 let iprintf oc fmt =
   for i = 1 to !current_indentation do output_char oc ' ' done;

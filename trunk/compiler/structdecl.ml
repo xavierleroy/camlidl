@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: structdecl.ml,v 1.10 1999-02-19 14:33:40 xleroy Exp $ *)
+(* $Id: structdecl.ml,v 1.11 1999-02-22 09:59:56 xleroy Exp $ *)
 
 (* Handling of structure declarations *)
 
@@ -25,14 +25,19 @@ open Struct
 
 let ml_declaration oc sd =
   if sd.sd_name = ""
-  then fprintf oc "struct_%d = {\n" sd.sd_stamp
-  else fprintf oc "%s = {\n" (String.uncapitalize sd.sd_name);
-  List.iter
-    (fun f ->
-      fprintf oc "  %s: %a;\n"
-              (String.uncapitalize f.field_name) out_ml_type f.field_typ)
-    (remove_dependent_fields sd.sd_fields);
-  fprintf oc "}\n"
+  then fprintf oc "struct_%d = " sd.sd_stamp
+  else fprintf oc "%s = " (String.uncapitalize sd.sd_name);
+  match remove_dependent_fields sd.sd_fields with
+    [f] ->
+      fprintf oc "%a\n" out_ml_type f.field_typ
+  | fields ->
+      fprintf oc "{\n";
+      List.iter
+        (fun f ->
+          fprintf oc "  %s: %a;\n"
+                  (String.uncapitalize f.field_name) out_ml_type f.field_typ)
+        fields;
+      fprintf oc "}\n"
 
 (* Convert an IDL struct declaration to a C struct declaration *)
 
@@ -60,9 +65,11 @@ let transl_ml_to_c oc sd =
              sd.sd_mod sd.sd_name v sd.sd_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
+  increase_indent();
   struct_ml_to_c ml_to_c pc false sd v (sprintf "(*%s)" c);
   output_variable_declarations oc;
   end_diversion oc;
+  decrease_indent();
   fprintf oc "}\n\n";
   current_function := ""
 
@@ -75,11 +82,13 @@ let transl_c_to_ml oc sd =
              sd.sd_mod sd.sd_name sd.sd_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
+  increase_indent();
   let v = new_ml_variable() in
   struct_c_to_ml c_to_ml pc sd (sprintf "(*%s)" c) v;
   iprintf pc "return %s;\n" v;
   output_variable_declarations oc;
   end_diversion oc;
+  decrease_indent();
   fprintf oc "}\n\n";
   current_function := ""
 
