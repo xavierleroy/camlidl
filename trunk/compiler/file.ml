@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: file.ml,v 1.15 2000-08-19 11:04:56 xleroy Exp $ *)
+(* $Id: file.ml,v 1.16 2001-06-15 16:53:45 xleroy Exp $ *)
 
 (* Handling of interfaces *)
 
@@ -82,7 +82,8 @@ let gen_mli_file oc intf =
   let emit_fundecl = function
       Comp_fundecl fd -> Funct.ml_declaration oc fd
     | Comp_constdecl cd -> Constdecl.ml_declaration oc cd
-    | Comp_diversion((Div_mli | Div_ml_mli), txt) -> output_string oc txt
+    | Comp_diversion((Div_mli | Div_ml_mli), txt) ->
+        output_string oc txt; output_char oc '\n'
     | Comp_interface i ->
         if i.intf_methods <> [] then Intf.ml_class_declaration oc i
     | _ -> () in
@@ -97,7 +98,8 @@ let gen_ml_file oc intf =
   let emit_fundecl = function
       Comp_fundecl fd -> Funct.ml_declaration oc fd
     | Comp_constdecl cd -> Constdecl.ml_definition oc cd
-    | Comp_diversion((Div_ml | Div_ml_mli), txt) -> output_string oc txt
+    | Comp_diversion((Div_ml | Div_ml_mli), txt) ->
+        output_string oc txt; output_char oc '\n'
     | Comp_interface i ->
         if i.intf_methods <> [] then Intf.ml_class_definition oc i
     | _ -> () in
@@ -150,7 +152,9 @@ let rec process_comp oc = function
       ()
   | Comp_diversion(kind, txt) ->
       if kind = Div_c || (kind = Div_h && not !Clflags.include_header)
-      then output_string oc txt
+      then begin
+        output_string oc txt; output_char oc '\n'
+      end
   | Comp_interface i ->
       if i.intf_methods <> [] then Intf.emit_transl oc i
   | Comp_import(filename, comps) ->
@@ -196,7 +200,9 @@ let process_definition oc = function
   | Comp_constdecl cd ->
       Constdecl.c_declaration oc cd
   | Comp_diversion(kind, txt) ->
-      if kind = Div_h then output_string oc txt
+      if kind = Div_h then begin
+        output_string oc txt; output_char oc '\n'
+      end
   | Comp_interface i ->
       Intf.c_declaration oc i
   | Comp_import(basename, comps) ->
