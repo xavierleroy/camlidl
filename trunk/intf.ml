@@ -8,7 +8,7 @@ open Funct
 type interface =
   { intf_name: string;                  (* Name of interface *)
     intf_super: interface option;       (* Super-interface, if any *)
-    intf_methods: function_decl list;;  (* Methods *)
+    intf_methods: function_decl list;   (* Methods *)
     intf_uid: string }                  (* Unique interface ID *)
 
 (* Build the full list of methods of an interface *)
