@@ -1,3 +1,17 @@
+CamlIDL 1.03:
+-------------
+
+* Revised handling of integer constants, which can now be of Caml boxed int
+  types (int32, int64, nativeint).
+* Dependent fields can now reference all variables that are in lexical scope,
+  e.g. struct { int n; struct { [size_is(x)] int * n; } s; }
+* The C file generated from x.idl is now named x_stubs.c rather than x.c
+  to avoid a name clash on file x.o when compiling x.ml to native code.
+* Added [finalize(fn)], [compare(fn)] and [hash(fn)] on abstract typedefs
+  to associate user-provided finalization, comparison or hashing functions
+  to typedefs.
+
+
 CamlIDL 1.02:
 -------------
 

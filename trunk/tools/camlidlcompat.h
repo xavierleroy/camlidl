@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: camlidlcompat.h,v 1.3 2000-08-19 11:05:01 xleroy Exp $ */
+/* $Id: camlidlcompat.h,v 1.4 2002-04-19 14:15:11 xleroy Exp $ */
 
 /* Compatibility macros to share IDL source between CamlIDL and MIDL */
 
@@ -59,21 +59,25 @@
 
 /* Define away CamlIDL-specific attributes */
 #define abstract
+#define bigarray
+#define camlint
+#define compare(x)
 #define c2ml(x)
 #define errorcheck(x)
 #define errorcode
+#define finalize(x)
+#define fortran
+#define hash(x)
+#define int_default(x)
+#define int32
+#define int64
+#define long_default(x)
+#define managed
 #define ml2c(x)
+#define mlname(x)
 #define mltype(x)
 #define mlname(x)
 #define null_terminated
-#define bigarray
-#define camlint
-#define int32
-#define int64
-#define nativeint
-#define fortran
-#define managed
-#define int_default(x)
-#define long_default(x)
+#define set
 
 #endif
