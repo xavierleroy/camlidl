@@ -248,7 +248,8 @@ while "int (*x)[]" declares an identifier "x" that is a pointer to an
 array of integers.
 \begin{syntax}
 type-spec:
-  ['unsigned'||'signed'] ('int'||'short'||'long'||'char')
+  ['unsigned'||'signed']
+  ('int'||'short'||'long'||'char'||'hyper'||'long long'||'__int64')
 | 'byte'
 | 'float'
 | 'double'
@@ -404,10 +405,13 @@ interfaces are mapped to Caml types, functions and classes.
 \entree{"int", "long" with "[nativeint]" attribute}{"nativeint"}
 \entree{"int", "long" with "[int32]" attribute}{"int32"}
 \entree{"int", "long" with "[int64]" attribute}{"int64"}
-\entree{"char", "unsigned char", "signed char"}{"char"}
+\entree{"hyper", "long long", "__int64"}{"int64"}
+\entree{"char"}{"char"}
 \entree{"float", "double"}{"float"}
 \entree{"boolean"}{"bool"}
 \end{tableau}
+(For integer types, "signed" and "unsigned" variants of the same IDL
+integer type translate to the same Caml type.)
 
 Depending on the attributes, the "int" and "long" integer types are
 converted to one of the Caml integer types "int", "nativeint",
