@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comintf.c,v 1.7 1999-02-19 14:33:46 xleroy Exp $ */
+/* $Id: comintf.c,v 1.8 1999-03-15 15:21:40 xleroy Exp $ */
 
 /* Helper functions for handling COM interfaces */
 
@@ -62,7 +62,8 @@ void * camlidl_unpack_interface(value vintf, camlidl_ctx ctx)
   return (void *) intf;
 }
 
-value camlidl_make_interface(void * vtbl, value caml_object, IID * iid)
+value camlidl_make_interface(void * vtbl, value caml_object, IID * iid,
+                             int has_dispatch)
 {
   struct camlidl_component * comp =
     (struct camlidl_component *) stat_alloc(sizeof(struct camlidl_component));
@@ -72,6 +73,13 @@ value camlidl_make_interface(void * vtbl, value caml_object, IID * iid)
   comp->intf[0].caml_object = caml_object;
   comp->intf[0].iid = iid;
   comp->intf[0].comp = comp;
+#ifdef _WIN32
+  comp->intf[0].typeinfo = has_dispatch ? camlidl_find_typeinfo(iid) : NULL;
+#else
+  if (has_dispatch)
+    camlidl_error(0, "Com.make_xxx", "Dispatch interfaces not supported");
+  comp->intf[0].typeinfo = NULL;
+#endif
   register_global_root(&(comp->intf[0].caml_object));
   InterlockedIncrement(&camlidl_num_components);
   return camlidl_pack_interface(&(comp->intf[0]), NULL);
@@ -99,6 +107,11 @@ camlidl_QueryInterface(struct camlidl_intf * this, REFIID iid,
     return S_OK;
   }
 #ifdef _WIN32
+  if (this->typeinfo != NULL && IsEqualIID(iid, &IID_IDispatch)) {
+    *object = (void *) this;
+    InterlockedIncrement(&(comp->refcount));
+    return S_OK;
+  }
   if (IsEqualIID(iid, &IID_ISupportErrorInfo)) {
     *object = (void *) camlidl_support_error_info(this);
     return S_OK;
@@ -120,8 +133,12 @@ ULONG STDMETHODCALLTYPE camlidl_Release(struct camlidl_intf * this)
   int i;
 
   if (newrefcount == 0) {
-    for (i = 0; i < comp->numintfs; i++)
-      remove_global_root(&(comp->intf[i].caml_object));
+    for (i = 0; i < comp->numintfs; i++) {
+      struct camlidl_intf * intf = &(comp->intf[i]);
+      remove_global_root(&(intf->caml_object));
+      if (intf->typeinfo != NULL)
+        intf->typeinfo->lpVtbl->Release(intf->typeinfo);
+    }
     stat_free(comp);
     InterlockedDecrement(&camlidl_num_components);
   }
@@ -204,7 +221,7 @@ value camlidl_com_create_instance(value clsid, value iid)
 value camlidl_com_initialize(value unit)
 {
 #ifdef _WIN32
-  CoInitialize(NULL);
+  OleInitialize(NULL);
 #endif
   return Val_unit;
 }
@@ -212,7 +229,7 @@ value camlidl_com_initialize(value unit)
 value camlidl_com_uninitialize(value unit)
 {
 #ifdef _WIN32
-  CoUninitialize();
+  OleUninitialize();
 #endif
   return Val_unit;
 }

@@ -2,7 +2,7 @@ CC=cl
 CFLAGS=/nologo /Zi /MT /I$(OCAMLLIB)
 
 OBJS=idlalloc.obj comintf.obj comerror.obj superror.obj \
-  registry.obj
+  registry.obj dispatch.obj oletypes.obj
 
 all: libcamlidl.lib cfactory.obj
 

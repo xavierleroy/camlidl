@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comstuff.h,v 1.7 1999-02-19 14:33:46 xleroy Exp $ */
+/* $Id: comstuff.h,v 1.8 1999-03-15 15:21:40 xleroy Exp $ */
 
 /* Load or emulate COM-related includes */
 
@@ -68,6 +68,10 @@ extern "C"{
 
 extern int camlidl_num_components;
 
+/* Handle for module (for the DLL) */
+
+extern HMODULE camlidl_module_handle;
+
 /* The list of all registered components */
 
 struct camlidl_comp {
@@ -87,6 +91,9 @@ extern struct camlidl_comp * camlidl_registered_components;
 
 /* Build a ISupportErrorInfo interface */
 struct ISupportErrorInfo * camlidl_support_error_info(struct camlidl_intf * i);
+
+/* Find the type library for the given IID */
+struct IUnknown * camlidl_find_typeinfo(IID * iid);
 
 #ifdef __cplusplus
 }

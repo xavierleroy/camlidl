@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: cfactory.cpp,v 1.4 1999-02-19 14:33:46 xleroy Exp $ */
+/* $Id: cfactory.cpp,v 1.5 1999-03-15 15:21:40 xleroy Exp $ */
 
 /* The class factory and DLL support */
 
@@ -27,9 +27,6 @@ extern "C" {
 
 /* Count of server locks */
 static long camlidl_num_server_locks = 0;
-
-/* Handle for module (for the DLL) */
-static HMODULE camlidl_module_handle;
 
 /* The class factory */
 
