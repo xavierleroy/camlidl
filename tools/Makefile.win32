@@ -5,6 +5,7 @@ camlidldll: camlidldll.tpl ../config/Makefile
 
 install:
 	cp camlidldll $(BINDIR)
+	cp camlidlcompat.h $(LIBDIR)
 
 clean:
 	rm -f camlidldll
