@@ -6,8 +6,9 @@ OSTYPE=win32
 # How to invoke the C preprocessor
 CPP=cl /nologo /E
 
-# Suffix for executables
+# Suffixes for executables and libraries
 EXE=.exe
+LIB=.lib
 
 # We don't need ranlib
 RANLIB=echo
