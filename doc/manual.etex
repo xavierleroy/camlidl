@@ -174,6 +174,8 @@ arguments.
        {"typedef" }
 \entree{@"bigarray"@      }
        {array type}
+\entree{@"blocking"@      }
+       {function declaration }
 \entree{@"camlint"@       }
        {"int" or "long" integer type}
 \entree{@"compare"'('fun-name')'@ }
@@ -208,8 +210,8 @@ arguments.
        {array type with "bigarray" attribute}
 \entree{@"ml2c"'('fun-name')'@ }
        {"typedef" }
-\entree{@'mlname(' label-name ')' @ }
-       {"struct" field }
+\entree{@'mlname(' fun-or-field-name ')' @ }
+       {function declaration, "struct" field }
 \entree{@'mltype("' caml-type-expr '")' @ }
        {"typedef" }
 \entree{@"nativeint"@       }
@@ -934,6 +936,11 @@ If the string is returned as an "out" parameter instead, we would write:
         void f ([in] int x, [out, string*] char ** str)
           quote(dealloc, "free(*str); ");
 \end{verbatim}
+
+\paragraph{Blocking functions:}
+A function can be given the attribute "blocking" to indicate that it
+may block on an input/output operation.  The generated code will then
+allow other Caml threads to execute concurrently with the operation.
 
 \subsection{Interfaces}
 
