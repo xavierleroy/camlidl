@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexer_midl.mll,v 1.8 1999-03-04 16:21:43 xleroy Exp $ *)
+(* $Id: lexer_midl.mll,v 1.9 1999-03-09 16:27:01 xleroy Exp $ *)
 
 (* Lexer for IDL interface files *)
 
@@ -96,7 +96,7 @@ rule token = parse
       { comment lexbuf }
   | "//" [ ^ '\n' ] * eol
       { token lexbuf }
-  | "#" ("line")? [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] * eol
+  | "#" ("line")? [' ' '\t']* ['0'-'9']+ [^ '\n' '\r'] * eol
       (* # linenum "filename" flags \n *)
       { token lexbuf }
   | identstart identchar *

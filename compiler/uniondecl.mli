@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: uniondecl.mli,v 1.3 1999-02-19 14:33:42 xleroy Exp $ *)
+(* $Id: uniondecl.mli,v 1.4 1999-03-09 16:27:03 xleroy Exp $ *)
 
 (* Generation of converters for unions *)
 
@@ -17,6 +17,5 @@ open Idltypes
 
 val ml_declaration : out_channel -> union_decl -> unit
 val c_declaration : out_channel -> union_decl -> unit
-val c_forward_declaration : out_channel -> union_decl -> unit
 val declare_transl: out_channel -> union_decl -> unit
 val emit_transl : out_channel -> union_decl -> unit

@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: structdecl.ml,v 1.11 1999-02-22 09:59:56 xleroy Exp $ *)
+(* $Id: structdecl.ml,v 1.12 1999-03-09 16:27:02 xleroy Exp $ *)
 
 (* Handling of structure declarations *)
 
@@ -42,10 +42,9 @@ let ml_declaration oc sd =
 (* Convert an IDL struct declaration to a C struct declaration *)
 
 let c_declaration oc sd =
-  out_struct oc sd; fprintf oc ";\n\n"
-
-let c_forward_declaration oc sd =
-  if sd.sd_name <> "" then fprintf oc "struct %s;\n" sd.sd_name
+  if sd.sd_fields = []
+  then fprintf oc "struct %s;\n" sd.sd_name
+  else begin out_struct oc sd; fprintf oc ";\n\n" end
 
 (* External (forward) declaration of the translation functions *)
 
