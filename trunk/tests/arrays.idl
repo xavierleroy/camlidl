@@ -31,4 +31,5 @@ void bigarray1([bigarray,in,out] double t[10][20]);
 void bigarray2([in] int dimx, [in] int dimy,
                [in,bigarray,size_is(dimx,dimy)] long t[][],
                [out,bigarray,size_is(dimy,dimx)] long tt[][]);
+[bigarray,unique,size_is(10)] long * bigarray3([bigarray,in,unique] long * b);
 }

@@ -233,7 +233,7 @@ arguments.
 \entree{@"switch_type"'('ty')'@ }
        {union or pointer to union  }
 \entree{@"unique"@        }
-       {any pointer or array type  }
+       {any pointer, array, or bigarray type  }
 \entree{@"uuid"'(' uuid ')'@ }
        {interface }
 \end{tableau}
@@ -540,6 +540,11 @@ By default, Caml assumes that result or out C arrays are statically or
 permanently allocated, and keeps a pointer to them during conversion
 to Caml big arrays, and does not free them when the Caml bigarrays
 become unreachable.
+
+Finally, the "[unique]" attribute applies to bigarrays as to arrays,
+that is, it maps a null C pointer to "None", and a non-null C pointer
+\var{p} to "Some("\var{v}")" where \var{v} is the ML bigarray
+resulting from the translation of \var{p}.
 
 \subsection{Structs}
 
@@ -1113,7 +1118,7 @@ The type definitions in the IDL file need not correspond exactly with
 those in the include files.  Often, a cleaner Caml interface can be
 obtained by omitting irrelevant struct fields, or changing their types.
 For instance, the Unix library functions for reading library entries
-uses the following structure:
+may use the following structure:
 \begin{verbatim}
         struct dirent {
             long int d_ino;
