@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.mli,v 1.3 1999-02-19 14:33:36 xleroy Exp $ *)
+(* $Id: parse_aux.mli,v 1.4 1999-02-24 12:27:44 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -41,7 +41,7 @@ val make_fun_declaration :
   idltype ->
   string ->
   (string * in_out * idltype) list ->
-  string option -> function_decl
+  (string * string) list -> function_decl
     (* Build a function declaration *)
 val make_field :
   (string * lexpr list) list ->

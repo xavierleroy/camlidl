@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.4 1999-02-22 09:59:56 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.5 1999-02-24 12:27:43 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -135,7 +135,16 @@ let make_param attrs tybase decl =
       merge_attributes mode (apply_type_attribute ty attr) rem in
   merge_attributes None ty attrs
 
-let make_fun_declaration attrs ty_res name params diversion =
+let make_fun_declaration attrs ty_res name params quotes =
+  let call = ref None and dealloc = ref None in
+  let parse_quote (label, text) =
+    match String.lowercase label with
+      "call" -> call := Some text
+    | "dealloc" | "free" -> dealloc := Some text
+    | _ ->
+        eprintf "Warning: quote type `%s' unknown, ignoring the quote.\n"
+                label in
+  List.iter parse_quote quotes;
   let rec merge_attributes ty = function
       [] -> ty
     | (("callback" | "local"), _) :: rem -> merge_attributes ty rem
@@ -144,7 +153,8 @@ let make_fun_declaration attrs ty_res name params diversion =
     fun_mod = "";
     fun_res = merge_attributes ty_res attrs;
     fun_params = params;
-    fun_call = diversion }
+    fun_call = !call;
+    fun_dealloc = !dealloc }
 
 let make_fields attrs tybase decls =
   List.map
