@@ -2,20 +2,36 @@
 
 #include <stdio.h>
 #include <stddef.h>
+#include <string.h>
+
+#ifdef _WIN32
+
+#include <objbase.h>
+
+extern "C" {
+IID IID_IX = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0x81 } };
+IID IID_IY = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0x82 } };
+}
+
+#else
 
 #define interface class
 typedef struct { unsigned char data[16]; } IID;
 typedef int HRESULT;
 typedef unsigned long ULONG;
-#define IsEqualIID(a,b) (memcmp(a, b, sizeof(IID)) == 0)
+#define IsEqualIID(a,b) (memcmp(&a, &b, sizeof(IID)) == 0)
 #define InterlockedIncrement(p) (++(*(p)))
 #define InterlockedDecrement(p) (--(*(p)))
 #define S_OK 0
 #define E_NOINTERFACE (-1)
+#define STDMETHODCALLTYPE 
 
-IID IID_IUnknown = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x80 } };
+extern "C" {
+IID IID_IUnknown =
+  { { 0, 0, 0, 0, 0, 0, 0, 0, 0xC0, 0, 0, 0, 0, 0, 0, 0, 0x46 } };
 IID IID_IX = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x81 } };
 IID IID_IY = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x82 } };
+}
 
 interface IUnknown {
  public:
@@ -23,17 +39,18 @@ interface IUnknown {
   virtual ULONG AddRef() = 0;
   virtual ULONG Release() = 0;
 };
+#endif
 
 interface IX : public IUnknown {
  public:
-  virtual void F(int x) = 0;
+  virtual void STDMETHODCALLTYPE F(int x) = 0;
 };
 
 interface IY : public IUnknown {
  public:
-  virtual int G(int x) = 0;
-  virtual int H() = 0;
-  virtual int K(char ** str) = 0;
+  virtual int STDMETHODCALLTYPE G(int x) = 0;
+  virtual int STDMETHODCALLTYPE H() = 0;
+  virtual int STDMETHODCALLTYPE K(char ** str) = 0;
 };
 
 static int CA_ident = 0;
@@ -41,18 +58,18 @@ static int CA_ident = 0;
 class CA : public IX, public IY {
 
 private:
-  int refcount;
+  long refcount;
   int ident;
 public:
 
-  virtual HRESULT QueryInterface(const IID& iid, void ** res) {
-    if (IsEqualIID(&iid, &IID_IUnknown)) {
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface(const IID& iid, void ** res) {
+    if (IsEqualIID(iid, IID_IUnknown)) {
       printf("%d: QueryInterface: return IUnknown pointer.\n", ident);
       *res = (interface IX *) this;
-    } else if (IsEqualIID(&iid, &IID_IX)) {
+    } else if (IsEqualIID(iid, IID_IX)) {
       printf("%d: QueryInterface: return IX pointer.\n", ident);
       *res = (interface IX *) this;
-    } else if (IsEqualIID(&iid, &IID_IY)) {
+    } else if (IsEqualIID(iid, IID_IY)) {
       printf("%d: QueryInterface: return IY pointer.\n", ident);
       *res = (interface IY *) this;
     } else {
@@ -64,13 +81,13 @@ public:
     return S_OK;
   }
 
-  virtual ULONG AddRef() {
+  virtual ULONG STDMETHODCALLTYPE AddRef() {
     ULONG res = InterlockedIncrement(&refcount);
     printf("%d: AddRef: new refcount is %lu\n", ident, res);
     return res;
   }
 
-  virtual ULONG Release() {
+  virtual ULONG STDMETHODCALLTYPE Release() {
     ULONG res = InterlockedDecrement(&refcount);
     printf("%d: Release: new refcount is %lu\n", ident, res);
     if (res == 0) {
@@ -80,22 +97,22 @@ public:
     return res;
   }
 
-  virtual void F(int x) {
+  virtual void STDMETHODCALLTYPE F(int x) {
     printf("%d: F(%d) called.\n", ident, x);
   }
 
-  virtual int G(int x) {
+  virtual int STDMETHODCALLTYPE G(int x) {
     int res = 3 * x + 1;
     printf("%d: G(%d) called, returning %d.\n", ident, x, res);
     return res;
   }
 
-  virtual int H() {
+  virtual int STDMETHODCALLTYPE H() {
     printf("%d: H() called, returning 0.\n", ident);
     return 0;
   }
 
-  virtual int K(char ** str) {
+  virtual int STDMETHODCALLTYPE K(char ** str) {
     printf("%d: K() called, returning 0 and `foobar'.\n", ident);
     *str = "foobar";
     return 0;

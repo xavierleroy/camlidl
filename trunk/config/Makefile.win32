@@ -10,7 +10,7 @@
 #*                                                                     *
 #***********************************************************************
 
-#* $Id: Makefile.win32,v 1.4 2000-08-19 11:04:59 xleroy Exp $
+#* $Id: Makefile.win32,v 1.5 2002-04-22 11:50:46 xleroy Exp $
 
 ## Configuration section
 
@@ -22,7 +22,8 @@ CPP=cl /nologo /E
 
 # Suffixes for executables and libraries
 EXE=.exe
-LIB=.lib
+LIBEXT=lib
+OBJEXT=obj
 
 # We don't need ranlib
 RANLIB=echo
