@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: struct.ml,v 1.9 1999-02-22 09:59:56 xleroy Exp $ *)
+(* $Id: struct.ml,v 1.10 2000-08-11 14:41:53 xleroy Exp $ *)
 
 (* Handling of structures *)
 
@@ -52,7 +52,12 @@ let struct_ml_to_c ml_to_c oc onstack sd v c =
   match remove_dependent_fields sd.sd_fields with
     [f] ->
       ml_to_c oc onstack (sprintf "%s." c) f.field_typ
-                 v (sprintf "%s.%s" c f.field_name)
+                 v (sprintf "%s.%s" c f.field_name);
+      List.iter
+        (function {field_typ = Type_pointer(Ignore, _); field_name = n} ->
+                    iprintf oc "%s.%s = NULL;\n" c n
+                | _ -> ())
+        sd.sd_fields
   | _ ->
       if all_float_fields sd.sd_fields then begin
         let rec convert_fields pos = function
@@ -65,7 +70,7 @@ let struct_ml_to_c ml_to_c oc onstack sd v c =
         let rec convert_fields pos = function
           [] -> ()
         | {field_typ = Type_pointer(Ignore, _); field_name = n} :: rem ->
-            iprintf oc "%s->%s = NULL;\n" c n;
+            iprintf oc "%s.%s = NULL;\n" c n;
             convert_fields pos rem
         | {field_name = n} :: rem when is_dependent_field n sd.sd_fields ->
             convert_fields pos rem
