@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.29 2002-05-01 15:25:39 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.30 2004-07-08 09:50:23 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -30,8 +30,10 @@ type function_decl =
     fun_mod: string;
     fun_res: idltype;
     fun_params: (string * in_out * idltype) list;
+    fun_mlname: string option;
     fun_call: string option;
-    fun_dealloc: string option }
+    fun_dealloc: string option;
+    fun_blocking: bool }
 
 (* Remove dependent parameters (parameters that are size_is, length_is,
    or switch_is of another parameter).
@@ -94,9 +96,12 @@ let ml_view fundecl =
 
 (* Generate the ML declaration for a function *)
 
+let mlname fundecl =
+  match fundecl.fun_mlname with Some n -> n | None -> fundecl.fun_name
+
 let ml_declaration oc fundecl =
   let (ins, outs) = ml_view fundecl in
-  fprintf oc "external %s : " (String.uncapitalize fundecl.fun_name);
+  fprintf oc "external %s : " (String.uncapitalize (mlname fundecl));
   out_ml_types oc "->" ins;
   fprintf oc " -> ";
   out_ml_types oc "*" outs;
@@ -279,7 +284,8 @@ let emit_function oc fundecl ins outs locals emit_call =
 (* Emit wrapper function for C function *)
 
 let emit_standard_call oc fundecl =
-  match fundecl.fun_call with
+  if fundecl.fun_blocking then iprintf oc "enter_blocking_section();\n";
+  begin match fundecl.fun_call with
     Some s ->
       iprintf oc "/* begin user-supplied calling sequence */\n";
       output_string oc s;
@@ -297,6 +303,8 @@ let emit_standard_call oc fundecl =
         List.iter (fun (name, _, _) -> fprintf oc ", %s" name) rem
     end;
     fprintf oc ");\n"
+  end;
+  if fundecl.fun_blocking then iprintf oc "leave_blocking_section();\n"
 
 let emit_wrapper oc fundecl =
   current_function := fundecl.fun_name;
@@ -312,7 +320,8 @@ let emit_method_call intfname methname oc fundecl =
   (* Reset the error mechanism *)
   iprintf oc "SetErrorInfo(0L, NULL);\n";
   (* Emit the call *)
-  match fundecl.fun_call with
+  if fundecl.fun_blocking then iprintf oc "enter_blocking_section();\n";
+  begin match fundecl.fun_call with
     Some s ->
       iprintf oc "/* begin user-supplied calling sequence */\n";
       output_string oc s;
@@ -324,6 +333,8 @@ let emit_method_call intfname methname oc fundecl =
     fprintf oc "this->lpVtbl->%s(this" methname;
     List.iter (fun (name, _, _) -> fprintf oc ", %s" name) fundecl.fun_params;
     fprintf oc ");\n"
+  end;
+  if fundecl.fun_blocking then iprintf oc "leave_blocking_section();\n"
 
 let emit_method_wrapper oc intf_name meth =
   current_function := sprintf "%s %s" intf_name meth.fun_name;
