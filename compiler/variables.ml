@@ -25,7 +25,8 @@ let new_ml_variable () =
 let new_ml_variable_block n =
   let name = new_var "_v" in
   let ty =
-    Type_array({bound = Some n; size=None; length=None; is_string=false},
+    Type_array({bound = Some n; size=None; length=None;
+                is_string=false; null_terminated=false},
                Type_named "value") in
   temp_variables := (name, ty) :: !temp_variables;
   name
@@ -77,3 +78,6 @@ let add_to_deallocate v =
 let output_deallocates oc =
   List.iter (fun v -> iprintf oc "stat_free(%s);\n" v) !to_deallocate;
   to_deallocate := []
+
+let check_no_deallocates kind =
+  if !to_deallocate <> [] then error(sprintf "variable-sized array in %s" kind)

@@ -86,3 +86,9 @@ let rec out_ml_type oc ty =
       then fprintf oc "string"
       else fprintf oc "%a array" out_ml_type ty
 
+(* Output a reference to a restricted expression *)
+
+let string_of_restr_expr = function Var s -> s | Deref s -> "*" ^ s
+
+let out_restr_expr oc e = output_string oc (string_of_restr_expr e)
+

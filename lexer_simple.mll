@@ -32,27 +32,33 @@ let _ =
 
 (* To buffer string literals *)
 
-let initial_string_buffer = String.create 256
-let string_buff = ref initial_string_buffer
-let string_index = ref 0
+type buffer =
+  { initial: string;
+    mutable buff: string;
+    mutable index: int }
 
-let reset_string_buffer () =
-  string_buff := initial_string_buffer;
-  string_index := 0
+let new_buffer() =
+  let s = String.create 256 in { initial = s; buff = s; index = 0 }
 
-let store_string_char c =
-  if !string_index >= String.length (!string_buff) then begin
-    let new_buff = String.create (String.length (!string_buff) * 2) in
-      String.blit (!string_buff) 0 new_buff 0 (String.length (!string_buff));
-      string_buff := new_buff
+let reset b =
+  b.buff <- b.initial; b.index <- 0
+
+let store b c =
+  if b.index >= String.length b.buff then begin
+    let new_buff = String.create (String.length b.buff * 2) in
+    String.blit b.buff 0 new_buff 0 (String.length b.buff);
+    b.buff <- new_buff
   end;
-  String.unsafe_set (!string_buff) (!string_index) c;
-  incr string_index
+  String.unsafe_set b.buff b.index c;
+  b.index <- b.index + 1
 
-let get_stored_string () =
-  let s = String.sub (!string_buff) 0 (!string_index) in
-  string_buff := initial_string_buffer;
+let get_stored b =
+  let s = String.sub b.buff 0 b.index in
+  b.buff <- b.initial;
   s
+
+let string_buffer = new_buffer()
+let diversion_buffer = new_buffer()
 
 (* To translate escape sequences *)
 
@@ -98,19 +104,19 @@ rule token = parse
   | decimal_literal | hex_literal
       { INTEGER(int_of_string(Lexing.lexeme lexbuf)) }
   | "\""
-      { reset_string_buffer();
+      { reset string_buffer;
         string lexbuf;
-        STRING(get_stored_string()) }
+        STRING(get_stored string_buffer) }
   | "'" [^ '\\' '\''] "'"
       { CHARACTER(Lexing.lexeme_char lexbuf 1) }
   | "'" '\\' ['\\' '\'' 'n' 't' 'b' 'r'] "'"
       { CHARACTER(char_for_backslash (Lexing.lexeme_char lexbuf 2)) }
   | "'" '\\' ['0'-'3'] ['0'-'7']? ['0'-'7']? "'"
       { CHARACTER(char_for_code lexbuf 2 1) }
-  | "%{"
-      { reset_string_buffer();
+  | "{|"
+      { reset diversion_buffer;
         diversion lexbuf;
-        DIVERSION(get_stored_string()) }
+        DIVERSION(get_stored diversion_buffer) }
   | "#" [' ' '\t']* ['0'-'9']+ [' ' '\t']* "\"" [^ '\n' '\r'] *
     ('\n' | '\r' | "\r\n")
       (* # linenum "filename" flags \n *)
@@ -162,22 +168,27 @@ and string = parse
   | '\\' '\n' [' ' '\009'] *
       { string lexbuf }
   | '\\' ['\\' '"' 'n' 't' 'b' 'r']
-      { store_string_char(char_for_backslash(Lexing.lexeme_char lexbuf 1));
+      { store string_buffer (char_for_backslash(Lexing.lexeme_char lexbuf 1));
         string lexbuf }
   | '\\' ['0'-'3'] ['0'-'7']? ['0'-'7']? 
-      { store_string_char(char_for_code lexbuf 1 0);
+      { store string_buffer (char_for_code lexbuf 1 0);
          string lexbuf }
   | eof
       { error "Unterminated string" }
   | _
-      { store_string_char(Lexing.lexeme_char lexbuf 0);
+      { store string_buffer (Lexing.lexeme_char lexbuf 0);
         string lexbuf }
 
 and diversion = parse
-    "%}"
+    "|}"
       { () }
+  | "\""
+      { reset string_buffer;
+        string lexbuf;
+        reset string_buffer;
+        diversion lexbuf }
   | eof
-      { error "Unterminated %{ section" }
+      { error "Unterminated {| section" }
   | _
-      { store_string_char(Lexing.lexeme_char lexbuf 0);
+      { store diversion_buffer (Lexing.lexeme_char lexbuf 0);
         diversion lexbuf }

@@ -57,6 +57,7 @@ let transl_ml_to_c oc ud =
   output_variable_declarations oc;
   end_diversion oc;
   fprintf oc "}\n\n";
+  check_no_deallocates "union";
   current_function := ""
 
 (* Translation function from a C union to an ML datatype *)

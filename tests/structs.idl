@@ -1,6 +1,6 @@
 /* Structs and typedefs */
 
-%{
+{|
 struct s1 {
   int x;
   double d;
@@ -17,7 +17,7 @@ struct s2 {
   long *l;
 };
 
-%}
+|}
 
 struct s1 {
   int x;

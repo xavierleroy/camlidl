@@ -12,7 +12,7 @@ let process_file name =
   module_name := Filename.basename pref;
   let ic = open_in name in
   let lb = Lexing.from_channel ic in
-  let (incl, intf) =
+  let intf =
     try
       Parser_simple.file Lexer_simple.token lb
     with Parsing.Parse_error ->
@@ -30,7 +30,7 @@ let process_file name =
   end;
   let oc = open_out (pref ^ ".c") in
   begin try
-    gen_c_stub oc incl nintf;
+    gen_c_stub oc nintf;
     close_out oc
   with x ->
     close_out oc; Sys.remove (pref ^ ".c"); raise x

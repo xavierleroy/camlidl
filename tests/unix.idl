@@ -1,6 +1,7 @@
 /* Parts of the Unix library */
 
-%{
+{|
+
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -27,21 +28,6 @@ static void decode_status(int status, int * kind, union process_status * p)
   }
 }
 
-int wrapped_wait(int * kind, union process_status * p)
-{
-  int status;
-  pid_t ret;
-  ret = wait(&status);
-  if (ret != -1) decode_status(status, kind, p);
-  return ret;
-}
-
-void wrapped_system(char * cmd, int * kind, union process_status * p)
-{
-  int ret = system(cmd);
-  decode_status(ret, kind, p);
-}
-
 int read2(int fd, int len, int * rd, char * buf)
 {
   int retcode = read(fd, buf, len);
@@ -53,17 +39,19 @@ typedef DIR * dir_handle;
 typedef struct dirent dirent;
 typedef fd_set * file_descr_set;
 
-#define openfile open
+|}
 
-%}
+typedef [string] char * string;
 
-/* char ** environment(void)  // fails because of null-terminated array */
+[null_terminated] string * environment(void);
 
 [string] char * getenv([in,string] char * varname);
 
 void putenv([in,string] char * name_val);
 
-/* execv, etc  no null-terminated array */
+int execv([in,string] char * path, [in,null_terminated] string * argv);
+
+int execve([in,string] char * path, [in,null_terminated] string * argv, [in,null_terminated] string * env);
 
 int fork(void);
 
@@ -73,11 +61,19 @@ union process_status {
   case WSTOPPED: int code;
 };
 
-int wrapped_wait([out] int * kind,
-                 [out,switch_is(*kind)] union process_status * p);
-void wrapped_system([in,string] char * cmd,
-                    [out] int * kind,
-                    [out,switch_is(*kind)] union process_status * p);
+int wait([out] int * kind,
+         [out,switch_is(*kind)] union process_status * p)
+  {| { int status;
+       _res = wait(&status);
+       if (_res != -1) decode_status(status, kind, p); }
+  |};
+
+void system([in,string] char * cmd,
+            [out] int * kind,
+            [out,switch_is(*kind)] union process_status * p)
+  {| { int ret = system(cmd);
+       decode_status(ret, kind, p); }
+  |};
 
 int getpid(void);
 int getppid(void);
@@ -85,7 +81,9 @@ int nice(int pid);
 
 /* open  no conversion between lists of flags and int */
 /* the best we can do is */
-int openfile([in,string] char * name, [in] int flags, [in] int perms);
+int openfile([in,string] char * name, [in] int flags, [in] int perms)
+  {| _res = open(name, flags, perms);
+  |};
 int close([in] int fd);
 
 /* read in place */
@@ -137,7 +135,7 @@ int link([string] char * filename, [string] char * newname);
 
 typedef [abstract] DIR * dir_handle;
 
-/* problem: error detection? combine ptr and unique? */
+/* problem: error detection? */
 dir_handle opendir([string] char * filename);
 
 typedef struct {

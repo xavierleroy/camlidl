@@ -2,4 +2,4 @@
 
 open Idltypes
 
-val gen_c_stub: out_channel -> string -> interface -> unit
+val gen_c_stub: out_channel -> interface -> unit

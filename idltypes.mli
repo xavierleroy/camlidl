@@ -13,7 +13,8 @@ type array_attributes =
   { bound: int option;
     size: restricted_expr option;
     length: restricted_expr option;
-    is_string: bool }
+    is_string: bool;
+    null_terminated: bool }
 
 type idltype =
     Type_int of integer_kind
@@ -27,15 +28,20 @@ type idltype =
   | Type_enum of enum_decl
   | Type_named of string
 
-and field = { field_name: string; field_typ: idltype }
+and field =
+  { field_name: string; field_typ: idltype }
 
-and union_case = { case_label: string option; case_field: field option }
+and union_case =
+  { case_label: string option; case_field: field option }
 
-and struct_decl = { sd_name: string; sd_stamp: int; sd_fields: field list }
+and struct_decl =
+  { sd_name: string; mutable sd_stamp: int; mutable sd_fields: field list }
 
-and union_decl = { ud_name: string; ud_stamp: int; ud_cases: union_case list }
+and union_decl =
+  { ud_name: string; mutable ud_stamp: int; mutable ud_cases: union_case list }
 
-and enum_decl = { en_name: string; en_stamp: int; en_consts: string list }
+and enum_decl =
+  { en_name: string; mutable en_stamp: int; mutable en_consts: string list }
 
 type in_out =
     In | Out | InOut
@@ -43,9 +49,16 @@ type in_out =
 type function_decl =
   { fun_name: string;
     fun_res: idltype;
-    fun_params: (string * in_out * idltype) list }
+    fun_params: (string * in_out * idltype) list;
+    fun_ccall: string option }
 
-type type_decl = { td_name: string; td_type: idltype; td_abstract: bool }
+type type_decl =
+  { td_name: string;
+    td_type: idltype;
+    td_abstract: bool;
+    td_c2ml: string option;
+    td_ml2c: string option;
+    td_mltype: string option }
 
 type interface_component =
     Comp_typedecl of type_decl
@@ -53,5 +66,6 @@ type interface_component =
   | Comp_uniondecl of union_decl
   | Comp_enumdecl of enum_decl
   | Comp_fundecl of function_decl
+  | Comp_diversion of string
 
 type interface = interface_component list
