@@ -5,11 +5,12 @@
 /*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         */
 /*                                                                     */
 /*  Copyright 1999 Institut National de Recherche en Informatique et   */
-/*  en Automatique.  Distributed only by permission.                   */
+/*  en Automatique.  All rights reserved.  This file is distributed    */
+/*  under the terms of the GNU Library General Public License.         */
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: dispatch.c,v 1.1 1999-03-16 15:42:25 xleroy Exp $ */
+/* $Id: dispatch.c,v 1.2 2000-08-19 11:05:00 xleroy Exp $ */
 
 /* Support for dispatch interfaces */
 

@@ -5,11 +5,12 @@
 (*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
 (*                                                                     *)
 (*  Copyright 1999 Institut National de Recherche en Informatique et   *)
-(*  en Automatique.  Distributed only by permission.                   *)
+(*  en Automatique.  All rights reserved.  This file is distributed    *)
+(*  under the terms of the Q Public License version 1.0                *)
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: struct.ml,v 1.10 2000-08-11 14:41:53 xleroy Exp $ *)
+(* $Id: struct.ml,v 1.11 2000-08-19 11:04:58 xleroy Exp $ *)
 
 (* Handling of structures *)
 
