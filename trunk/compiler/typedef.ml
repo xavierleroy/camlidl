@@ -48,14 +48,14 @@ let transl_ml_to_c oc td =
   current_function := sprintf "typedef %s" td.td_name;
   let v = new_var "_v" in
   let c = new_var "_c" in
-  fprintf oc "void camlidl_ml2c_%s_%s(value %s, %s * %s)\n"
+  fprintf oc "void camlidl_ml2c_%s_%s(value %s, %s * %s, camlidl_arena * _arena)\n"
              !module_name td.td_name v td.td_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
   if td.td_abstract then begin
     iprintf pc "*%s = *((%a *) Bp_val(%s));\n" c out_c_type td.td_type v
   end else begin
-    ml_to_c pc "_badprefix." td.td_type v (sprintf "(*%s)" c);
+    ml_to_c pc false "_badprefix." td.td_type v (sprintf "(*%s)" c);
   end;
   output_variable_declarations oc;
   end_diversion oc;

@@ -49,7 +49,7 @@ let all_float_fields fl =
 (* Translation from an ML record [v] to a C struct [c] *)
 (* [sd] is the IDL declaration for the record type. *)
 
-let struct_ml_to_c ml_to_c oc sd v c =
+let struct_ml_to_c ml_to_c oc onstack sd v c =
   if all_float_fields sd.sd_fields then begin
     let rec convert_fields pos = function
       [] -> ()
@@ -68,7 +68,7 @@ let struct_ml_to_c ml_to_c oc sd v c =
     | {field_typ = ty; field_name = n} :: rem ->
         let v' = new_ml_variable() in
         iprintf oc "%s = Field(%s, %d);\n" v' v pos;
-        ml_to_c oc (sprintf "%s." c) ty v' (sprintf "%s.%s" c n);
+        ml_to_c oc onstack (sprintf "%s." c) ty v' (sprintf "%s.%s" c n);
         convert_fields (pos + 1) rem in
     convert_fields 0 sd.sd_fields
   end

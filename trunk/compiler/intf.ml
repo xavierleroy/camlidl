@@ -2,7 +2,10 @@
 
 open Utils
 open Printf
+open Variables
 open Idltypes
+open Cvttyp
+open Cvtval
 open Funct
 
 type interface =
@@ -76,8 +79,8 @@ let ml_class_definition oc intf =
           fun_res = meth.fun_res;
           fun_params =
             ("this", In, Type_named "Com.interface") :: meth.fun_params;
-          fun_ccall = None } in
-      ml_declaration oc prim)
+          fun_call = emit_standard_call } in
+      Funct.ml_declaration oc prim)
     intf.intf_methods;
   fprintf oc "\n";
   (* Define the internal wrapper class (taking a Com.interface as argument) *)
@@ -105,30 +108,40 @@ let ml_class_definition oc intf =
   fprintf oc "  %s_internal (intf#queryInterface \"%s\")\n\n"
              intfname (String.escaped intf.intf_uid)
 
+(* If heap allocation is needed, set up null allocation arena (= indefinite
+   extent) *)
+
+let output_arena before after =
+  if !need_deallocation then begin
+    fprintf before "  camlidl_arena * _arena = NULL;\n"
+  end
+
 (* Generate callback wrapper for calling an ML method from C *)
 
 let emit_callback_wrapper oc intf meth =
-  current_function := sprintf "%s::%s" intf meth.fun_name;
-  let (ins, outs) = ml_view fundecl in
+  current_function := sprintf "%s::%s" intf.intf_name meth.fun_name;
+  need_deallocation := false;
+  let (ins, outs) = ml_view meth in
   (* Emit function header *)
   let fun_name =
-    sprintf "camlidl_%s_%s_%s_callback(" !module_name intf meth.fun_name in
+    sprintf "camlidl_%s_%s_%s_callback("
+            !module_name intf.intf_name meth.fun_name in
   fprintf oc "static %a(" out_c_decl (fun_name, meth.fun_res);
-  fprintf oc "\n\tinterface %s this";
+  fprintf oc "\n\tinterface %s this" intf.intf_name;
   List.iter
-    (fun (name, inout, ty) =
+    (fun (name, inout, ty) ->
     fprintf oc ",\n\t/* %a */ %a" out_inout inout out_c_decl (name, ty))
     meth.fun_params;
-  fprintf ")\n{\n";
+  fprintf oc ")\n{\n";
   (* Declare locals to hold ML arguments and result, and C result if any *)
   let num_ins = List.length ins in
   fprintf oc "  value _varg[%d] = { " (num_ins + 1);
-  for i = 0 to num_ins do fprintf pc "0, " done;
+  for i = 0 to num_ins do fprintf oc "0, " done;
   fprintf oc "};\n";
   fprintf oc "  value _vres;\n";
   fprintf oc "  static value _vlabel = 0;\n";
-  if fundecl.fun_res <> Type_void then 
-    fprintf oc "  %a;\n" out_c_decl ("_res", fundecl.fun_res);
+  if meth.fun_res <> Type_void then 
+    fprintf oc "  %a;\n" out_c_decl ("_res", meth.fun_res);
   (* Convert inputs from C to Caml *)
   let pc = divert_output() in
   iprintf pc "Begin_roots_block(_vres, %d)\n" (num_ins + 1);
@@ -152,15 +165,16 @@ let emit_callback_wrapper oc intf meth =
   begin match outs with
     [] -> ()
   | [name, ty] ->
-      ml_to_c pc "" ty "_vres" name
+      ml_to_c pc false "" ty "_vres" name
   | _ ->
       iter_index
         (fun pos (name, ty) ->
-           ml_to_c pc "" ty (sprintf "Field(_vres, %d)" pos) name)
+           ml_to_c pc false "" ty (sprintf "Field(_vres, %d)" pos) name)
         0 outs
   end;
+  output_arena oc pc;
   (* Return result if any *)
-  if fundecl.fun_res <> Type_void then
+  if meth.fun_res <> Type_void then
     iprintf pc "return _res;\n";
   output_variable_declarations oc;
   end_diversion oc;
@@ -170,7 +184,7 @@ let emit_callback_wrapper oc intf meth =
 
 let emit_vtable oc intf =
   fprintf oc "struct %sVtbl camlidl_%s_%s_vtbl = {\n"
-             !module_name intf.intf_name;
+             intf.intf_name !module_name intf.intf_name;
   begin match intf.intf_super with
     None -> ()
   | Some s ->
@@ -186,7 +200,7 @@ let emit_vtable oc intf =
 (* Generate ml2c function for an interface *)
 
 let emit_ml2c oc intf =
-  fprintf oc "interface %s * camlidl_ml2c_%s_interface_%s(value vobj)\n"
+  fprintf oc "interface %s * camlidl_ml2c_%s_interface_%s(value vobj, camlidl_arena * _arena)\n"
              intf.intf_name !module_name intf.intf_name;
   fprintf oc "{\n";
   begin match intf.intf_super with
@@ -199,9 +213,9 @@ let emit_ml2c oc intf =
               !module_name s.intf_name
               !module_name s.intf_name
   end;
-  fprintf oc "  return (interface %s *) camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, &IID_%s);\n"
-          intf.intf_name !module_name intf.intf_name intf.intf_name
-  fprintf "}\n\n"
+  fprintf oc "  return (interface %s *) camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, &IID_%s, _arena);\n"
+          intf.intf_name !module_name intf.intf_name intf.intf_name;
+  fprintf oc "}\n\n"
 
 (* Generate method wrapper for calling a C method from ML *)
 
@@ -225,7 +239,7 @@ let emit_method_wrapper oc intf meth =
       fun_params =
         ("this", In, Type_pointer(Ignore, Type_named intf.intf_name))
         :: meth.fun_params;
-      fun_ccall = emit_method_call meth.fun_name } in
+      fun_call = emit_method_call meth.fun_name } in
   emit_wrapper oc fundecl
 
 (* Generate c2ml function for an interface *)
@@ -249,7 +263,7 @@ let emit_c2ml oc intf =
 (* Forward declaration of the translation functions *)
 
 let declare_transl oc intf =
-  fprintf oc "interface %s * camlidl_ml2c_%s_interface_%s(value vobj);\n"
+  fprintf oc "interface %s * camlidl_ml2c_%s_interface_%s(value vobj, camlidl_arena * _arena);\n"
              intf.intf_name !module_name intf.intf_name;
   fprintf oc "value camlidl_c2ml_%s_interface_%s(interface %s * intf);\n"
              !module_name intf.intf_name intf.intf_name

@@ -24,7 +24,7 @@ let ml_declaration oc sd =
 (* Forward declaration of the translation functions *)
 
 let declare_transl oc sd =
-  fprintf oc "void camlidl_ml2c_%s_struct_%s(value, struct %s *);\n"
+  fprintf oc "void camlidl_ml2c_%s_struct_%s(value, struct %s *, camlidl_arena * _arena);\n"
              !module_name sd.sd_name sd.sd_name;
   fprintf oc "value camlidl_c2ml_%s_struct_%s(struct %s *);\n\n"
              !module_name sd.sd_name sd.sd_name
@@ -35,11 +35,11 @@ let transl_ml_to_c oc sd =
   current_function := sprintf "struct %s" sd.sd_name;
   let v = new_var "_v" in
   let c = new_var "_c" in
-  fprintf oc "void camlidl_ml2c_%s_struct_%s(value %s, struct %s * %s)\n"
+  fprintf oc "void camlidl_ml2c_%s_struct_%s(value %s, struct %s * %s, camlidl_arena * _arena)\n"
              !module_name sd.sd_name v sd.sd_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
-  struct_ml_to_c ml_to_c pc sd v (sprintf "(*%s)" c);
+  struct_ml_to_c ml_to_c pc false sd v (sprintf "(*%s)" c);
   output_variable_declarations oc;
   end_diversion oc;
   fprintf oc "}\n\n";

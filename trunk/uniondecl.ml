@@ -36,7 +36,7 @@ let ml_declaration oc ud =
 (* Forward declaration of the translation functions *)
 
 let declare_transl oc ud =
-  fprintf oc "int camlidl_ml2c_%s_union_%s(value, union %s *);\n"
+  fprintf oc "int camlidl_ml2c_%s_union_%s(value, union %s *, camlidl_arena * _arena);\n"
              !module_name ud.ud_name ud.ud_name;
   fprintf oc "value camlidl_c2ml_%s_union_%s(int, union %s *);\n\n"
              !module_name ud.ud_name ud.ud_name
@@ -47,13 +47,13 @@ let transl_ml_to_c oc ud =
   current_function := sprintf "union %s" ud.ud_name;
   let v = new_var "_v" in
   let c = new_var "_c" in
-  fprintf oc "int camlidl_ml2c_%s_union_%s(value %s, union %s * %s)\n"
+  fprintf oc "int camlidl_ml2c_%s_union_%s(value %s, union %s * %s, camlidl_arena * _arena)\n"
              !module_name ud.ud_name v ud.ud_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
   let discr = new_c_variable (Type_int Int) in
   iprintf pc "%s = -1;\n" discr; (* keeps gcc happy *)
-  union_ml_to_c ml_to_c pc ud v (sprintf "(*%s)" c) discr;
+  union_ml_to_c ml_to_c pc false ud v (sprintf "(*%s)" c) discr;
   iprintf pc "return %s;\n" discr;
   output_variable_declarations oc;
   end_diversion oc;

@@ -47,6 +47,8 @@ let rec out_c_decl oc (id, ty) =
           Some n -> sprintf "%s[%d]" id n
         | None -> sprintf "*%s" id in
       out_c_decl oc (id', ty)
+  | Type_interface intf_name ->
+      fprintf oc "interface %s %s" intf_name id
 
 (* Convert an IDL type to a C type *)
 
@@ -62,6 +64,7 @@ let rec out_ml_type oc ty =
   | Type_float | Type_double -> output_string oc "float"
   | Type_void -> output_string oc "void"
   | Type_named s -> output_string oc s
+  | Type_interface s -> output_string oc s
   | Type_struct sd ->
       if sd.sd_name = ""
       then fprintf oc "struct_%d" sd.sd_stamp
