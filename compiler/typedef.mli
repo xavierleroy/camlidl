@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: typedef.mli,v 1.8 2000-08-19 11:04:58 xleroy Exp $ *)
+(* $Id: typedef.mli,v 1.9 2002-04-19 13:24:30 xleroy Exp $ *)
 
 (* Handling of typedefs *)
 
@@ -23,6 +23,9 @@ type type_decl =
     td_abstract: bool;
     td_c2ml: string option;
     td_ml2c: string option;
+    td_finalize: string option;
+    td_compare: string option;
+    td_hash: string option;
     td_errorcode: bool;
     td_errorcheck: string option;
     td_mltype: string option }

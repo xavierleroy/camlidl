@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: main.ml,v 1.15 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: main.ml,v 1.16 2002-04-19 13:24:29 xleroy Exp $ *)
 
 open Printf
 open Clflags
@@ -39,12 +39,12 @@ let process_file name =
   with x ->
     close_out oc; remove_file (pref ^ ".ml"); raise x
   end;
-  let oc = open_out (pref ^ ".c") in
+  let oc = open_out (pref ^ "_stubs.c") in
   begin try
     gen_c_stub oc intf;
     close_out oc
   with x ->
-    close_out oc; remove_file (pref ^ ".c"); raise x
+    close_out oc; remove_file (pref ^ "_stubs.c"); raise x
   end;
   if !Clflags.gen_header then begin
     let oc = open_out (pref ^ ".h") in

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.16 2002-01-16 16:15:33 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.17 2002-04-19 13:24:29 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -298,6 +298,12 @@ let make_typedef attrs tybase decls =
       merge_attributes ty {td with td_c2ml = Some f} rem
   | ("ml2c", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_ml2c = Some f} rem
+  | ("finalize", [Expr_ident f]) :: rem ->
+      merge_attributes ty {td with td_finalize = Some f} rem
+  | ("compare", [Expr_ident f]) :: rem ->
+      merge_attributes ty {td with td_compare = Some f} rem
+  | ("hash", [Expr_ident f]) :: rem ->
+      merge_attributes ty {td with td_hash = Some f} rem
   | ("mltype", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_mltype = Some f} rem
   | ("mltype", [Expr_string f]) :: rem ->
@@ -317,6 +323,7 @@ let make_typedef attrs tybase decls =
               td_type = Type_void; (* dummy *)
               td_abstract = false; td_mltype = None;
               td_c2ml = None; td_ml2c = None;
+              td_finalize = None; td_compare = None; td_hash = None;
               td_errorcode = false; td_errorcheck = None} in
     let (ty', td') = merge_attributes ty td attrs in
     {td' with td_type = ty'} in

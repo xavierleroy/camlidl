@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: predef.ml,v 1.5 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: predef.ml,v 1.6 2002-04-19 13:24:29 xleroy Exp $ *)
 
 (* Predefined types and interfaces *)
 
@@ -23,6 +23,7 @@ let hresult =
     td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
+    td_finalize = None; td_compare = None; td_hash = None;
     td_errorcode = true;
     td_errorcheck = Some "camlidl_check_hresult";
     td_mltype = None }
@@ -32,6 +33,7 @@ let hresult_bool =
     td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
+    td_finalize = None; td_compare = None; td_hash = None;
     td_errorcode = false;
     td_errorcheck = Some "camlidl_check_hresult";
     td_mltype = Some "bool" }
@@ -41,6 +43,7 @@ let hresult_int =
     td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
+    td_finalize = None; td_compare = None; td_hash = None;
     td_errorcode = false;
     td_errorcheck = Some "camlidl_check_hresult";
     td_mltype = Some "int" }
@@ -50,6 +53,7 @@ let bstr =
     td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
+    td_finalize = None; td_compare = None; td_hash = None;
     td_errorcode = false;
     td_errorcheck = None;
     td_mltype = Some "string" }
