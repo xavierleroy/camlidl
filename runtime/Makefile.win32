@@ -1,22 +1,29 @@
-include ..\Makefile.config
-
 CC=cl
 CFLAGS=/nologo /Zi /MT /I$(OCAMLLIB)
 
 OBJS=idlalloc.obj comintf.obj cfactory.obj comerror.obj superror.obj \
   registry.obj
 
-all: camlidlruntime.lib
+all: libcamlidl.lib
 
-camlidlruntime.lib: $(OBJS)
+libcamlidl.lib: $(OBJS)
 	- rm -f $@
 	lib /nologo /debugtype:CV /out:$@ $(OBJS)
+
+install:
+	cp camlidlruntime.h $(OCAMLLIB)/caml/camlidlruntime.h
+	cp libcamlidl.lib $(OCAMLLIB)/libcamlidl.lib
+
+clean:
+	rm -f *.lib *.obj
 
 .SUFFIXES: .c .cpp .obj
 
 .c.obj:
-	$(CC) $(CFLAGS) -c $*.c
+	$(CC) $(CFLAGS) -c $<
 .cpp.obj:
-	$(CC) $(CFLAGS) -c $*.cpp
+	$(CC) $(CFLAGS) -c $<
 
 $(OBJS): camlidlruntime.h comstuff.h registry.h
+
+depend:
