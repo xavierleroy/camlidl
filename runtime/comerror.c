@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comerror.c,v 1.10 2001-06-09 14:48:20 xleroy Exp $ */
+/* $Id: comerror.c,v 1.11 2001-06-17 10:51:24 xleroy Exp $ */
 
 /* Error handling */
 
@@ -107,7 +107,6 @@ void camlidl_check_hresult(HRESULT hr)
 
 value camlidl_c2ml_Com_HRESULT_bool(HRESULT_bool * hr, camlidl_ctx ctx)
 {
-  if (FAILED(*hr)) camlidl_hresult_error(*hr);
   return Val_bool(*hr == S_OK);
 }
 
@@ -118,7 +117,6 @@ void camlidl_ml2c_Com_HRESULT_bool(value v, HRESULT * hr, camlidl_ctx ctx)
 
 value camlidl_c2ml_Com_HRESULT_int(HRESULT_int * hr, camlidl_ctx ctx)
 {
-  if (FAILED(*hr)) camlidl_hresult_error(*hr);
   return Val_int(HRESULT_CODE(*hr));
 }
 
