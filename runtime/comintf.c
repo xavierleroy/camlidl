@@ -1,6 +1,7 @@
 /* Helper functions for handling COM interfaces */
 
 #include <string.h>
+#include <stdio.h>
 #include <caml/mlvalues.h>
 #include <caml/memory.h>
 #include <caml/alloc.h>
@@ -120,12 +121,9 @@ value camlidl_com_queryInterface(value vintf, value viid)
 {
   void * res;
   HRESULT hr;
-
   interface IUnknown * intf =
     (interface IUnknown *) camlidl_unpack_interface(vintf, NULL);
-  if (string_length(viid) != 16)
-    camlidl_error(CO_E_IIDSTRING, "Com.queryInterface", "Badly formed IID");
-  hr = intf->lpVtbl->QueryInterface(intf, (IID *) String_val(viid), &res);
+  hr = intf->lpVtbl->QueryInterface(intf, &GUID_val(viid), &res);
   if (FAILED(hr))
     camlidl_error(hr, "Com.queryInterface", "Interface not available");
   return camlidl_pack_interface(res, NULL);
@@ -175,12 +173,13 @@ value camlidl_com_create_instance(value clsid, value iid)
 #ifdef _WIN32
   void * instance;
   HRESULT res;
-  res = CoCreateInstance((CLSID *) String_val(clsid),
+
+  res = CoCreateInstance(&GUID_val(clsid),
                          NULL,
                          CLSCTX_ALL,
-                         (IID *) String_val(iid),
+                         &GUID_val(iid),
                          &instance);
-  if (FAILED(res)) raise_com_error(res);
+  if (FAILED(res)) camlidl_error(res, "Com.create_instance", NULL);
   return camlidl_pack_interface(instance, NULL);
 #else
   invalid_argument("Com.create_instance not implemented");
@@ -209,7 +208,7 @@ value camlidl_com_uninitialize(value unit)
 
 struct camlidl_comp * camlidl_registered_components = NULL;
 
-value camlidl_register_factory(value compdata)
+value camlidl_com_register_factory(value compdata)
 {
   struct camlidl_comp * c = stat_alloc(sizeof(struct camlidl_comp));
   c->compdata = compdata;
@@ -217,4 +216,32 @@ value camlidl_register_factory(value compdata)
   c->next = camlidl_registered_components;
   camlidl_registered_components = c;
   return Val_unit;
+}
+
+/* Parse and allocate an UID */
+
+value camlidl_com_parse_uid(value str)
+{
+  value res;
+  int u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11;
+
+  if (string_length(str) != 36 ||
+      sscanf(String_val(str),
+             "%8x-%4x-%4x-%2x%2x-%2x%2x%2x%2x%2x%2x",
+             &u1, &u2, &u3, &u4, &u5, &u6, &u7, &u8, &u9, &u10, &u11) != 11)
+    camlidl_error(CO_E_IIDSTRING, "Com.clsid", "Badly formed GUID");
+  res = alloc_small((sizeof(GUID) + sizeof(value) - 1) / sizeof(value),
+                    Abstract_tag);
+  GUID_val(res).Data1 = u1;
+  GUID_val(res).Data2 = u2;
+  GUID_val(res).Data3 = u3;
+  GUID_val(res).Data4[0] = u4;
+  GUID_val(res).Data4[1] = u5;
+  GUID_val(res).Data4[2] = u6;
+  GUID_val(res).Data4[3] = u7;
+  GUID_val(res).Data4[4] = u8;
+  GUID_val(res).Data4[5] = u9;
+  GUID_val(res).Data4[6] = u10;
+  GUID_val(res).Data4[7] = u11;
+  return res;
 }

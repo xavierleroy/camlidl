@@ -49,6 +49,8 @@ extern IID IID_IUnknown;
 extern "C"{
 #endif 
 
+#define GUID_val(v) (*((GUID *) Bp_val(v)))
+
 /* Count of active component instances */
 
 extern int camlidl_num_components;
