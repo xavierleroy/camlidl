@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: intf.ml,v 1.20 2001-06-17 10:50:25 xleroy Exp $ *)
+(* $Id: intf.ml,v 1.21 2001-07-30 14:33:34 xleroy Exp $ *)
 
 (* Handling of COM-style interfaces *)
 
@@ -122,7 +122,7 @@ let rec declare_class oc self intf =
     List.iter
       (fun m ->
         iprintf oc "virtual %a("
-                   out_c_decl (sprintf "(STDMETHODCALLTYPE *%s)" m.fun_name,
+                   out_c_decl (sprintf "STDMETHODCALLTYPE %s" m.fun_name,
                                m.fun_res);
         let first = ref true in
         List.iter
@@ -153,7 +153,7 @@ let c_declaration oc intf =
     fprintf oc "  struct %sVtbl * lpVtbl;\n" intf.intf_name;
     fprintf oc "};\n";
     fprintf oc "#endif\n";
-    fprintf oc "extern IID IID_%s;\n\n" intf.intf_name
+    fprintf oc "_CAMLIDL_EXTERN_C IID IID_%s;\n\n" intf.intf_name
   end
 
 (* Define the wrapper classes *)

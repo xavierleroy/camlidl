@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: file.ml,v 1.16 2001-06-15 16:53:45 xleroy Exp $ *)
+(* $Id: file.ml,v 1.17 2001-07-30 14:33:34 xleroy Exp $ *)
 
 (* Handling of interfaces *)
 
@@ -216,8 +216,21 @@ let gen_c_header oc intf =
   fprintf oc "\
     #ifndef %s\n\
     #define %s\n\n" symbname symbname;
+  fprintf oc "\
+    #ifdef __cplusplus\n\
+    #define _CAMLIDL_EXTERN_C extern \"C\"\n\
+    #else\n\
+    #define _CAMLIDL_EXTERN_C extern\n\
+    #endif\n\n\
+    #ifdef _WIN32\n\
+    #pragma pack(push,8) /* necessary for COM interfaces */\n\
+    #endif\n\n";
   (* Emit the definitions *)
   List.iter (process_definition oc) intf;
+  fprintf oc "\
+    #ifdef _WIN32\n\
+    #pragma pack(pop)\n\
+    #endif\n\n";
   fprintf oc "\n\
     #endif /* !%s */\n" symbname
 
