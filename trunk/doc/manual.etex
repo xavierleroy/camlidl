@@ -111,7 +111,7 @@ escape-char: '\' ('b'||'n'||'r'||'t')
 \paragraph{UUID.}  Unique identifiers are composed of 16 hexadecimal
 digits, in groups of 8, 4, 4, 4 and 12, separated by dashes.
 \begin{syntax}
-uuid: hex^8 '-' hex^4 '-' hex^4 '-' hex^4 '-' hex^12;
+uuid: hex^8 '-' hex^4 '-' hex^4 '-' hex^4 '-' hex^4 hex^4 hex^4;
 hex: '0' \ldots '9' || 'a' \ldots 'f' || 'A' \ldots 'F';
 \end{syntax}
 
@@ -303,7 +303,7 @@ encapsulates the discriminant along with the union itself
 
 \begin{syntax}
 function-decl:
-  attributes type-spec {'*'} ident '(' params ')' [string]
+  attributes type-spec {'*'} ident '(' params ')' {'quote''('ident','string')'}
 ;
 params:
   epsilon
@@ -316,10 +316,10 @@ param:
 \end{syntax}
 Function declarations are like in ANSI C, with the addition of
 attributes on each parameter and on the function itself.
-Parameters must be named.  The optional string following the
-declaration is a user-provided calling sequence that replaces the
-default calling sequence in the "camlidl"-generated stub code for the
-function.
+Parameters must be named.  The optional @quote@ statements following the
+declaration are user-provided calling sequences and deallocation
+sequences that replaces the default sequences in the
+"camlidl"-generated stub code for the function.
 
 \subsection{Constant definitions}
 
@@ -693,21 +693,49 @@ attribute, the error checking function @fn@ is called after the C
 function returns.  That function is assumed to raise a Caml exception
 if it finds an output denoting an error.
 
-\paragraph{Custom calling sequence:}
+\paragraph{Custom calling and deallocation sequences:}
 The IDL declaration for a function can optionally specify a custom
-calling sequence, as a string literal following the function
-declaration:
+calling sequence and/or a custom deallocation sequence, via @quote@
+clauses following the function declaration:
 \begin{syntax}
 function-decl:
-  attributes type-spec {'*'} ident '(' params ')' [string]
+  attributes type-spec {'*'} ident '(' params ')' 
+  { 'quote''(' ident ',' string ')' } ;
 \end{syntax}
-The string literal contains C statements that are inserted in the
-generated stub code after the conversion of the function parameters
-from Caml to C and before the conversion of the function results back
-to Caml.  It finds the converted parameters in local variables that
-have the same names as the parameters in the IDL declaration,
-and should leave the result of the function, if any, in the local
-variable named "_res".
+The general shape of a "camlidl"-generated stub function is as
+follows:
+\begin{alltt}
+value caml_wrapper(value camlparam1, ..., value camlparamK)
+{
+  /* Convert the function parameters from Caml to C */
+  param1 = ...;
+  ...
+  paramN = ...;
+  /* Call the C function 'ident' */
+  _res = ident(param1, ..., paramN);
+  /* Convert the function result and out parameters to Caml values */
+  camlres = ...;
+  /* Return result to Caml */
+  return camlres;
+}
+\end{alltt}
+A @'quote(call,' string ')'@ clause causes the C statements in
+@string@ to be inserted in the generated stub code
+instead of the default calling sequence "_res = ident(param1, ..., paramN)".
+Thus, the statements in @string@ find the converted parameters in
+local variables that have the same names as the parameters in the IDL
+declaration, and should leave the result of the function, if any, in
+the local variable named "_res".
+
+A @'quote(dealloc,' string ')'@ clause causes the C statements in
+@string@ to be inserted in the generated stub code just before the
+stub function returns, hence after the conversion of the C function
+results to Caml values.  Again, the statements in @string@ have access
+to the function result in the local variable named "_res", and to out
+parameters in local variables having the same names as the
+parameters.  Since the function results and out parameters have
+already been converted to Caml values, the code in @string@ can safely
+deallocate the data structures they point to.
 
 Custom calling sequences are typically used to rearrange or combine
 function parameters, and to perform extra error checks on the
@@ -719,12 +747,27 @@ be specified in IDL as follows:
                   [in] int len,
                   [in] int ofs,
                   [in] int towrite)
-          " /* Validate the arguments */
-            if (ofs < 0 || ofs + towrite >= len) failwith(\"write\");
-            /* Perform the write */
-            _res = write(fd, data + ofs, towrite);
-            /* Validate the result */
-            if (_res == -1) failwith(\"write\"); ";
+          quote(call,
+            " /* Validate the arguments */
+              if (ofs < 0 || ofs + towrite >= len) failwith(\"write\");
+              /* Perform the write */
+              _res = write(fd, data + ofs, towrite);
+              /* Validate the result */
+              if (_res == -1) failwith(\"write\"); ");
+\end{verbatim}
+%
+Custom deallocation sequences are useful to free data structures
+dynamically allocated and returned by the C function.  For instance,
+a C function "f" that returns a "malloc"-ed string can be specified in
+IDL as follows:
+\begin{verbatim}
+        [string] char * f([in] int x)
+          quote(dealloc, "free(_res); ");
+\end{verbatim}
+If the string is returned as an "out" parameter instead, we would write:
+\begin{verbatim}
+        void f ([in] int x, [out, string*] char ** str)
+          quote(dealloc, "free(*str); ");
 \end{verbatim}
 
 \subsection{Interfaces}
@@ -897,6 +940,20 @@ The default is the C preprocessor.
 
 \end{options}
 
+\subsection{The "camlidldll" script}
+
+Under Windows, a "bash" script called "camlidldll" is provided to
+automate the construction of a DLL containing a COM component written
+in Caml.
+
+The script "camlidldll" accepts the same command-line arguments and
+options as the "ocamlc" compiler.  It produces a DLL file that
+encapsulates the Caml and C object files given on the command line.
+Use "regsvr32 /s "\var{file}".dll" to record the components in the
+system registry.
+
+\input com.tex
+
 \section{Hints on writing IDL files}
 
 \subsection{Writing an IDL file for a C library}
@@ -953,8 +1010,8 @@ year 2005.  A simple solution is to pretend (in the IDL file) that
         double time() " _res = time(NULL); ";
 \end{verbatim}
 This way, "time" will have the expected Caml type "unit -> float".
-Again, the stub code ``knows'' that "time_t" is actually an integer
-type, and therefore will insert the right integer-float coercions.
+Again, the stub code ``knows'' that "time" actually returns an integer,
+and therefore will insert the right integer-float coercions.
 
 \subsection{Reusing Microsoft-provided IDL files}
 
@@ -984,3 +1041,53 @@ macros, as follows:
 
         typedef [ABSTRACT,MLTYPE(int)] char t;
 \end{verbatim}
+
+\section{Release notes}
+
+Here are some caveats and open issues that apply to the current
+release.
+
+\paragraph{Deallocation of function results and "out" parameters:}
+If a C function dynamically allocates some of its outputs (either
+returned or stored in "out" parameters), its IDL declaration must
+contain a @'quote(dealloc,' string ')'@ clause to properly free the
+space occupieid by those outputs after they have been converted to
+Caml.  Otherwise, memory leaks will occur.
+
+This does not conform to the MIDL and COM specifications, which say
+that space for "out" data structures must be allocated
+with "CoTaskMemAlloc" by the callee, and automatically freed
+using "CoTaskMemFree" by the generated stub code.  (The specs don't
+say what happens with the return value of the function.)
+value.  However, there are many functions in Win32 (not to mention the
+Unix world) that do not follow this convention, and
+return data structures (e.g. strings) that are statically
+allocated, or require special deallocation functions.  Hence,
+"camlidl" leaves deallocation of outputs entirely under user control.
+
+\paragraph{Allocation and deallocation of "in,out" parameters:}
+For "in,out" parameters, the MIDL/COM rules are that the caller (the
+stub code) should allocate the inputs, the callee should free them
+and allocate again its outputs, and the caller should free the outputs.
+As explained above, "camlidl"-generated stubs don't automatically free
+the outputs.  Worse, the inputs passed to the functions are allocated
+partially on the stack and partially in the heap
+(using "CoTaskMemAlloc"), so the callee may perform an incorrect
+free on a stack-allocated argument.  The best thing to do is avoid
+"in,out" parameters entirely, and split them into one "in" and one
+"out" parameter.
+
+\paragraph{Reference-counting of COM interfaces:}
+Caml finalized objects are used to call "Release" automatically on COM
+interfaces that become unreachable.  The reference counting of
+interfaces passed as "in" and "out" parameters is correctly
+implemented.  However, "in,out" parameters that are interfaces are not
+correctly handled.  Again, avoid "in,out" parameters.
+
+\paragraph{COM support:}
+The support for COM is currently minimal.  COM components registered
+in the system registry can be imported via "Com.create_instance".
+Components written in Caml can be exported as DLLs, but not yet as
+standalone servers.  Dispatch interfaces and the Automation framework
+are not supported yet, thus Caml components cannot be used from Visual
+Basic.
