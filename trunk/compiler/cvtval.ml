@@ -44,7 +44,7 @@ let rec ml_to_c oc onstack pref ty v c =
         Struct.struct_ml_to_c ml_to_c oc onstack sd v c
       else begin
         iprintf oc "camlidl_ml2c_%s_struct_%s(%s, &%s, _arena);\n"
-                   !module_name sd.sd_name v c;
+                   sd.sd_mod sd.sd_name v c;
         need_deallocation := true
       end
   | Type_union(ud, attr) ->
@@ -54,7 +54,7 @@ let rec ml_to_c oc onstack pref ty v c =
       else begin
         iprintf oc "%s%a = camlidl_ml2c_%s_union_%s(%s, &%s, _arena);\n"
                    pref out_restr_expr attr.discriminant
-                   !module_name ud.ud_name v c;
+                   ud.ud_mod ud.ud_name v c;
         need_deallocation := true
       end
   | Type_enum(en, attr) ->
@@ -64,13 +64,13 @@ let rec ml_to_c oc onstack pref ty v c =
         Enum.enum_ml_to_c ml_to_c oc en v c
       else
         iprintf oc "%s = camlidl_ml2c_%s_enum_%s(%s);\n"
-                   c !module_name en.en_name v
-  | Type_named s ->
-      iprintf oc "camlidl_ml2c_%s_%s(%s, &%s, _arena);\n" !module_name s v c;
+                   c en.en_mod en.en_name v
+  | Type_named(modl, name) ->
+      iprintf oc "camlidl_ml2c_%s_%s(%s, &%s, _arena);\n" modl name v c;
       need_deallocation := true
-  | Type_pointer(Ref, Type_interface s) ->
+  | Type_pointer(Ref, Type_interface(modl, name)) ->
       iprintf oc "%s = (interface %s *) camlidl_unpack_interface(%s);\n"
-                 c s v
+                 c name v
   | Type_pointer(Ref, ty_elt) ->
       let c' = allocate_space oc onstack ty_elt c in
       ml_to_c oc onstack pref ty_elt v c'
@@ -92,8 +92,8 @@ let rec ml_to_c oc onstack pref ty v c =
       iprintf oc "%s = NULL;\n" c
   | Type_array(attr, ty_elt) ->
       Array.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c
-  | Type_interface s ->
-      error (sprintf "Reference to interface %s that is not a pointer" s)
+  | Type_interface(modl, name) ->
+      error (sprintf "Reference to interface %s that is not a pointer" name)
 
 (* Translate the C value [c] and store it into the ML variable [v].
    [ty] is the IDL type of the value being converted.
@@ -114,13 +114,13 @@ let rec c_to_ml oc pref ty c v =
       if sd.sd_name = ""
       then Struct.struct_c_to_ml c_to_ml oc sd c v
       else iprintf oc "%s = camlidl_c2ml_%s_struct_%s(&%s);\n"
-                      v !module_name sd.sd_name c
+                      v sd.sd_mod sd.sd_name c
   | Type_union(ud, attr) ->
       if ud.ud_name = ""
       then Union.union_c_to_ml c_to_ml oc ud c v
                                (pref ^ string_of_restr_expr attr.discriminant)
       else iprintf oc "%s = camlidl_c2ml_%s_union_%s(%s%a, &%s);\n"
-                      v !module_name ud.ud_name pref
+                      v ud.ud_mod ud.ud_name pref
                       out_restr_expr attr.discriminant c
   | Type_enum(en, attr) ->
       if attr.bitset then
@@ -129,10 +129,10 @@ let rec c_to_ml oc pref ty c v =
         Enum.enum_c_to_ml c_to_ml oc en c v
       else
         iprintf oc "%s = camlidl_c2ml_%s_enum_%s(%s);\n"
-                   v !module_name en.en_name c
-  | Type_named s ->
-      iprintf oc "%s = camlidl_c2ml_%s_%s(&%s);\n" v !module_name s c
-  | Type_pointer(Ref, Type_interface s) ->
+                   v en.en_mod en.en_name c
+  | Type_named(modl, name) ->
+      iprintf oc "%s = camlidl_c2ml_%s_%s(&%s);\n" v modl name c
+  | Type_pointer(Ref, Type_interface(modl, name)) ->
       iprintf oc "%s = camlidl_pack_interface(%s);\n" v c
   | Type_pointer(Ref, ty_elt) ->
       c_to_ml oc pref ty_elt (sprintf "*%s" c) v;
@@ -160,5 +160,5 @@ let rec c_to_ml oc pref ty c v =
       ()
   | Type_array(attr, ty_elt) ->
       Array.array_c_to_ml c_to_ml oc pref attr ty_elt c v
-  | Type_interface s ->
-      error (sprintf "Reference to interface %s that is not a pointer" s)
+  | Type_interface(modl, name) ->
+      error (sprintf "Reference to interface %s that is not a pointer" name)

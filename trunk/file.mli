@@ -18,4 +18,4 @@ type idl_file = component list
 
 val gen_mli_file: out_channel -> idl_file -> idl_file -> unit
 val gen_ml_file: out_channel -> idl_file -> idl_file -> unit
-val gen_c_stub: out_channel -> idl_file -> unit
+val gen_c_stub: out_channel -> idl_file -> idl_file -> unit

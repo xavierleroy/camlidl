@@ -108,6 +108,7 @@ let make_param attrs tybase decl =
 
 let make_op_declaration attrs ty_res name params diversion =
   { fun_name = name;
+    fun_mod = "";
     fun_res = apply_type_attributes ty_res attrs;
     fun_params = params;
     fun_call = diversion }
@@ -143,7 +144,8 @@ let make_typedef attrs tybase decls =
   List.map
     (fun decl ->
       let (name, ty) = decl tybase in
-      let td = {td_name = name; td_type = Type_void; (* dummy *)
+      let td = {td_name = name; td_mod = "";
+                td_type = Type_void; (* dummy *)
                 td_abstract = false; td_mltype = None;
                 td_c2ml = None; td_ml2c = None;
                 td_errorcode = false; td_errorcheck = None} in
@@ -154,7 +156,7 @@ let make_typedef attrs tybase decls =
 let make_interface attr name supername methods =
   let rec super =
     (* All fields are ignored except intf_name *)
-    { intf_name = supername; intf_super = super;
+    { intf_name = supername; intf_mod = ""; intf_super = super;
       intf_methods = []; intf_uid = "" } in
   let rec parse_attrs uid = function
       [] -> uid
@@ -165,7 +167,7 @@ let make_interface attr name supername methods =
   let uid = parse_attrs "" attr in
   if uid = "" then
     eprintf "Warning: no UUID provided for interface %s\n" name;
-  { intf_name = name; intf_super = super;
+  { intf_name = name; intf_mod = ""; intf_super = super;
     intf_methods = methods; intf_uid = uid }
 
 let make_diversion (id, txt) =
@@ -225,6 +227,7 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 %token GREATEREQUAL
 %token GREATERGREATER
 %token <string> IDENT
+%token IMPORT
 %token INT
 %token INTERFACE
 %token <int> INTEGER
@@ -276,13 +279,25 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 /* Start symbol */
 
 %start file
-%type <File.idl_file> file
+%type <string list * File.idl_file> file
 
 %%
 
 /* Main entry point */
 
-file: interface_components EOF                  { List.rev $1 }
+file: import_list interface_components EOF      { (List.rev $1, List.rev $2) }
+;
+
+/* Import list */
+
+import_list:
+    /* empty */                                 { [] }
+  | import_list IMPORT name_list SEMI           { $3 @ $1 }
+;
+
+name_list:
+    STRING                                      { [$1] }
+  | name_list COMMA STRING                      { $3 :: $1 }
 ;
 
 /* Components */
@@ -314,12 +329,15 @@ type_declarator:
 
 type_spec:
     simple_type_spec     { $1 }
-  | STRUCT IDENT         { Type_struct {sd_name=$2; sd_stamp=0; sd_fields=[]} }
+  | STRUCT IDENT         { Type_struct {sd_name=$2; sd_mod = "";
+                                        sd_stamp=0; sd_fields=[]} }
   | struct_declarator    { Type_struct $1 }
-  | UNION IDENT          { Type_union({ud_name=$2; ud_stamp=0; ud_cases=[]},
+  | UNION IDENT          { Type_union({ud_name=$2; ud_mod = "";
+                                       ud_stamp=0; ud_cases=[]},
                                       no_switch) }
   | union_declarator     { Type_union($1, no_switch) }
-  | ENUM IDENT           { Type_enum({en_name=$2; en_stamp=0; en_consts=[]},
+  | ENUM IDENT           { Type_enum({en_name=$2; en_mod = "";
+                                      en_stamp=0; en_consts=[]},
                                      no_enum_attr) }
   | enum_declarator      { Type_enum($1, no_enum_attr) }
 ;
@@ -337,7 +355,7 @@ simple_type_spec:
   | BOOLEAN                                     { Type_int Boolean }
   | BYTE                                        { Type_int Byte }
   | VOID                                        { Type_void }
-  | IDENT                                       { Type_named $1 }
+  | IDENT                                       { Type_named("", $1) }
   | LPAREN type_spec RPAREN                     { $2 }
 ;
 integer_size:
@@ -354,7 +372,7 @@ opt_int:
 
 struct_declarator:
     STRUCT opt_ident LBRACE field_declarators RBRACE
-                        { {sd_name = $2; sd_stamp = 0; sd_fields = $4} } 
+                { {sd_name = $2; sd_mod = ""; sd_stamp = 0; sd_fields = $4} } 
 ;
 field_declarators:
     field_declarator                            { $1 }
@@ -367,7 +385,7 @@ field_declarator:
 
 union_declarator:
   | UNION opt_ident LBRACE union_body RBRACE
-                      { {ud_name = $2; ud_stamp = 0; ud_cases = List.rev $4} }
+      { {ud_name = $2; ud_mod = ""; ud_stamp = 0; ud_cases = List.rev $4} }
 ;
 union_body:
     union_case                                          { $1 }
@@ -395,7 +413,7 @@ opt_field_declarator:
 
 enum_declarator:
     ENUM opt_ident LBRACE enum_cases RBRACE
-                   { {en_name = $2; en_stamp = 0; en_consts = List.rev $4} }
+       { {en_name = $2; en_mod = ""; en_stamp = 0; en_consts = List.rev $4} }
 ;
 enum_cases:
     enum_case                                           { [$1] }

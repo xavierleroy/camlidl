@@ -13,18 +13,14 @@ let structs = (Hashtbl.create 13 : (string, struct_decl) Hashtbl.t)
 let unions =  (Hashtbl.create 13 : (string, union_decl) Hashtbl.t)
 let enums =   (Hashtbl.create 13 : (string, enum_decl) Hashtbl.t)
 let intfs =   (Hashtbl.create 13 : (string, interface) Hashtbl.t)
+let typedefs =(Hashtbl.create 13 : (string, type_decl) Hashtbl.t)
 
 let rec iunknown =
-  { intf_name = "IUnknown"; intf_super = iunknown;
+  { intf_name = "IUnknown"; intf_mod = "Com";
+    intf_super = iunknown;
     intf_methods = [];
     intf_uid = "\000\000\000\000\000\000\000\000\192\000\000\000\000\000\000\070" }
     (* 00000000-0000-0000-C000-000000000046 *)
-
-let _ = Hashtbl.add intfs "IUnknown" iunknown
-
-module StringSet = Set.Make(struct type t = string let compare = compare end)
-
-let intf_names = ref (StringSet.singleton "IUnknown")
 
 let all_type_decls = ref ([] : component list)
 
@@ -67,8 +63,17 @@ let rec normalize_type = function
       end
   | Type_enum (en, attr) ->
       Type_enum(enter_enum en, attr)
-  | Type_named s ->
-      if StringSet.mem s !intf_names then Type_interface s else Type_named s
+  | Type_named(_, s) ->
+      begin try
+        let itf = Hashtbl.find intfs s in
+        Type_interface(itf.intf_mod, itf.intf_name)
+      with Not_found ->
+      try
+        let td = Hashtbl.find typedefs s in
+        Type_named(td.td_mod, td.td_name)
+      with Not_found ->
+        error("Unknown type name " ^ s)
+      end
   | ty -> ty
 
 and normalize_field f =
@@ -81,7 +86,8 @@ and normalize_case c =
 
 and enter_struct sd =
   if sd.sd_fields = [] then begin
-    let sd' = { sd_name = sd.sd_name; sd_stamp = 0; sd_fields = [] } in
+    let sd' = { sd_name = sd.sd_name; sd_mod = !module_name;
+                sd_stamp = 0; sd_fields = [] } in
     Hashtbl.add structs sd.sd_name sd';
     sd
   end else begin
@@ -89,7 +95,8 @@ and enter_struct sd =
       try
         Hashtbl.find structs sd.sd_name
       with Not_found ->
-        let sd' = { sd_name = sd.sd_name; sd_stamp = 0; sd_fields = [] } in
+        let sd' = { sd_name = sd.sd_name; sd_mod = !module_name;
+                    sd_stamp = 0; sd_fields = [] } in
         if sd.sd_name <> "" then Hashtbl.add structs sd.sd_name sd';
         sd' in
     sd'.sd_stamp <- newstamp();
@@ -100,7 +107,8 @@ and enter_struct sd =
 
 and enter_union ud =
   if ud.ud_cases = [] then begin
-    let ud' = { ud_name = ud.ud_name; ud_stamp = 0; ud_cases = [] } in
+    let ud' = { ud_name = ud.ud_name; ud_mod = !module_name;
+                ud_stamp = 0; ud_cases = [] } in
     Hashtbl.add unions ud.ud_name ud';
     ud
   end else begin
@@ -108,7 +116,8 @@ and enter_union ud =
       try
         Hashtbl.find unions ud.ud_name
       with Not_found ->
-        let ud' = { ud_name = ud.ud_name; ud_stamp = 0; ud_cases = [] } in
+        let ud' = { ud_name = ud.ud_name; ud_mod = !module_name;
+                    ud_stamp = 0; ud_cases = [] } in
         if ud.ud_name <> "" then Hashtbl.add unions ud.ud_name ud';
         ud' in
     ud'.ud_stamp <- newstamp();
@@ -119,7 +128,8 @@ and enter_union ud =
 
 and enter_enum en =
   if en.en_consts = [] then begin
-    let en' = { en_name = en.en_name; en_stamp = 0; en_consts = [] } in
+    let en' = { en_name = en.en_name; en_mod = !module_name;
+                en_stamp = 0; en_consts = [] } in
     Hashtbl.add enums en.en_name en';
     en
   end else begin
@@ -127,7 +137,8 @@ and enter_enum en =
       try
         Hashtbl.find enums en.en_name
       with Not_found ->
-        let en' = { en_name = en.en_name; en_stamp = 0; en_consts = [] } in
+        let en' = { en_name = en.en_name; en_mod = !module_name;
+                    en_stamp = 0; en_consts = [] } in
         if en.en_name <> "" then Hashtbl.add enums en.en_name en';
         en' in
     en'.en_stamp <- newstamp();
@@ -140,7 +151,8 @@ let normalize_fundecl fd =
   current_function := fd.fun_name;
   in_fundecl := true;
   let res =
-    { fd with 
+    { fd with
+      fun_mod = !module_name;
       fun_res = normalize_type fd.fun_res;
       fun_params =
         List.map (fun (n, io, ty) -> (n,io, normalize_type ty)) fd.fun_params }
@@ -151,17 +163,18 @@ let normalize_fundecl fd =
   
 let enter_typedecl td =
   let td' =
-    if td.td_abstract
-    then td
-    else { td with td_type = normalize_type td.td_type } in
+    { td with td_mod = !module_name;
+              td_type = if td.td_abstract
+                        then td.td_type
+                        else normalize_type td.td_type } in
   all_type_decls := Comp_typedecl td' :: !all_type_decls;
-  Typedef.record td';
+  Hashtbl.add typedefs td'.td_name td';
   td'
 
 let normalize_interface i =
-  intf_names := StringSet.add i.intf_name !intf_names;
   match i.intf_methods with
-    [] -> i
+    [] ->
+      {i with intf_mod = !module_name}
   | _  ->
       let super =
         try
@@ -169,11 +182,11 @@ let normalize_interface i =
         with Not_found ->
           error (sprintf "unknown interface %s as super-interface of %s"
                          i.intf_super.intf_name i.intf_name) in
-      let methods =
-        List.map normalize_fundecl i.intf_methods in
       let i' =
-        {i with intf_super = super; intf_methods = methods} in
+        {i with intf_mod = !module_name; intf_super = super;
+                intf_methods = []} in
       Hashtbl.add intfs i.intf_name i';
+      i'.intf_methods <- List.map normalize_fundecl i.intf_methods;
       all_type_decls := Comp_interface i' :: !all_type_decls;
       i'
 
@@ -187,14 +200,74 @@ let normalize_component = function
   | Comp_diversion(ty, s) -> Comp_diversion(ty, s)
   | Comp_interface intf -> Comp_interface(normalize_interface intf)
 
-let file f =
-  let f' = List.map normalize_component f in
-  let alldecls = List.rev !all_type_decls in
+module StringSet = Set.Make(struct type t = string let compare = compare end)
+
+let imports_read = ref StringSet.empty
+
+let read_file filename =
+  let ic = open_in filename in
+  let lb = Lexing.from_channel ic in
+  try
+    let res = Parser_simple.file Lexer_simple.token lb in
+    close_in ic;
+    res
+  with Parsing.Parse_error ->
+    close_in ic;
+    eprintf "File %s, character %d: syntax error\n"
+            filename (Lexing.lexeme_start lb);
+    raise Error
+
+let rec normalize_file name =
+  imports_read := StringSet.add name !imports_read;
+  let filename =
+    try
+      find_in_path name
+    with Not_found ->
+      eprintf "Cannot find file %s\n" name;
+      raise Error in
+  let (imports, comps) = read_file filename in
+  let pref =
+    if Filename.check_suffix name ".idl"
+    then Filename.chop_suffix name ".idl"
+    else name in
+  (* Recursively process the imports *)
+  let importlist =
+    List.map
+      (fun name ->
+        if StringSet.mem name !imports_read then [] else begin
+          let (comps, imports, decls) = normalize_file name in
+          imports @ comps
+        end)
+      imports in
+  (* Normalize the components and collect all type definitions *)
+  module_name := Filename.basename pref;
+  all_type_decls := [];
+  currstamp := 0;
+  let comps' = List.map normalize_component comps in
+  let decls = !all_type_decls in
+  all_type_decls := [];
+  (comps', List.concat importlist, decls)
+
+let process_file f =
+  imports_read := StringSet.empty;
   Hashtbl.clear structs;
   Hashtbl.clear unions;
   Hashtbl.clear enums;
   Hashtbl.clear intfs;
-  all_type_decls := [];
-  (f', alldecls)
+  Hashtbl.clear typedefs;
+  Hashtbl.add intfs "IUnknown" iunknown;
+  let res = normalize_file f in
+  imports_read := StringSet.empty;
+  Hashtbl.clear structs;
+  Hashtbl.clear unions;
+  Hashtbl.clear enums;
+  Hashtbl.clear intfs;
+  res
 
-  
+let _ =
+  Typedef.find :=
+    (fun s ->
+      try
+        Hashtbl.find typedefs s
+      with Not_found ->
+        error("unknown type name " ^ s))
