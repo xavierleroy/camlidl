@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.18 2002-04-26 12:17:02 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.19 2002-05-01 15:24:19 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -95,18 +95,12 @@ let make_bigarray ty =
       extract_spine dims ty'
   | ty ->
       (List.rev dims, ty) in
-  let rec extract_unique = function
-    Type_array(attr, ty) -> attr.maybe_null
-  | Type_pointer(kind, ty) -> kind = Unique
-  | Type_const((Type_pointer(_,_) | Type_array(_,_)) as ty') ->
-      extract_unique ty'
-  | _ -> false in
   let (dims, ty_tail) = extract_spine [] ty in
   match ty_tail with
     Type_int(_,_) | Type_float | Type_double 
   | Type_const(Type_int(_,_) | Type_float | Type_double) ->
       Type_bigarray({dims = dims; fortran_layout = false; malloced = false;
-                     bigarray_maybe_null = extract_unique ty},
+                     bigarray_maybe_null = false},
                     ty_tail)
   | _ ->
       eprintf "%t: Warning: bigarray attribute applied to type `%a', ignored\n"
@@ -150,9 +144,7 @@ let rec apply_type_attribute ty attr =
   | (("string", _), Type_array(attr, ty_elt)) ->
       Type_array({attr with is_string = true}, ty_elt)
   | (("string", _), Type_pointer(attr, ty_elt)) ->
-      let attr' = {no_bounds with is_string = true;
-                                  maybe_null = (attr = Unique)} in
-      Type_array(attr', ty_elt)
+      Type_array({no_bounds with is_string = true}, ty_elt)
   | (("null_terminated", _), Type_array(attr, ty_elt))->
       Type_array({attr with null_terminated = true}, ty_elt)
   | (("null_terminated", _), Type_pointer(attr, ty_elt)) ->
