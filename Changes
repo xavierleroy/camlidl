@@ -1,3 +1,19 @@
+CamlIDL 1.02:
+-------------
+
+* Added support for the "long long", "hyper int" and "__int64" types
+  (64-bit C integers)
+* Added support for "const" modifier on pointer types
+* Support for [unique] attribute on big arrays, turned into option types
+  in the Caml interface
+* Generated C code should now compile cleanly with a C++ compiler
+* Print source location for most warnings
+* Error location was sometimes way off; this is now fixed
+* Fixed incorrect code generated for the types HRESULT_int and HRESULT_bool
+* Fixed refcount management bug causing early deallocation of interfaces
+  implemented in Caml.
+
+
 CamlIDL 1.01:
 -------------
 
