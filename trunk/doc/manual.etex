@@ -1,8 +1,9 @@
 \section{Overview}
 
 Camlidl generates stub code for interfacing Caml with C
-(as described in chapter ``Interfacing with C'' of the Objective Caml
-reference manual) from an IDL description of the C functions to be
+(as described in chapter ``Interfacing with C'' of the
+\footahref{http://caml.inria.fr/ocaml/htmlman/index.html}{Objective Caml
+reference manual}) from an IDL description of the C functions to be
 made available in Caml.
 Thus, Camlidl automates the most tedious task in interfacing C
 libraries with Caml programs.  It can also be used to interface Caml
@@ -63,8 +64,8 @@ the component methods as if they were C++ methods or C
 functions, without knowing that they are actually implemented in Caml.
 
 For more information about COM, see for instance {\em Inside COM}
-by Dale Rogerson (Microsoft Press), or the Microsoft developer Web site
-"http://msdn.microsoft.com".
+by Dale Rogerson (Microsoft Press), or the 
+\footahref{http://msdn.microsoft.com}{Microsoft developer Web site}.
 
 \section{IDL syntax}
 
