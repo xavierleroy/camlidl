@@ -13,7 +13,7 @@
 #*                                                                     *
 #***********************************************************************
 
-#* $Id: camlidldll.tpl,v 1.3 2000-08-19 11:05:01 xleroy Exp $
+#* $Id: camlidldll.tpl,v 1.4 2000-08-21 12:55:02 xleroy Exp $
 
 # Automates the creation of a DLL for a Caml component
 
@@ -79,7 +79,7 @@ link /nologo /incremental:no /dll /machine:ix86 \
   $resfile \
   $linkopts $camlobjfile $linkobjs \
   ${camllib}\\cfactory.obj libcamlidl.lib \
-  libcamlrun.lib ole32.lib oleaut32.lib advapi32.lib
+  libcamlrun.lib advapi32.lib ole32.lib oleaut32.lib
 exitcode=$?
 rm -f $resfile $camlobjfile
 exit $exitcode
