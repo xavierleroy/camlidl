@@ -31,7 +31,7 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
       None ->
         if onstack
         then iprintf oc "%s = String_val(%s);\n" c v
-        else iprintf oc "%s = camlidl_malloc_string(%s, _arena);\n" c v
+        else iprintf oc "%s = camlidl_malloc_string(%s, _ctx);\n" c v
     | Some n ->
         iprintf oc
             "if (string_length(%s) >= %d) invalid_argument(\"%s\");\n"
@@ -56,8 +56,8 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
         if attr.null_terminated
         then fprintf oc "(%s + 1)" size
         else fprintf oc "%s" size;
-        fprintf oc " * sizeof(%a), _arena);\n" out_c_type ty_elt;
-        need_deallocation := true;
+        fprintf oc " * sizeof(%a), _ctx);\n" out_c_type ty_elt;
+        need_context := true;
     | Some n ->
         (* Check compatibility of actual size w.r.t. expected size *)
         iprintf oc "if (%s %s %d) invalid_argument(\"%s\");\n"

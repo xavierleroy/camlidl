@@ -7,4 +7,4 @@ val new_ml_variable_block : int -> string
 val output_variable_declarations : out_channel -> unit
 val init_value_block : out_channel -> string -> int -> unit
 val copy_values_to_block : out_channel -> string -> string -> int -> unit
-val need_deallocation : bool ref
+val need_context : bool ref

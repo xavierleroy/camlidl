@@ -28,16 +28,24 @@ static void camlidl_finalize_interface(value intf)
   i->lpVtbl->Release(i);
 }
 
-value camlidl_pack_interface(void * intf)
+value camlidl_pack_interface(void * intf, camlidl_ctx ctx)
 {
   value res = alloc_final(2, camlidl_finalize_interface, 0, 1);
   Field(res, 1) = (value) intf;
+  if (ctx != NULL && (ctx->flags & CAMLIDL_ADDREF)) {
+    struct IUnknown * i = (struct IUnknown *) intf;
+    i->lpVtbl->AddRef(i);
+  }
   return res;
 }
 
-void * camlidl_unpack_interface(value vintf)
+void * camlidl_unpack_interface(value vintf, camlidl_ctx ctx)
 {
-  return (void *) Field(vintf, 1);
+  struct IUnknown * intf = (struct IUnknown *) Field(vintf, 1);
+  if (ctx != NULL && (ctx->flags & CAMLIDL_ADDREF)) {
+    intf->lpVtbl->AddRef(intf);
+  }
+  return (void *) intf;
 }
 
 value camlidl_make_interface(void * vtbl, value caml_object, IID * iid)
@@ -52,7 +60,7 @@ value camlidl_make_interface(void * vtbl, value caml_object, IID * iid)
   comp->intf[0].comp = comp;
   register_global_root(&(comp->intf[0].caml_object));
   InterlockedIncrement(&camlidl_num_components);
-  return camlidl_pack_interface(&(comp->intf[0]));
+  return camlidl_pack_interface(&(comp->intf[0]), NULL);
 }
 
 /* Basic methods (QueryInterface, AddRef, Release) for COM objects
@@ -75,6 +83,12 @@ HRESULT camlidl_QueryInterface(struct camlidl_intf * this, IID * iid,
     InterlockedIncrement(&(comp->refcount));
     return S_OK;
   }
+#ifdef _WIN32
+  if (IsEqualIID(iid, &IID_ISupportErrorInfo)) {
+    *object = (void *) camlidl_support_error_info(this);
+    return S_OK;
+  }
+#endif
   *object = NULL;
   return E_NOINTERFACE;
 }
@@ -104,13 +118,16 @@ ULONG camlidl_Release(struct camlidl_intf * this)
 value camlidl_com_queryInterface(value vintf, value viid)
 {
   void * res;
+  HRESULT hr;
+
   interface IUnknown * intf =
-    (interface IUnknown *) camlidl_unpack_interface(vintf);
-  if (string_length(viid) != 16) failwith("badly formed IID");
-  if (intf->lpVtbl->QueryInterface(intf, (IID *) String_val(viid),
-                                   &res) != S_OK)
-    failwith("interface not supported");
-  return camlidl_pack_interface(res);
+    (interface IUnknown *) camlidl_unpack_interface(vintf, NULL);
+  if (string_length(viid) != 16)
+    camlidl_error(CO_E_IIDSTRING, "Com.queryInterface", "Badly formed IID");
+  hr = intf->lpVtbl->QueryInterface(intf, (IID *) String_val(viid), &res);
+  if (FAILED(hr))
+    camlidl_error(hr, "Com.queryInterface", "Interface not available");
+  return camlidl_pack_interface(res, NULL);
 }
 
 /* Combine the interfaces of two Caml components */
@@ -125,10 +142,11 @@ value camlidl_com_combine(value vintf1, value vintf2)
   struct camlidl_component * c1, * c2, * c;
   int n, i;
 
-  i1 = camlidl_unpack_interface(vintf1);
-  i2 = camlidl_unpack_interface(vintf2);
+  i1 = camlidl_unpack_interface(vintf1, NULL);
+  i2 = camlidl_unpack_interface(vintf2, NULL);
   if (! is_a_caml_interface(i1) || ! is_a_caml_interface(i2))
-    failwith("Com.combine: not a Caml interface");
+    camlidl_error(CLASS_E_NOAGGREGATION, "Com.combine",
+                  "Not a Caml interface");
   c1 = i1->comp;
   c2 = i2->comp;
   n = c1->numintfs + c2->numintfs;
@@ -146,7 +164,7 @@ value camlidl_com_combine(value vintf1, value vintf2)
     register_global_root(&(c->intf[i].caml_object));
     c->intf[i].comp = c;
   }
-  return camlidl_pack_interface(c->intf + (i1 - c1->intf));
+  return camlidl_pack_interface(c->intf + (i1 - c1->intf), NULL);
 }
 
 /* Create an instance of a component */

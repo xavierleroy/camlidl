@@ -9,69 +9,78 @@
 #include "camlidlruntime.h"
 #include "comstuff.h"
 
-static void camlidl_raise_error(HRESULT errcode, value vmsg)
+static void camlidl_raise_error(HRESULT errcode, char * who, char * msg)
 {
   static value * com_error_exn = NULL;
-  value bucket;
+  value bucket, vwho = Val_unit, vmsg = Val_unit;
 
   if (com_error_exn == NULL) {
     com_error_exn = caml_named_value("Com.Error");
     if (com_error_exn == NULL)
       invalid_argument("Exception Com.Error not initialized");
   }
-  Begin_root(vmsg)
-    bucket = alloc_small(3, 0);
+  Begin_roots2(vwho,vmsg)
+    vwho = copy_string(who);
+    vmsg = copy_string(msg);
+    bucket = alloc_small(4, 0);
     Field(bucket, 0) = *com_error_exn;
     Field(bucket, 1) = Val_long(errcode);
+    Field(bucket, 3) = vwho;
     Field(bucket, 2) = vmsg;
   End_roots();
   mlraise(bucket);
 }
 
-void camlidl_error(HRESULT errcode, char * msg)
+void camlidl_error(HRESULT errcode, char * who, char * what)
 {
-  camlidl_raise_error(errcode, copy_string(msg));
+  char msg[1024];
+
+  if (what == NULL) {
+#ifdef _WIN32
+    if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
+                      NULL,       /* message source */
+                      errcode,
+                      0,          /* language */
+                      &msg,       /* message buffer */
+                      sizeof(msg),/* max size */
+                      NULL)       /* inserts */
+        != 0)
+      what = msg;
+    else
+      what = "Unknown error";
+#else
+    what = "Unknown error";
+#endif
+  }
+  camlidl_raise_error(errcode, who, what);
 }
 
 static void camlidl_hresult_error(HRESULT errcode)
 {
   /* Build text representation of errcode */
 #ifdef _WIN32
-  LPTSTR msg;
-  value vmsg;
   interface IErrorInfo * errinfo = NULL;
   BSTR source, descr;
-  char errmsg[1024];
+  char who[1024], what[1024];
 
-  if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                      FORMAT_MESSAGE_FROM_SYSTEM,
-                    NULL,       /* message source */
-                    errcode,
-                    0,          /* language */
-                    (LPTSTR) &msg, /* message buffer */
-                    0,          /* max size */
-                    NULL)       /* inserts */
-      != 0) {
-    vmsg = copy_string(msg);
-    LocalFree(msg);
-    camlidl_raise_error(errcode, vmsg);
-  }
   /* Try to use GetErrorInfo */
   GetErrorInfo(0L, &errinfo);
   if (errinfo != NULL) {
     errinfo->lpVtbl->GetSource(errinfo, &source);
+    _snprintf(who, "%ls", source);
+    who[sizeof(who) - 1] = 0;
     errinfo->lpVtbl->GetDescription(errinfo, &descr);
-    _snprintf(errmsg, sizeof(errmsg) - 1, "%ls - %ls", source, descr);
-    errmsg[sizeof(errmsg) - 1] = 0;
+    _snprintf(what, "%ls", descr);
+    what[sizeof(what) - 1] = 0;
     SysFreeString(source);
     SysFreeString(descr);
     errinfo->lpVtbl->Release(errinfo);
-    camlidl_error(errcode, errmsg);
+    camlidl_error(errcode, who, what);
   } else {
-    camlidl_error(errcode, "Unknown error");
+    camlidl_error(errcode, "", NULL);
   }
 #else
-  camlidl_error(errcode, "");
+  camlidl_error(errcode, "", NULL);
 #endif
 }
 
@@ -147,3 +156,65 @@ void camlidl_uncaught_exception(char * methname, value exn_bucket)
   free(msg);
   exit(2);
 }
+
+#ifdef _WIN32
+
+struct camlidl_sei {
+  struct ISupportErrorInfoVtbl * lpVtbl;
+  long refcount;
+  struct camlidl_intf * intf;
+};
+
+HRESULT camlidl_sei_QueryInterface(struct ISupportErrorInfo * self,
+                                   IID * iid, void ** object)
+{
+  return
+    camlidl_QueryInterface(((struct camlidl_sei *)self)->intf, iid, object);
+}
+
+ULONG camlidl_sei_AddRef(struct ISupportErrorInfo * self)
+{
+  return InterlockedIncrement(&(((struct camlidl_sei *)self)->refcount));
+}
+
+ULONG camlidl_sei_Release(struct ISupportErrorInfo * self)
+{
+  struct camlidl_sei * s = (struct camlidl_sei *) self;
+  ULONG newrefcount = InterlockedDecrement(&(self->refcount));
+  if (newrefcount == 0) {
+    struct IUnknown * i = (struct IUnknown *) (s->intf);
+    i->lpVtbl->Release(i);
+    stat_free(self);
+  }
+  return newrefcount;
+}
+
+HRESULT InterfaceSupportsErrorInfo(struct ISupportErrorInfo * self, IID * iid)
+{
+  if (IsEqualIID(iid, &IID_IUnknown) ||
+      IsEqualIID(iid, &IID_ISupportErrorInfo))
+    return S_FALSE;
+  else
+    return S_OK;
+}
+
+static struct ISupportErrorInfoVtbl camlidl_sei_vtbl = {
+  VTBL_PADDING
+  camlidl_sei_QueryInterface,
+  camlidl_sei_AddRef,
+  camlidl_sei_Release,
+  camlidl_sei_InterfaceSupportsErrorInfo
+};
+
+struct ISupportErrorInfo * camlidl_support_error_info(struct camlidl_intf * i)
+{
+  struct camlidl_sei * r =
+    (struct camlidl_sei *) stat_alloc(sizeof(struct camlidl_sei));
+  r->lpVtbl = camlidl_sei_vtbl;
+  r->refcount = 1;
+  r->intf = i;
+  ((struct IUnknown *) i)->lpVtbl->AddRef(i);
+  return (struct ISupportErrorInfo *) r;
+}
+
+#endif

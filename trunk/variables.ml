@@ -68,6 +68,6 @@ let copy_values_to_block oc src dst numvals =
     iprintf oc "}\n"
   end
 
-(* Record if we need deallocation *)
+(* Record if we need the context parameter *)
 
-let need_deallocation = ref false
+let need_context = ref false

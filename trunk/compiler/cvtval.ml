@@ -15,16 +15,10 @@ let allocate_space oc onstack ty c =
     iprintf oc "%s = &%s;\n" c c';
     c'
   end else begin
-    iprintf oc "%s = (%a *) camlidl_malloc(sizeof(%a), _arena);\n"
+    iprintf oc "%s = (%a *) camlidl_malloc(sizeof(%a), _ctx);\n"
             c out_c_type ty out_c_type ty;
     "*" ^ c
   end
-
-(* Say whether we are in a callback stub (C-to-ML).
-   FIXME: doesn't extend to conversion functions for structs, unions,
-   and typedefs. *)
-
-let in_callback = ref false
 
 (* Translate the ML value [v] and store it into the C lvalue [c].
    [ty] is the IDL type of the value being converted.
@@ -49,19 +43,19 @@ let rec ml_to_c oc onstack pref ty v c =
       if sd.sd_name = "" then
         Struct.struct_ml_to_c ml_to_c oc onstack sd v c
       else begin
-        iprintf oc "camlidl_ml2c_%s_struct_%s(%s, &%s, _arena);\n"
+        iprintf oc "camlidl_ml2c_%s_struct_%s(%s, &%s, _ctx);\n"
                    sd.sd_mod sd.sd_name v c;
-        need_deallocation := true
+        need_context := true
       end
   | Type_union(ud, attr) ->
       if ud.ud_name = "" then
         Union.union_ml_to_c ml_to_c oc onstack ud v c
                             (Lexpr.tostring pref attr.discriminant)
       else begin
-        iprintf oc "%a = camlidl_ml2c_%s_union_%s(%s, &%s, _arena);\n"
+        iprintf oc "%a = camlidl_ml2c_%s_union_%s(%s, &%s, _ctx);\n"
                    Lexpr.output (pref, attr.discriminant)
                    ud.ud_mod ud.ud_name v c;
-        need_deallocation := true
+        need_context := true
       end
   | Type_enum(en, attr) ->
       if attr.bitset then
@@ -72,13 +66,12 @@ let rec ml_to_c oc onstack pref ty v c =
         iprintf oc "%s = camlidl_ml2c_%s_enum_%s(%s);\n"
                    c en.en_mod en.en_name v
   | Type_named(modl, name) ->
-      iprintf oc "camlidl_ml2c_%s_%s(%s, &%s, _arena);\n" modl name v c;
-      need_deallocation := true
+      iprintf oc "camlidl_ml2c_%s_%s(%s, &%s, _ctx);\n" modl name v c;
+      need_context := true
   | Type_pointer(Ref, Type_interface(modl, name)) ->
-      iprintf oc "%s = (struct %s *) camlidl_unpack_interface(%s);\n"
+      iprintf oc "%s = (struct %s *) camlidl_unpack_interface(%s, _ctx);\n"
                  c name v;
-      if !in_callback then
-        iprintf oc "%s->lpVtbl->AddRef(%s);\n" c c
+      need_context := true
   | Type_pointer(Ref, ty_elt) ->
       let c' = allocate_space oc onstack ty_elt c in
       ml_to_c oc onstack pref ty_elt v c'
@@ -121,15 +114,17 @@ let rec c_to_ml oc pref ty c v =
   | Type_struct sd ->
       if sd.sd_name = ""
       then Struct.struct_c_to_ml c_to_ml oc sd c v
-      else iprintf oc "%s = camlidl_c2ml_%s_struct_%s(&%s);\n"
-                      v sd.sd_mod sd.sd_name c
+      else iprintf oc "%s = camlidl_c2ml_%s_struct_%s(&%s, _ctx);\n"
+                      v sd.sd_mod sd.sd_name c;
+      need_context := true
   | Type_union(ud, attr) ->
       if ud.ud_name = ""
       then Union.union_c_to_ml c_to_ml oc ud c v
                                (Lexpr.tostring pref attr.discriminant)
-      else iprintf oc "%s = camlidl_c2ml_%s_union_%s(%a, &%s);\n"
+      else iprintf oc "%s = camlidl_c2ml_%s_union_%s(%a, &%s, _ctx);\n"
                       v ud.ud_mod ud.ud_name
-                      Lexpr.output (pref, attr.discriminant) c
+                      Lexpr.output (pref, attr.discriminant) c;
+      need_context := true
   | Type_enum(en, attr) ->
       if attr.bitset then
         Enum.enumset_c_to_ml c_to_ml oc en c v
@@ -139,11 +134,11 @@ let rec c_to_ml oc pref ty c v =
         iprintf oc "%s = camlidl_c2ml_%s_enum_%s(%s);\n"
                    v en.en_mod en.en_name c
   | Type_named(modl, name) ->
-      iprintf oc "%s = camlidl_c2ml_%s_%s(&%s);\n" v modl name c
+      iprintf oc "%s = camlidl_c2ml_%s_%s(&%s, _ctx);\n" v modl name c;
+      need_context := true
   | Type_pointer(Ref, Type_interface(modl, name)) ->
-      if !in_callback then
-        iprintf oc "%s->lpVtbl->AddRef(%s);\n" c c;
-      iprintf oc "%s = camlidl_pack_interface(%s);\n" v c
+      iprintf oc "%s = camlidl_pack_interface(%s, _ctx);\n" v c;
+      need_context := true
   | Type_pointer(Ref, ty_elt) ->
       c_to_ml oc pref ty_elt (sprintf "*%s" c) v;
   | Type_pointer(Unique, ty_elt) ->

@@ -145,20 +145,21 @@ let ml_class_definition oc intf =
   fprintf oc "external make_%s : #%s_class -> %s Com.interface = \"camlidl_makeintf_%s_%s\"\n\n"
              intfname intfname intfname !module_name intf.intf_name
 
-(* If heap allocation is needed, set up null allocation arena (= indefinite
-   extent) *)
+(* If context is needed, set it up (indefinite allocation, persistent
+   interface refs) *)
 
-let output_arena before after =
-  if !need_deallocation then begin
-    fprintf before "  camlidl_arena * _arena = NULL;\n"
+let output_context before after =
+  if !need_context then begin
+    fprintf before
+      "  struct camlidl_ctx _ctxs = { CAMLIDL_ADDREF, NULL };\n";
+    fprintf before "  camlidl_ctx _ctx = &_ctxs;\n"
   end
 
 (* Generate callback wrapper for calling an ML method from C *)
 
 let emit_callback_wrapper oc intf meth =
   current_function := sprintf "%s::%s" intf.intf_name meth.fun_name;
-  in_callback := true;
-  need_deallocation := false;
+  need_context := false;
   let (ins, outs) = ml_view meth in
   (* Emit function header *)
   let fun_name =
@@ -227,14 +228,13 @@ let emit_callback_wrapper oc intf meth =
             convert_output ty (sprintf "Field(_vres, %d)" pos) name)
         0 outs
   end;
-  output_arena oc pc;
+  output_context oc pc;
   (* Return result if any *)
   if meth.fun_res <> Type_void then
     iprintf pc "return _res;\n";
   output_variable_declarations oc;
   end_diversion oc;
-  fprintf oc "}\n\n";
-  in_callback := false
+  fprintf oc "}\n\n"
 
 (* Declare external callback wrapper *)
 
