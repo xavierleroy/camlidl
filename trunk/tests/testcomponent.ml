@@ -9,7 +9,14 @@ let test_iy c =
   print_string "Testing IY interface..."; print_newline();
   print_string "Calling g 2"; print_newline();
   let n = c#g 2 in
-  print_string "Result is "; print_int n; print_newline()
+  print_string "Result is "; print_int n; print_newline();
+  print_string "Calling h"; print_newline();
+  let n = c#h in
+  print_string "Result is "; print_string (if n then "true" else "false");
+  print_newline();
+  print_string "Calling k"; print_newline();
+  let n = c#k in
+  print_string "Result is "; print_string n; print_newline()
 
 class my_ix =
   object
@@ -24,6 +31,11 @@ class my_iy =
       let res = x / 2 in
       print_string "my_iy: g returns "; print_int res; print_newline();
       res
+    method h =
+      print_string "my_iy: h returns true"; print_newline(); true
+    method k =
+      print_string "my_iy: k returns `hello'"; print_newline(); "hello"
+      
   end
 
 let make_test() =

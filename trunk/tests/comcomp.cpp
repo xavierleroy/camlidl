@@ -32,6 +32,8 @@ interface IX : public IUnknown {
 interface IY : public IUnknown {
  public:
   virtual int G(int x) = 0;
+  virtual int H() = 0;
+  virtual int K(char ** str) = 0;
 };
 
 static int CA_ident = 0;
@@ -64,13 +66,13 @@ public:
 
   virtual ULONG AddRef() {
     ULONG res = InterlockedIncrement(&refcount);
-    printf("%d: AddRef: new refcount is %d\n", ident, res);
+    printf("%d: AddRef: new refcount is %lu\n", ident, res);
     return res;
   }
 
   virtual ULONG Release() {
     ULONG res = InterlockedDecrement(&refcount);
-    printf("%d: Release: new refcount is %d\n", ident, res);
+    printf("%d: Release: new refcount is %lu\n", ident, res);
     if (res == 0) {
       printf("%d: destroying component.\n", ident);
       delete this;
@@ -86,6 +88,17 @@ public:
     int res = 3 * x + 1;
     printf("%d: G(%d) called, returning %d.\n", ident, x, res);
     return res;
+  }
+
+  virtual int H() {
+    printf("%d: H() called, returning 0.\n", ident);
+    return 0;
+  }
+
+  virtual int K(char ** str) {
+    printf("%d: K() called, returning 0 and `foobar'.\n", ident);
+    *str = "foobar";
+    return 0;
   }
 
   // constructor:
@@ -111,6 +124,7 @@ void test_component(interface IUnknown * c)
   interface IX * cix;
   interface IY * ciy;
   int res;
+  char * stringres;
 
   // Test IX interface
   if (c->QueryInterface(IID_IX, (void **) &cix) == S_OK) {
@@ -127,6 +141,12 @@ void test_component(interface IUnknown * c)
     printf("test: calling G(3) on it.\n");
     res = ciy->G(3);
     printf("test: return value is %d.\n", res);
+    printf("test: calling H() on it.\n");
+    res = ciy->H();
+    printf("test: return value is %d.\n", res);
+    printf("test: calling K() on it.\n");
+    res = ciy->K(&stringres);
+    printf("test: hresult is %d, return string is `%s'.\n", res, stringres);
     printf("test: releasing the IY interface.\n");
     res = ciy->Release();
     printf("test: return of Release() is %d.\n", res);
