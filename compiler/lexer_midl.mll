@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexer_midl.mll,v 1.11 2001-06-29 13:29:59 xleroy Exp $ *)
+(* $Id: lexer_midl.mll,v 1.12 2002-01-16 16:15:32 xleroy Exp $ *)
 
 (* Lexer for IDL interface files *)
 
@@ -110,9 +110,9 @@ rule token = parse
           then TYPEIDENT s
           else IDENT s }
   | octal_literal
-      { INTEGER(int_of_string("0o" ^ Lexing.lexeme lexbuf)) }
+      { INTEGER(Int64.of_string("0o" ^ Lexing.lexeme lexbuf)) }
   | decimal_literal | hex_literal
-      { INTEGER(int_of_string(Lexing.lexeme lexbuf)) }
+      { INTEGER(Int64.of_string(Lexing.lexeme lexbuf)) }
   | "\""
       { Buffer.reset string_buffer;
         string lexbuf;

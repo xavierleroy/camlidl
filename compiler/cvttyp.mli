@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.mli,v 1.11 2001-06-17 10:50:24 xleroy Exp $ *)
+(* $Id: cvttyp.mli,v 1.12 2002-01-16 16:15:31 xleroy Exp $ *)
 
 open Idltypes
 
@@ -33,9 +33,6 @@ val out_ml_types: out_channel -> string -> ('a * idltype) list -> unit
 
 (* Print an ML type name, qualified if necessary *)
 val out_mltype_name: out_channel -> string * string -> unit
-
-(* Expand a typedef name, returning its definition *)
-val expand_typedef: (string -> idltype) ref
 
 (* Expand typedef and const in type *)
 val scrape_type: idltype -> idltype

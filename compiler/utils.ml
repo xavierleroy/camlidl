@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: utils.ml,v 1.10 2000-08-19 11:04:58 xleroy Exp $ *)
+(* $Id: utils.ml,v 1.11 2002-01-16 16:15:34 xleroy Exp $ *)
 
 (* Utility functions *)
 
@@ -108,5 +108,5 @@ let find_in_path path name =
 
 (* Discard result *)
 
-external ignore: 'a -> unit = "%identity" (* not quite *)
+(*external ignore: 'a -> unit = "%identity" (* not quite *)*)
 

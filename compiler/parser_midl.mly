@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: parser_midl.mly,v 1.17 2002-01-16 09:42:02 xleroy Exp $ */
+/* $Id: parser_midl.mly,v 1.18 2002-01-16 16:15:33 xleroy Exp $ */
 
 /* Parser for Microsoft IDL */
 
@@ -58,6 +58,7 @@ open Parse_aux
 %token GREATER
 %token GREATEREQUAL
 %token GREATERGREATER
+%token GREATERGREATERGREATER
 %token HANDLE_T
 %token HYPER
 %token <string> IDENT
@@ -65,7 +66,7 @@ open Parse_aux
 %token INT
 %token INT64
 %token INTERFACE
-%token <int> INTEGER
+%token <int64> INTEGER
 %token LBRACE
 %token LBRACKET
 %token LESS
@@ -112,7 +113,7 @@ open Parse_aux
 %left AMPER
 %left EQUALEQUAL BANGEQUAL
 %left LESS LESSEQUAL GREATER GREATEREQUAL
-%left LESSLESS GREATERGREATER
+%left LESSLESS GREATERGREATER GREATERGREATERGREATER
 %left PLUS MINUS
 %left STAR SLASH PERCENT
 %right prec_uminus BANG TILDE prec_deref prec_addressof prec_cast
@@ -182,8 +183,8 @@ component:
 /* Constant declaration */
 
 const_decl:
-    CONST type_spec pointer_opt IDENT EQUAL lexpr
-        { {cd_name = $4; cd_type = $3($2); cd_value = $6} }
+    CONST attributes type_spec pointer_opt IDENT EQUAL lexpr
+        { make_const_decl $2 ($4 $3) $5 $7 }
 ;
 /* Typedef */
 
@@ -462,11 +463,11 @@ lexpr:
   | INTEGER
         { Expr_int $1 }
   | CHARACTER
-        { Expr_int(Char.code $1) }
+        { Expr_int(Int64.of_int(Char.code $1)) }
   | TRUE
-        { Expr_int 1 }
+        { Expr_int Int64.one }
   | FALSE
-        { Expr_int 0 }
+        { Expr_int Int64.zero }
   | STRING
         { Expr_string $1 }
   | lexpr QUESTIONMARK lexpr COLON lexpr %prec prec_conditional
@@ -497,6 +498,8 @@ lexpr:
         { Expr_lshift($1, $3) }
   | lexpr GREATERGREATER lexpr
         { Expr_rshift($1, $3) }
+  | lexpr GREATERGREATERGREATER lexpr
+        { Expr_rshift_unsigned($1, $3) }
   | lexpr PLUS lexpr
         { Expr_plus($1, $3) }
   | lexpr MINUS lexpr
@@ -531,7 +534,7 @@ lexpr:
         { Expr_field($1, $3) }
   | lexpr DOT INTEGER %prec prec_dot
         /* This is a hack for parsing version attributes, e.g. version(0.1) */
-        { Expr_field($1, string_of_int $3) }
+        { Expr_field($1, Int64.to_string $3) }
   | LPAREN lexpr RPAREN
         { $2 }
 ;

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: normalize.ml,v 1.21 2001-06-29 13:30:00 xleroy Exp $ *)
+(* $Id: normalize.ml,v 1.22 2002-01-16 16:15:32 xleroy Exp $ *)
 
 (* Normalization of IDL types after parsing *)
 
@@ -39,7 +39,7 @@ let expand_typedef s = (find_typedef s).td_type
 
 let _ =
   Typedef.find := find_typedef;
-  Cvttyp.expand_typedef := expand_typedef
+  Lexpr.expand_typedef := expand_typedef
 
 let all_comps = ref ([] : component list)
 

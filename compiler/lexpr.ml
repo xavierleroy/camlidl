@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexpr.ml,v 1.10 2002-01-16 09:42:02 xleroy Exp $ *)
+(* $Id: lexpr.ml,v 1.11 2002-01-16 16:15:32 xleroy Exp $ *)
 
 (* Evaluation and pretty-printing of limited expressions *)
 
@@ -18,7 +18,11 @@ open Printf
 open Idltypes
 open Utils
 
-type constant_value = Cst_int of int | Cst_string of string
+type constant_value =
+    Cst_int of int32
+  | Cst_long of nativeint
+  | Cst_longlong of int64
+  | Cst_string of string
 
 (* Bind values to constant names *)
 
@@ -27,87 +31,213 @@ let const_val = (Hashtbl.create 29 : (string, constant_value) Hashtbl.t)
 let bind_const name v =
   Hashtbl.add const_val name v
 
+(* Evaluate a limited expression to a constant *)
+
+let is_true = function
+    Cst_int n -> n <> Int32.zero
+  | Cst_long n -> n <> Nativeint.zero
+  | Cst_longlong n -> n <> Int64.zero
+  | Cst_string s -> true (*hmph*)
+
+let cst_true = Cst_int Int32.one
+let cst_false = Cst_int Int32.zero
+
+let compare rel (v1, v2) =
+  match (v1, v2) with
+    (Cst_int n1, Cst_int n2) ->
+      if rel v1 v2 then cst_true else cst_false
+  | (Cst_long n1, Cst_long n2) ->
+      if rel v1 v2 then cst_true else cst_false
+  | (Cst_longlong n1, Cst_longlong n2) ->
+      if rel v1 v2 then cst_true else cst_false
+  | (_, _) ->
+      error("illegal comparison")
+
+let int_val = function
+    Cst_int n -> Int32.to_int n
+  | Cst_long n -> Nativeint.to_int n
+  | Cst_longlong n -> Int64.to_int n
+  | _ -> error "string value in integer context"
+
+let int32_val = function
+    Cst_int n -> n
+  | Cst_long n -> Nativeint.to_int32 n
+  | Cst_longlong n -> Int64.to_int32 n
+  | _ -> error "string value in integer context"
+
+let nativeint_val = function
+    Cst_int n -> Nativeint.of_int32 n
+  | Cst_long n -> n
+  | Cst_longlong n -> Int64.to_nativeint n
+  | _ -> error "string value in integer context"
+
+let int64_val = function
+    Cst_int n -> Int64.of_int32 n
+  | Cst_long n -> Int64.of_nativeint n
+  | Cst_longlong n -> n
+  | _ -> error "string value in integer context"
+
+let string_val = function
+    Cst_string s -> s
+  | _ -> error "integer value in string context"
+
+(* Expand a typedef name, returning its definition *)
+let expand_typedef = ref ((fun _ -> assert false) : string -> idltype)
+
+let rec cast_value ty v =
+  match ty with  
+    Type_int(kind, _) ->
+      begin match kind with
+        Int | UInt -> Cst_int(int32_val v)
+      | Long | ULong -> Cst_long(nativeint_val v)
+      | Hyper | UHyper -> Cst_longlong(int64_val v)
+      | USmall | Char | UChar | Byte | Boolean ->
+          Cst_int(Int32.logand (int32_val v) (Int32.of_int 0xFF))
+      | Small | SChar ->
+          Cst_int(Int32.shift_right (Int32.shift_left (int32_val v) 24) 24)
+      | Short ->
+          Cst_int(Int32.shift_right (Int32.shift_left (int32_val v) 16) 16)
+      | UShort ->
+          Cst_int(Int32.logand (int32_val v) (Int32.of_int 0xFFFF))
+      end
+  | Type_pointer(_, Type_int((Char|UChar|SChar), _)) |
+    Type_array({is_string = true}, _) ->
+      Cst_string(string_val v)
+  | Type_named(modname, tyname) ->
+      let ty' =
+        try !expand_typedef tyname
+      with Not_found ->
+        error (sprintf "unknown type name %s" tyname) in
+      cast_value ty' v
+  | Type_const ty' ->
+      cast_value ty' v
+  | _ ->
+      error "unsupported type for constant expression"
+
+(* Evaluate a limited expression *)
+
+let rec eval = function
+    Expr_ident v ->
+      (try Hashtbl.find const_val v
+       with Not_found -> error (sprintf "%s is not a constant" v))
+  | Expr_int n ->
+      if n < Int64.of_int32 Int32.max_int
+      && n >= Int64.of_int32 Int32.min_int
+      then Cst_int(Int64.to_int32 n)
+      else if n < Int64.of_nativeint Nativeint.max_int
+      && n >= Int64.of_nativeint Nativeint.min_int
+      then Cst_long(Int64.to_nativeint n)
+      else Cst_longlong n
+  | Expr_string s -> Cst_string s
+  | Expr_cond (e1, e2, e3) ->
+      if is_true(eval e1) then eval e2 else eval e3
+  | Expr_sequand (e1, e2) ->
+      let v1 = eval e1 in if is_true v1 then eval e2 else v1
+  | Expr_sequor (e1, e2) ->
+      let v1 = eval e1 in if is_true v1 then v1 else eval e2
+  | Expr_logor (e1, e2) ->
+      eval_binary Int32.logor Nativeint.logor Int64.logor e1 e2
+  | Expr_logxor (e1, e2) ->
+      eval_binary Int32.logxor Nativeint.logxor Int64.logxor e1 e2
+  | Expr_logand (e1, e2) ->
+      eval_binary Int32.logand Nativeint.logand Int64.logand e1 e2
+  | Expr_eq (e1, e2) ->
+      compare (=) (eval_promote e1 e2)
+  | Expr_ne (e1, e2) ->
+      compare (<>) (eval_promote e1 e2)
+  | Expr_lt (e1, e2) ->
+      compare (<) (eval_promote e1 e2)
+  | Expr_gt (e1, e2) ->
+      compare (>) (eval_promote e1 e2)
+  | Expr_le (e1, e2) ->
+      compare (<=) (eval_promote e1 e2)
+  | Expr_ge (e1, e2) ->
+      compare (>=) (eval_promote e1 e2)
+  | Expr_lshift (e1, e2) ->
+      eval_shift Int32.shift_left Nativeint.shift_left Int64.shift_left e1 e2
+  | Expr_rshift (e1, e2) ->
+      eval_shift Int32.shift_right Nativeint.shift_right Int64.shift_right e1 e2
+  | Expr_rshift_unsigned (e1, e2) ->
+      eval_shift Int32.shift_right_logical Nativeint.shift_right_logical Int64.shift_right_logical e1 e2
+  | Expr_plus (e1, e2) ->
+      eval_binary Int32.add Nativeint.add Int64.add e1 e2
+  | Expr_minus (e1, e2) ->
+      eval_binary Int32.sub Nativeint.sub Int64.sub e1 e2
+  | Expr_times (e1, e2) ->
+      eval_binary Int32.mul Nativeint.mul Int64.mul e1 e2
+  | Expr_div (e1, e2) ->
+      begin try
+        eval_binary Int32.div Nativeint.div Int64.div e1 e2
+      with Division_by_zero ->
+        error "division by zero"
+      end
+  | Expr_mod (e1, e2) ->
+      begin try
+        eval_binary Int32.rem Nativeint.rem Int64.rem e1 e2
+      with Division_by_zero ->
+        error "division by zero"
+      end
+  | Expr_neg e1 ->
+      eval_unary Int32.neg Nativeint.neg Int64.neg e1
+  | Expr_lognot e1 ->
+      eval_unary Int32.lognot Nativeint.lognot Int64.lognot e1
+  | Expr_boolnot e1 ->
+      if is_true(eval e1) then cst_false else cst_true
+  | Expr_cast(ty, e1) ->
+      cast_value ty (eval e1)
+  | Expr_sizeof ty ->
+      Cst_int(Int32.of_int(match ty with
+        Type_int((Int|UInt), _) -> 4
+      | Type_int((Long|ULong), _) -> Sys.word_size / 4
+      | Type_int((Hyper|UHyper), _) -> 8
+      | Type_int((Small|USmall|Char|UChar|SChar|Byte|Boolean), _) -> 1
+      | Type_int((Short|UShort), _) -> 2
+      | Type_float -> 4
+      | Type_double -> 8
+      | Type_pointer(_, _) -> Sys.word_size / 4
+      | _ -> error "cannot compute sizeof"))
+  | _ ->
+      error("illegal operation in constant expression")
+
+and eval_promote e1 e2 =
+  let v1 = eval e1 and v2 = eval e2 in
+  match (v1, v2) with
+  | (Cst_int n1, Cst_long n2) -> (Cst_long (Nativeint.of_int32 n1), v2)
+  | (Cst_long n1, Cst_int n2) -> (v1, Cst_long(Nativeint.of_int32 n2))
+  | (Cst_int n1, Cst_longlong n2) -> (Cst_longlong(Int64.of_int32 n1), v2)
+  | (Cst_longlong n1, Cst_int n2) -> (v1, Cst_longlong(Int64.of_int32 n2))
+  | (Cst_long n1, Cst_longlong n2) -> (Cst_longlong(Int64.of_nativeint n1), v2)
+  | (Cst_longlong n1, Cst_long n2) -> (v1, Cst_longlong(Int64.of_nativeint n2))
+  | (_, _) -> (v1, v2)
+
+and eval_binary op32 opnative op64 e1 e2 =
+  match eval_promote e1 e2 with
+    (Cst_int n1, Cst_int n2) -> Cst_int(op32 n1 n2)
+  | (Cst_long n1, Cst_long n2) -> Cst_long(opnative n1 n2)
+  | (Cst_longlong n1, Cst_longlong n2) -> Cst_longlong(op64 n1 n2)
+  | (_, _) ->
+      error("non-integer arguments to integer operation")
+
+and eval_unary op32 opnative op64 e1 =
+  match eval e1 with
+    Cst_int n1 -> Cst_int(op32 n1)
+  | Cst_long n1 -> Cst_long(opnative n1)
+  | Cst_longlong n1 -> Cst_longlong(op64 n1)
+  | _ ->
+      error("non-integer argument to integer operation")
+
+and eval_shift op32 opnative op64 e1 e2 =
+  let n2 = int_val(eval e2) in
+  match eval e1 with
+    Cst_int n1 -> Cst_int(op32 n1 n2)
+  | Cst_long n1 -> Cst_long(opnative n1 n2)
+  | Cst_longlong n1 -> Cst_longlong(op64 n1 n2)
+  | _ ->
+      error("non-integer arguments to integer operation")
+
 (* Evaluate a limited expression to an integer *)
 
-let rec eval_int = function
-    Expr_ident v ->
-      begin try
-        match Hashtbl.find const_val v with
-          Cst_int n -> n
-        | Cst_string s ->
-            error (sprintf "String constant %s used in integer context" v)
-      with Not_found ->
-        error (sprintf "%s is not a constant" v)
-      end
-  | Expr_int n -> n
-  | Expr_string s ->
-      error (sprintf "String literal \"%s\" used in integer context"
-                     (String.escaped s))
-  | Expr_cond (e1, e2, e3) ->
-      if eval_int e1 <> 0 then eval_int e2 else eval_int e3
-  | Expr_sequand (e1, e2) ->
-      let v1 = eval_int e1 in if v1 <> 0 then eval_int e2 else v1
-  | Expr_sequor (e1, e2) ->
-      let v1 = eval_int e1 in if v1 = 0 then eval_int e2 else v1
-  | Expr_logor (e1, e2) ->
-      eval_int e1 lor eval_int e2
-  | Expr_logxor (e1, e2) ->
-      eval_int e1 lxor eval_int e2
-  | Expr_logand (e1, e2) ->
-      eval_int e1 land eval_int e2
-  | Expr_eq (e1, e2) ->
-      if eval_int e1 = eval_int e2 then 1 else 0
-  | Expr_ne (e1, e2) ->
-      if eval_int e1 <> eval_int e2 then 1 else 0
-  | Expr_lt (e1, e2) ->
-      if eval_int e1 < eval_int e2 then 1 else 0
-  | Expr_gt (e1, e2) ->
-      if eval_int e1 > eval_int e2 then 1 else 0
-  | Expr_le (e1, e2) ->
-      if eval_int e1 <= eval_int e2 then 1 else 0
-  | Expr_ge (e1, e2) ->
-      if eval_int e1 >= eval_int e2 then 1 else 0
-  | Expr_lshift (e1, e2) ->
-      eval_int e1 lsl eval_int e2
-  | Expr_rshift (e1, e2) ->
-      eval_int e1 asr eval_int e2
-  | Expr_plus (e1, e2) ->
-      eval_int e1 + eval_int e2
-  | Expr_minus (e1, e2) ->
-      eval_int e1 - eval_int e2
-  | Expr_times (e1, e2) ->
-      eval_int e1 * eval_int e2
-  | Expr_div (e1, e2) ->
-      let v1 = eval_int e1 and v2 = eval_int e2 in
-      if v2 = 0 then error "division by zero";
-      v1 / v2
-  | Expr_mod (e1, e2) ->
-      let v1 = eval_int e1 and v2 = eval_int e2 in
-      if v2 = 0 then error "modulo by zero";
-      v1 mod v2
-  | Expr_neg e1 ->
-      - (eval_int e1)
-  | Expr_lognot e1 ->
-      lnot(eval_int e1)
-  | Expr_boolnot e1 ->
-      if eval_int e1 = 0 then 1 else 0
-  | Expr_cast(ty, e1) ->
-      eval_int e1
-  (* TO DO: sizeof? *)
-  | _ ->
-      error("non-integer operator used in an integer context")
-
-let eval = function
-    Expr_ident v ->
-      begin try
-        Hashtbl.find const_val v
-      with Not_found ->
-        error (sprintf "%s is not a constant" v)
-      end
-  | Expr_string s ->
-      Cst_string s
-  | e ->
-      Cst_int(eval_int e)
+let eval_int e = int_val(eval e)
 
 (* Pretty-print a limited expression *)
 
@@ -205,6 +335,8 @@ let tostr pref e =
   and ts4 = function
       Expr_lshift(e1, e2) -> ts5 e1; add_string b " << "; ts5 e2
     | Expr_rshift(e1, e2) -> ts5 e1; add_string b " >> "; ts5 e2
+    | Expr_rshift_unsigned(e1, e2) -> (*revise!*)
+        ts5 e1; add_string b " >> "; ts5 e2
     | e -> ts5 e
 
   and ts5 = function
@@ -243,13 +375,19 @@ let tostr pref e =
       Expr_ident s ->
         begin try
           match Hashtbl.find const_val s with
-            Cst_int n -> add_string b (string_of_int n)
-          | Cst_string s -> add_escaped_string s
+            Cst_int n ->
+              add_string b (Int32.to_string n)
+          | Cst_long n ->
+              add_string b (Nativeint.to_string n); add_char b 'L'
+          | Cst_longlong n ->
+              add_string b (Int64.to_string n); add_string b "LL"
+          | Cst_string s ->
+              add_escaped_string s
         with Not_found ->
           add_string b (Prefix.for_ident pref s); add_string b s
         end
     | Expr_int n ->
-        add_string b (string_of_int n)
+        add_string b (Int64.to_string n)
     | Expr_string s ->
         add_escaped_string s
     | e ->
@@ -285,6 +423,7 @@ let is_free v e =
   | Expr_ge (e1, e2) -> free e1 || free e2
   | Expr_lshift (e1, e2) -> free e1 || free e2
   | Expr_rshift (e1, e2) -> free e1 || free e2
+  | Expr_rshift_unsigned (e1, e2) -> free e1 || free e2
   | Expr_plus (e1, e2) -> free e1 || free e2
   | Expr_minus (e1, e2) -> free e1 || free e2
   | Expr_times (e1, e2) -> free e1 || free e2

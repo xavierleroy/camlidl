@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.mli,v 1.9 2002-01-16 09:42:02 xleroy Exp $ *)
+(* $Id: parse_aux.mli,v 1.10 2002-01-16 16:15:33 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -69,6 +69,13 @@ val make_typedef :
   (idltype -> string * idltype) list ->
   type_decl list
     (* Build a typedef declaration *)
+val make_const_decl :
+  (string * lexpr list) list ->
+  idltype ->
+  string ->
+  lexpr ->
+  Constdecl.constant_decl
+    (* Build a constant declaration *)
 val update_defaults : (string * lexpr list) list -> unit
     (* Update [!pointer_default], [!int_default] and [!long_default]
        according to the given attr list *)
