@@ -9,10 +9,13 @@ HTMLTHREAD=$(CAMLDOC)/tools/htmlthread
 TEXEXPAND=$(CAMLDOC)/tools/texexpand
 FORMATINTF=$(CAMLDOC)/tools/format-intf
 
-all: main.dvi htmlman/index.html
+all: main.dvi main.pdf htmlman/index.html
 
 main.dvi: main.tex manual.tex com.tex
 	TEXINPUTS=$(TEXINPUTS) latex main.tex
+
+main.pdf: main.tex manual.tex com.tex
+	TEXINPUTS=$(TEXINPUTS) pdflatex main.tex
 
 htmlman/index.html: main.tex manual.tex com.tex
 	cd htmlman; \
