@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: parser_midl.mly,v 1.9 1999-02-19 14:33:36 xleroy Exp $ */
+/* $Id: parser_midl.mly,v 1.10 1999-02-24 12:27:44 xleroy Exp $ */
 
 /* Parser for Microsoft IDL */
 
@@ -196,12 +196,16 @@ fun_decl:
     /* Valid MIDL attributes: callback, local, ref, unique, ptr, string,
        ignore, context_handle */
     attributes type_spec pointer_opt IDENT
-    LPAREN param_list_declarator RPAREN opt_string
+    LPAREN param_list_declarator RPAREN opt_quotes
         { make_fun_declaration $1 ($3 $2) $4 $6 $8 }
 ;
-opt_string:
-    STRING              { Some $1 }
-  | /*empty*/           { None }
+opt_quotes:
+    opt_quotes QUOTE LPAREN STRING RPAREN
+        { ("call", $4) :: $1 }
+  | opt_quotes QUOTE LPAREN ident COMMA STRING RPAREN
+        { ($4, $6) :: $1 }
+  | /* empty */
+        { [] }
 ;
     
 /* Parameter lists */

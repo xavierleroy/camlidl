@@ -43,7 +43,7 @@ quote(C,"
 ")
 
 [string*, null_terminated] char ** environment(void)
-          "_res = environ;";
+   quote(call, "_res = environ;");
 
 [string] char * getenv([in,string] char * varname);
 
@@ -66,15 +66,17 @@ union process_status {
 
 int wait([out] int * kind,
          [out,switch_is(*kind)] union process_status * p)
-  " { int status;
-      _res = wait(&status);
-      if (_res != -1) decode_status(status, kind, p); }";
+  quote(call,
+    " { int status;
+        _res = wait(&status);
+        if (_res != -1) decode_status(status, kind, p); }");
 
 void system([in,string] char * cmd,
             [out] int * kind,
             [out,switch_is(*kind)] union process_status * p)
-  "  { int ret = system(cmd);
-       decode_status(ret, kind, p); } ";
+  quote(call,
+    "  { int ret = system(cmd);
+         decode_status(ret, kind, p); } ");
 
 int getpid(void);
 int getppid(void);
@@ -88,7 +90,7 @@ enum open_flags {
 int openfile([in,string] char * name,
              [in,set] enum open_flags flags,
              [in] int perms)
-  " _res = open(name, flags, perms); ";
+  quote(call, " _res = open(name, flags, perms); ");
 
 int close([in] int fd);
 
@@ -98,8 +100,9 @@ int read([in] int fd, [in,string,size_is(len)] char * buf, [in] int len);
 /* read with copy */
 void read2([in] int fd, [in] int len, [out] int *rd,
           [out,string,size_is(len),length_is(*rd)] char * buf)
-  " *rd = read(fd, buf, len);
-    if (*rd == -1) failwith(\"read2\"); ";
+  quote(call,
+    " *rd = read(fd, buf, len);
+      if (*rd == -1) failwith(\"read2\"); ");
 
 /* write */
 int write([in] int fd, [in,string,size_is(len)] char * buf, [in] int len);
@@ -144,8 +147,9 @@ int link([string] char * filename, [string] char * newname);
 typedef [abstract,ptr] void * dir_handle;
 
 dir_handle opendir([string] char * filename)
-  " _res = opendir(filename);
-    if (_res == NULL) failwith(\"opendir\"); ";
+  quote(call,
+    " _res = opendir(filename);
+      if (_res == NULL) failwith(\"opendir\"); ");
 
 typedef struct {
   [string] char d_name[256];   // NAME_MAX in fact

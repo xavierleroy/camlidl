@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: intf.ml,v 1.16 1999-02-22 09:59:55 xleroy Exp $ *)
+(* $Id: intf.ml,v 1.17 1999-02-24 12:27:43 xleroy Exp $ *)
 
 (* Handling of COM-style interfaces *)
 
@@ -166,7 +166,8 @@ let ml_class_definition oc intf =
           fun_mod = intf.intf_mod;
           fun_res = meth.fun_res;
           fun_params = ("this", In, self_type) :: meth.fun_params;
-          fun_call = None } in
+          fun_call = None;
+          fun_dealloc = None } in
       Funct.ml_declaration oc prim)
     intf.intf_methods;
   fprintf oc "\n";

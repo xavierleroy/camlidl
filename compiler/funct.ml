@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.20 1999-02-22 09:59:55 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.21 1999-02-24 12:27:43 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -29,7 +29,8 @@ type function_decl =
     fun_mod: string;
     fun_res: idltype;
     fun_params: (string * in_out * idltype) list;
-    fun_call: string option }
+    fun_call: string option;
+    fun_dealloc: string option }
 
 (* Remove dependent parameters (parameters that are size_is, length_is,
    or switch_is of another parameter).  Also remove ignored pointers. *)
@@ -128,6 +129,17 @@ let output_context before after =
     iprintf after "camlidl_free(_ctx);\n"
   end
 
+(* If a deallocation sequence is provided, insert it *)
+
+let output_dealloc oc dealloc =
+  match dealloc with
+    None -> ()
+  | Some s ->
+      iprintf oc "/* begin user-supplied deallocation sequence */\n";
+      output_string oc s;
+      output_char oc '\n';
+      iprintf oc "/* end user-supplied deallocation sequence */\n"
+
 (* Call an error checking function if needed *)
 
 let rec call_error_check oc name ty =
@@ -202,12 +214,14 @@ let emit_function oc fundecl ins outs locals emit_call =
     [] ->
       output_variable_declarations oc;
       output_context oc pc;
+      output_dealloc pc fundecl.fun_dealloc;
       iprintf pc "return Val_unit;\n"
   | [name, ty] ->
       c_to_ml pc "" ty name "_vres";
       output_variable_declarations oc;
       fprintf oc "  value _vres;\n\n";
       output_context oc pc;
+      output_dealloc pc fundecl.fun_dealloc;
       iprintf pc "return _vres;\n";
   | _ ->
       let num_outs = List.length outs in
@@ -224,6 +238,7 @@ let emit_function oc fundecl ins outs locals emit_call =
       decrease_indent();
       iprintf pc "End_roots()\n";
       output_context oc pc;
+      output_dealloc pc fundecl.fun_dealloc;
       iprintf pc "return _vresult;\n";
       output_variable_declarations oc;
       fprintf oc "  value _vresult;\n";
