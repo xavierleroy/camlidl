@@ -23,6 +23,8 @@ let process_comp oc = function
       else Enumdecl.emit_transl oc en
   | Comp_fundecl fd ->
       Funct.emit_wrapper oc fd
+  | Comp_constdecl cd ->
+      ()
   | Comp_diversion txt ->
       output_string oc txt
 

@@ -171,6 +171,7 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 %token <char> CHARACTER
 %token COLON
 %token COMMA
+%token CONST
 %token DEFAULT
 %token <string> DIVERSION
 %token DOT
@@ -255,6 +256,7 @@ interface_component:
   | union_declarator SEMI                       { [Comp_uniondecl $1] }
   | enum_declarator SEMI                        { [Comp_enumdecl $1] }
   | op_declarator SEMI                          { [Comp_fundecl $1] }
+  | const_declarator SEMI                       { [Comp_constdecl $1] }
   | DIVERSION                                   { [Comp_diversion $1] }
 ;
 
@@ -442,4 +444,47 @@ param_declarator:
 opt_ident:
     IDENT                       { $1 }
   | /*empty*/                   { "" }
+;
+
+/* Constant declarations */
+
+const_declarator:
+    CONST simple_type_spec pointer_opt IDENT EQUAL const_exp
+        { {cd_name = $4; cd_type = $3($2); cd_value = $6} }
+
+const_exp:
+    const_int                                   { Cst_int $1 }
+  | STRING                                      { Cst_string $1 }
+;
+
+const_int:
+  | INTEGER                                     { $1 }
+  | CHARACTER                                   { Char.code $1 }
+  | TRUE                                        { 1 }
+  | FALSE                                       { 0 }
+  | const_int QUESTIONMARK const_int COLON const_int %prec prec_conditional
+                                                { if $1 <> 0 then $3 else $5 }
+  | const_int BARBAR const_int                  { if $1 <> 0 then $1 else $3 }
+  | const_int AMPERAMPER const_int              { if $1 = 0 then 0 else $3 }
+  | const_int BAR const_int                     { $1 land $3 }
+  | const_int AMPER const_int                   { $1 lor $3 }
+  | const_int CARET const_int                   { $1 lxor $3 }
+  | const_int EQUALEQUAL const_int              { if $1 = $3 then 1 else 0 }
+  | const_int BANGEQUAL const_int               { if $1 <> $3 then 1 else 0 }
+  | const_int LESS const_int                    { if $1 < $3 then 1 else 0 }
+  | const_int GREATER const_int                 { if $1 > $3 then 1 else 0 }
+  | const_int LESSEQUAL const_int               { if $1 <= $3 then 1 else 0 }
+  | const_int GREATEREQUAL const_int            { if $1 >= $3 then 1 else 0 }
+  | const_int LESSLESS const_int                { $1 lsl $3 }
+  | const_int GREATERGREATER const_int          { $1 asr $3 }
+  | const_int PLUS const_int                    { $1 + $3 }
+  | const_int MINUS const_int                   { $1 - $3 }
+  | const_int STAR const_int                    { $1 * $3 }
+  | const_int SLASH const_int               { if $3 = 0 then 0 else $1 / $3 }
+  | const_int PERCENT const_int             { if $3 = 0 then 0 else $1 mod $3 }
+  | PLUS const_int %prec prec_uminus            { $2 }
+  | MINUS const_int %prec prec_uminus           { - $2 }
+  | TILDE const_int                             { lnot $2 }
+  | BANG const_int                              { if $2 = 0 then 1 else 0 }
+  | LPAREN const_int RPAREN                     { $2 }
 ;
