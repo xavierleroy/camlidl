@@ -127,7 +127,7 @@ STDAPI DllRegisterServer()
 
 /* Server unregistration */
 
-STDAPI DllUnregisterserver()
+STDAPI DllUnregisterServer()
 {
   struct camlidl_comp * c;
 
