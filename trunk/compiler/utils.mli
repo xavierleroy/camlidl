@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: utils.mli,v 1.9 2000-08-19 11:04:58 xleroy Exp $ *)
+(* $Id: utils.mli,v 1.10 2002-01-16 16:15:34 xleroy Exp $ *)
 
 (* Utility functions *)
 
@@ -34,6 +34,6 @@ val iter_index : (int -> 'a -> unit) -> int -> 'a list -> unit
 
 val find_in_path : string list -> string -> string
 
-external ignore: 'a -> unit = "%identity"
+(*external ignore: 'a -> unit = "%identity"*)
 
 val remove_file : string -> unit

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.ml,v 1.25 2002-01-16 09:42:01 xleroy Exp $ *)
+(* $Id: cvttyp.ml,v 1.26 2002-01-16 16:15:30 xleroy Exp $ *)
 
 open Utils
 open Printf
@@ -212,12 +212,9 @@ let out_ml_types oc sep types =
       out_ml_type oc ty1;
       List.iter (fun (_, ty) -> fprintf oc " %s " sep; out_ml_type oc ty) tyl
 
-(* Expand a typedef name, returning its definition *)
-let expand_typedef = ref ((fun _ -> assert false) : string -> idltype)
-
 (* Expand typedef and const in type *)
 let rec scrape_type = function
-    Type_named(modname, tyname) -> scrape_type (!expand_typedef tyname)
+    Type_named(modname, tyname) -> scrape_type (!Lexpr.expand_typedef tyname)
   | Type_const ty -> scrape_type ty
   | ty -> ty
 

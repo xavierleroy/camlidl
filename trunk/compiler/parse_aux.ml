@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.15 2002-01-16 09:42:02 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.16 2002-01-16 16:15:33 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -337,6 +337,9 @@ let make_typedef attrs tybase decls =
       | (_, _) ->
           split_decls (decl :: past) rem in
   split_decls [] decls
+
+let make_const_decl attr ty name v =
+  { cd_name = name; cd_type = apply_type_attributes ty attr; cd_value = v }
 
 let update_int_default dfl arg =
   match arg with

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: variables.ml,v 1.10 2000-08-19 11:04:58 xleroy Exp $ *)
+(* $Id: variables.ml,v 1.11 2002-01-16 16:15:34 xleroy Exp $ *)
 
 open Printf
 open Utils
@@ -39,7 +39,8 @@ let new_ml_variable () =
 let new_ml_variable_block n =
   let name = new_var "_v" in
   let ty =
-    Type_array({bound = Some(Expr_int n); size=None; length=None;
+    Type_array({bound = Some(Expr_int(Int64.of_int n));
+                size=None; length=None;
                 is_string=false; maybe_null=false; null_terminated=false},
                Type_named("", "value")) in
   temp_variables := (name, ty) :: !temp_variables;

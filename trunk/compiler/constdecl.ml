@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: constdecl.ml,v 1.13 2002-01-16 09:42:00 xleroy Exp $ *)
+(* $Id: constdecl.ml,v 1.14 2002-01-16 16:15:30 xleroy Exp $ *)
 
 (* Handling of constant declarations *)
 
@@ -26,13 +26,20 @@ type constant_decl =
 (* Record the value of a constant declaration *)
 
 let record c =
-  Lexpr.bind_const c.cd_name (eval c.cd_value)
+  Lexpr.bind_const c.cd_name (cast_value c.cd_type (eval c.cd_value))
 
 (* Declare the constant in ML *)
 
 let ml_declaration oc c =
-  fprintf oc "val %s : %a\n"
-             (String.uncapitalize c.cd_name) out_ml_type c.cd_type
+  fprintf oc "val %s : " (String.uncapitalize c.cd_name);
+  match scrape_type c.cd_type with
+    Type_int(_, _) as ty ->
+      fprintf oc "%a\n" out_ml_type c.cd_type
+  | Type_pointer(_, Type_int((Char | UChar | SChar), _)) |
+    Type_array({is_string = true}, _) ->
+      fprintf oc "string\n"
+  | _ ->
+      error "unsupported type for constant expression"
 
 (* #define the constant in C *)
 
@@ -45,27 +52,28 @@ let c_declaration oc c =
 let ml_definition oc c =
   let v = eval c.cd_value in
   let name = String.uncapitalize c.cd_name in
-  match (scrape_type c.cd_type, v) with
-    (Type_int((Char | UChar | SChar), _), Cst_int n) ->
+  match scrape_type c.cd_type with
+    Type_int((Char | UChar | SChar), _) ->
       fprintf oc "let %s = '%s'\n\n"
-                 name (Char.escaped (Char.chr (n land 0xFF)))
-  | (Type_int(Boolean, _), Cst_int n) ->
+                 name (Char.escaped (Char.chr ((int_val v) land 0xFF)))
+  | Type_int(Boolean, _) ->
       fprintf oc "let %s = %s\n\n"
-                 name (if n <> 0 then "true" else "false")
-  | (Type_int(_, Iunboxed), Cst_int n) ->
+                 name (if is_true v then "true" else "false")
+  | Type_int(_, Iunboxed) ->
       fprintf oc "let %s = %d\n\n"
-                 name n
-  | (Type_int(_, Inative), Cst_int n) ->
-      fprintf oc "let %s = Nativeint.of_int %d\n\n"
-                 name n
-  | (Type_int(_, I32), Cst_int n) ->
-      fprintf oc "let %s = Int32.of_int %d\n\n"
-                 name n
-  | (Type_int(_, I64), Cst_int n) ->
-      fprintf oc "let %s = Int64.of_int %d\n\n"
-                 name n
-  | (Type_pointer(_, Type_int((Char | UChar | SChar), _)), Cst_string s) ->
+                 name (int_val v)
+  | Type_int(_, Inative) ->
+      fprintf oc "let %s = Nativeint.of_string \"%nd\"\n\n"
+                 name (nativeint_val v)
+  | Type_int(_, I32) ->
+      fprintf oc "let %s = Int32.of_string \"%ld\"\n\n"
+                 name (int32_val v)
+  | Type_int(_, I64) ->
+      fprintf oc "let %s = Int64.of_string \"%Ld\"\n\n"
+                 name (int64_val v)
+  | Type_pointer(_, Type_int((Char | UChar | SChar), _)) |
+    Type_array({is_string = true}, _) ->
       fprintf oc "let %s = \"%s\"\n\n"
-                 name (String.escaped s)
+                 name (String.escaped (string_val v))
   | _ ->
-      error (sprintf "type mismatch in constant %s" c.cd_name)
+      error "unsupported type for constant expression"

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: idltypes.mli,v 1.22 2001-07-30 14:45:40 xleroy Exp $ *)
+(* $Id: idltypes.mli,v 1.23 2002-01-16 16:15:31 xleroy Exp $ *)
 
 type integer_kind =
     Int | Long | Hyper | Small | Short | Char
@@ -80,7 +80,7 @@ and enum_decl =
 
 and lexpr =
     Expr_ident of string
-  | Expr_int of int
+  | Expr_int of int64
   | Expr_string of string
   | Expr_cond of lexpr * lexpr * lexpr
   | Expr_sequand of lexpr * lexpr
@@ -96,6 +96,7 @@ and lexpr =
   | Expr_ge of lexpr * lexpr
   | Expr_lshift of lexpr * lexpr
   | Expr_rshift of lexpr * lexpr
+  | Expr_rshift_unsigned of lexpr * lexpr
   | Expr_plus of lexpr * lexpr
   | Expr_minus of lexpr * lexpr
   | Expr_times of lexpr * lexpr
