@@ -1,5 +1,18 @@
 (***********************************************************************)
 (*                                                                     *)
+(*                              CamlIDL                                *)
+(*                                                                     *)
+(*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
+(*                                                                     *)
+(*  Copyright 1999 Institut National de Recherche en Informatique et   *)
+(*  en Automatique.  Distributed only by permission.                   *)
+(*                                                                     *)
+(***********************************************************************)
+
+(* $Id: linenum.mll,v 1.3 1999-02-19 14:33:33 xleroy Exp $ *)
+
+(***********************************************************************)
+(*                                                                     *)
 (*                           Objective Caml                            *)
 (*                                                                     *)
 (*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
@@ -9,7 +22,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: linenum.mll,v 1.2 1999-02-18 17:45:44 xleroy Exp $ *)
+(* $Id: linenum.mll,v 1.3 1999-02-19 14:33:33 xleroy Exp $ *)
 
 (* An auxiliary lexer for determining the line number corresponding to
    a file position, honoring the directives # linenum "filename" *)

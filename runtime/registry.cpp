@@ -1,6 +1,7 @@
 //
 // Registry.cpp
 //
+// Note: code taken from "Inside COM", Dale Rogerson, Microsoft Press
 
 #include <objbase.h>
 #include <assert.h>

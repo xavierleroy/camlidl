@@ -1,3 +1,16 @@
+(***********************************************************************)
+(*                                                                     *)
+(*                              CamlIDL                                *)
+(*                                                                     *)
+(*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
+(*                                                                     *)
+(*  Copyright 1999 Institut National de Recherche en Informatique et   *)
+(*  en Automatique.  Distributed only by permission.                   *)
+(*                                                                     *)
+(***********************************************************************)
+
+(* $Id: parse_aux.ml,v 1.3 1999-02-19 14:33:35 xleroy Exp $ *)
+
 (* Auxiliary functions for parsing *)
 
 open Printf

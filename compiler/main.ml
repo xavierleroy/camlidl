@@ -1,3 +1,16 @@
+(***********************************************************************)
+(*                                                                     *)
+(*                              CamlIDL                                *)
+(*                                                                     *)
+(*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
+(*                                                                     *)
+(*  Copyright 1999 Institut National de Recherche en Informatique et   *)
+(*  en Automatique.  Distributed only by permission.                   *)
+(*                                                                     *)
+(***********************************************************************)
+
+(* $Id: main.ml,v 1.13 1999-02-19 14:33:33 xleroy Exp $ *)
+
 open Printf
 open Clflags
 open Utils

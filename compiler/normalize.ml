@@ -1,3 +1,16 @@
+(***********************************************************************)
+(*                                                                     *)
+(*                              CamlIDL                                *)
+(*                                                                     *)
+(*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         *)
+(*                                                                     *)
+(*  Copyright 1999 Institut National de Recherche en Informatique et   *)
+(*  en Automatique.  Distributed only by permission.                   *)
+(*                                                                     *)
+(***********************************************************************)
+
+(* $Id: normalize.ml,v 1.16 1999-02-19 14:33:33 xleroy Exp $ *)
+
 (* Normalization of IDL types after parsing *)
 
 open Printf

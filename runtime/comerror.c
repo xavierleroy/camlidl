@@ -1,3 +1,16 @@
+/***********************************************************************/
+/*                                                                     */
+/*                              CamlIDL                                */
+/*                                                                     */
+/*            Xavier Leroy, projet Cristal, INRIA Rocquencourt         */
+/*                                                                     */
+/*  Copyright 1999 Institut National de Recherche en Informatique et   */
+/*  en Automatique.  Distributed only by permission.                   */
+/*                                                                     */
+/***********************************************************************/
+
+/* $Id: comerror.c,v 1.6 1999-02-19 14:33:46 xleroy Exp $ */
+
 /* Error handling */
 
 #include <stdio.h>
