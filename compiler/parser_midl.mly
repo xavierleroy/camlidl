@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: parser_midl.mly,v 1.18 2002-01-16 16:15:33 xleroy Exp $ */
+/* $Id: parser_midl.mly,v 1.19 2002-04-19 14:42:35 xleroy Exp $ */
 
 /* Parser for Microsoft IDL */
 
@@ -166,7 +166,7 @@ component:
   | fun_decl SEMI
         { [Comp_fundecl $1] }
   | interface_attributes INTERFACE tydef_ident opt_superinterface
-    LBRACE component_list RBRACE
+    LBRACE component_list RBRACE opt_semi
     /* Valid MIDL attributes: object uuid local endpoint version
            pointer_default implicit_handle auto_handle */
         { let i = make_interface $3 $1 $4 (List.rev $6) in
@@ -176,7 +176,7 @@ component:
           restore_defaults(); i }
   | IMPORT STRING SEMI
         { read_import $2 }
-  | quote
+  | quote opt_semi
         { let (kind, txt) = make_diversion $1 in [Comp_diversion(kind, txt)] }
 ;
 
@@ -576,6 +576,13 @@ opt_superinterface:
         { None }
   | COLON ident
         { Some $2 }
+;
+
+/* Optional semicolon */
+
+opt_semi:
+    SEMI       { () }
+  | /*empty*/  { () }
 ;
 
 /* Any ident (type or not) */
