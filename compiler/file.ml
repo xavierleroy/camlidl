@@ -42,6 +42,7 @@ let gen_type_def oc all_type_decls =
 
 let gen_mli_file oc intf all_type_decls =
   fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
+  fprintf oc "type iUnknown = Com.iUnknown\n\n";
   gen_type_def oc all_type_decls;
   (* Generate the function declarations *)
   let emit_fundecl = function
@@ -56,6 +57,7 @@ let gen_mli_file oc intf all_type_decls =
 
 let gen_ml_file oc intf all_type_decls =
   fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
+  fprintf oc "type iUnknown = Com.iUnknown\n\n";
   gen_type_def oc all_type_decls;
   (* Generate the function declarations and class definitions *)
   let emit_fundecl = function
@@ -92,9 +94,8 @@ let process_comp oc = function
   | Comp_diversion(kind, txt) ->
       if kind = Div_c then output_string oc txt
   | Comp_interface i ->
-      if i.intf_methods = []
-      then Intf.declare_transl oc i
-      else Intf.emit_transl oc i
+      if i.intf_methods <> []
+      then Intf.emit_transl oc i
 
 let gen_c_stub oc intf =
   (* Output the header *)

@@ -3,7 +3,7 @@ OCAMLDEP=ocamldep
 OCAMLYACC=ocamlyacc -v
 OCAMLLEX=ocamllex
 CC=gcc
-CFLAGS=-O -Wall -I/usr/local/lib/ocaml
+CFLAGS=-g -O -Wall -I/usr/local/lib/ocaml
 
 OBJS=utils.cmo cvttyp.cmo variables.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
@@ -15,7 +15,7 @@ OBJS=utils.cmo cvttyp.cmo variables.cmo \
 
 COBJS=camlidlruntime.o
 
-all: camlidl libcamlidl.a
+all: camlidl libcamlidl.a com.cmo
 
 camlidl: $(OBJS)
 	$(OCAMLC) -o camlidl $(OBJS)

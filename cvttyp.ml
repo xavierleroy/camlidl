@@ -64,7 +64,6 @@ let rec out_ml_type oc ty =
   | Type_float | Type_double -> output_string oc "float"
   | Type_void -> output_string oc "void"
   | Type_named s -> output_string oc (String.uncapitalize s)
-  | Type_interface s -> output_string oc (String.uncapitalize s)
   | Type_struct sd ->
       if sd.sd_name = ""
       then fprintf oc "struct_%d" sd.sd_stamp
@@ -89,6 +88,8 @@ let rec out_ml_type oc ty =
       if attr.is_string
       then fprintf oc "string"
       else fprintf oc "%a array" out_ml_type ty
+  | Type_interface s ->
+      fprintf oc "%s Com.interface" (String.uncapitalize s)
 
 (* Output a list of ML types *)
 

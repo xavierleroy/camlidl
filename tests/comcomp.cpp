@@ -136,12 +136,16 @@ extern "C"
 void test_ix(interface IX * c)
 {
   test_component(c);
+  printf("test: releasing the interface, return of Release() is %d.\n",
+         c->Release());
 }
 
 extern "C"
 void test_iy(interface IY * c)
 {
   test_component(c);
+  printf("test: releasing the interface, return of Release() is %d.\n",
+         c->Release());
 }
 
 

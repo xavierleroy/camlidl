@@ -18,6 +18,8 @@ uniondecl.cmi: idltypes.cmi
 variables.cmi: idltypes.cmi 
 array.cmo: cvttyp.cmi idltypes.cmi utils.cmi variables.cmi array.cmi 
 array.cmx: cvttyp.cmx idltypes.cmi utils.cmx variables.cmx array.cmi 
+com.cmo: com.cmi 
+com.cmx: com.cmi 
 constdecl.cmo: cvttyp.cmi idltypes.cmi utils.cmi constdecl.cmi 
 constdecl.cmx: cvttyp.cmx idltypes.cmi utils.cmx constdecl.cmi 
 cvttyp.cmo: idltypes.cmi cvttyp.cmi 
@@ -50,14 +52,14 @@ main.cmo: file.cmi idltypes.cmi lexer_simple.cmi normalize.cmi \
     parser_simple.cmi utils.cmi 
 main.cmx: file.cmx idltypes.cmi lexer_simple.cmx normalize.cmx \
     parser_simple.cmx utils.cmx 
-normalize.cmo: constdecl.cmi file.cmi funct.cmi idltypes.cmi typedef.cmi \
-    utils.cmi normalize.cmi 
-normalize.cmx: constdecl.cmx file.cmx funct.cmx idltypes.cmi typedef.cmx \
-    utils.cmx normalize.cmi 
-parser_simple.cmo: constdecl.cmi file.cmi funct.cmi idltypes.cmi typedef.cmi \
-    parser_simple.cmi 
-parser_simple.cmx: constdecl.cmx file.cmx funct.cmx idltypes.cmi typedef.cmx \
-    parser_simple.cmi 
+normalize.cmo: constdecl.cmi file.cmi funct.cmi idltypes.cmi intf.cmi \
+    typedef.cmi utils.cmi normalize.cmi 
+normalize.cmx: constdecl.cmx file.cmx funct.cmx idltypes.cmi intf.cmx \
+    typedef.cmx utils.cmx normalize.cmi 
+parser_simple.cmo: constdecl.cmi file.cmi funct.cmi idltypes.cmi intf.cmi \
+    typedef.cmi parser_simple.cmi 
+parser_simple.cmx: constdecl.cmx file.cmx funct.cmx idltypes.cmi intf.cmx \
+    typedef.cmx parser_simple.cmi 
 struct.cmo: cvttyp.cmi idltypes.cmi utils.cmi variables.cmi struct.cmi 
 struct.cmx: cvttyp.cmx idltypes.cmi utils.cmx variables.cmx struct.cmi 
 structdecl.cmo: cvttyp.cmi cvtval.cmi idltypes.cmi struct.cmi utils.cmi \
