@@ -43,8 +43,37 @@ extern IID IID_IUnknown;
 
 #endif
 
-/* Internal functions */
+/* Internal functions and data */
 
-#ifdef _WIN32
+#ifdef __cplusplus
+extern "C"{
+#endif 
+
+/* Count of active component instances */
+
+extern int camlidl_num_components;
+
+/* The list of all registered components */
+
+struct camlidl_comp {
+  value compdata;
+  struct camlidl_comp * next;
+};
+
+extern struct camlidl_comp * camlidl_registered_components;
+
+/* Structure of the "compdata" Caml record */
+
+#define COMPDATA_CREATE 0
+#define COMPDATA_CLSID 1
+#define COMPDATA_FRIENDLY_NAME 2
+#define COMPDATA_VER_IND_PROG_ID 3
+#define COMPDATA_PROG_ID 4
+
+/* Build a ISupportErrorInfo interface */
 struct ISupportErrorInfo * camlidl_support_error_info(struct camlidl_intf * i);
-#endif
+
+#ifdef __cplusplus
+}
+#endif 
+

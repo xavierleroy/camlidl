@@ -26,7 +26,7 @@ struct camlidl_block_list {
   struct camlidl_block_list * next;
 };
 
-struct camlidl_ctx {
+struct camlidl_ctx_struct {
   int flags;
   struct camlidl_block_list * head;
 };
@@ -34,7 +34,7 @@ struct camlidl_ctx {
 #define CAMLIDL_TRANSIENT 1
 #define CAMLIDL_ADDREF 2
 
-typedef struct camlidl_ctx * camlidl_ctx;
+typedef struct camlidl_ctx_struct * camlidl_ctx;
 
 void * camlidl_malloc(size_t sz, camlidl_ctx ctx);
 void camlidl_free(camlidl_ctx ctx);
@@ -88,12 +88,12 @@ value camlidl_make_interface(void * vtbl, value caml_object, IID * iid);
    encapsulating a Caml object */
 
 HRESULT STDMETHODCALLTYPE
-camlidl_QueryInterface(struct camlidl_intf * this, REFIID iid,
+camlidl_QueryInterface(struct camlidl_intf * self, REFIID iid,
                        void ** object);
 ULONG STDMETHODCALLTYPE
-camlidl_AddRef(struct camlidl_intf * this);
+camlidl_AddRef(struct camlidl_intf * self);
 ULONG STDMETHODCALLTYPE
-camlidl_Release(struct camlidl_intf * this);
+camlidl_Release(struct camlidl_intf * self);
 
 /* Lookup a method in a method suite */
 /* (Should be in mlvalues.h?) */
