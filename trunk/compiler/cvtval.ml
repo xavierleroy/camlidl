@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvtval.ml,v 1.22 2001-06-17 10:50:24 xleroy Exp $ *)
+(* $Id: cvtval.ml,v 1.23 2001-07-30 14:45:39 xleroy Exp $ *)
 
 open Printf
 open Utils
@@ -140,8 +140,12 @@ let rec ml_to_c oc onstack pref ty v c =
       option_ml_to_c oc v c
         (fun v' ->
           Array.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v' c)
-  | Type_bigarray(attr, ty_elt) ->
+  | Type_bigarray({bigarray_maybe_null=false} as attr, ty_elt) ->
       Array.bigarray_ml_to_c oc pref attr ty_elt v c
+  | Type_bigarray({bigarray_maybe_null=true} as attr, ty_elt) ->
+      option_ml_to_c oc v c
+        (fun v' ->
+          Array.bigarray_ml_to_c oc pref attr ty_elt v' c)
   | Type_interface(modl, name) ->
       error (sprintf "Reference to interface %s that is not a pointer" name)
   | Type_const ty' ->
@@ -210,8 +214,11 @@ let rec c_to_ml oc pref ty c v =
   | Type_array({maybe_null=true} as attr, ty_elt) ->
       option_c_to_ml oc c v
         (Array.array_c_to_ml c_to_ml oc pref attr ty_elt c)
-  | Type_bigarray(attr, ty_elt) ->
+  | Type_bigarray({bigarray_maybe_null=false} as attr, ty_elt) ->
       Array.bigarray_c_to_ml oc pref attr ty_elt c v
+  | Type_bigarray({bigarray_maybe_null=true} as attr, ty_elt) ->
+      option_c_to_ml oc c v
+        (Array.bigarray_c_to_ml oc pref attr ty_elt c)
   | Type_interface(modl, name) ->
       error (sprintf "Reference to interface %s that is not a pointer" name)
   | Type_const ty' ->

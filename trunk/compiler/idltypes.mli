@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: idltypes.mli,v 1.21 2001-06-29 13:29:59 xleroy Exp $ *)
+(* $Id: idltypes.mli,v 1.22 2001-07-30 14:45:40 xleroy Exp $ *)
 
 type integer_kind =
     Int | Long | Hyper | Small | Short | Char
@@ -48,7 +48,8 @@ and array_attributes =
 and bigarray_attributes =
   { dims: array_attributes list;
     fortran_layout: bool;
-    mutable malloced: bool }
+    mutable malloced: bool;
+    bigarray_maybe_null: bool }
 
 and union_attributes =
   { discriminant: lexpr }

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.ml,v 1.22 2001-06-29 13:29:59 xleroy Exp $ *)
+(* $Id: cvttyp.ml,v 1.23 2001-07-30 14:45:39 xleroy Exp $ *)
 
 open Utils
 open Printf
@@ -192,7 +192,9 @@ let rec out_ml_type oc ty =
         | 3 -> "Bigarray.Array3.t"
         | _ -> "Bigarray.Genarray.t" in
       fprintf oc "(%a, %s, %s) %s"
-        out_ml_type ty (ml_bigarray_kind ty) layout typeconstr
+        out_ml_type ty (ml_bigarray_kind ty) layout typeconstr;
+      if attr.bigarray_maybe_null
+      then fprintf oc " option"
   | Type_interface(modl, name) ->
       fprintf oc "%a Com.interface" out_mltype_name (modl, name)      
   | Type_const ty' ->
