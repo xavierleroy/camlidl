@@ -6,7 +6,7 @@ open Cvttyp
 
 (* Allocate space to hold a C value of type [ty], and store a pointer to
    this space in [c].
-   If [!on_stack] is true, the space is allocated on stack.
+   If [on_stack] is true, the space is allocated on stack.
    Otherwise, it is allocated in the heap. *)
 
 let allocate_space oc onstack ty c =
@@ -19,6 +19,12 @@ let allocate_space oc onstack ty c =
             c out_c_type ty out_c_type ty;
     "*" ^ c
   end
+
+(* Say whether we are in a callback stub (C-to-ML).
+   FIXME: doesn't extend to conversion functions for structs, unions,
+   and typedefs. *)
+
+let in_callback = ref false
 
 (* Translate the ML value [v] and store it into the C lvalue [c].
    [ty] is the IDL type of the value being converted.
@@ -70,7 +76,9 @@ let rec ml_to_c oc onstack pref ty v c =
       need_deallocation := true
   | Type_pointer(Ref, Type_interface(modl, name)) ->
       iprintf oc "%s = (struct %s *) camlidl_unpack_interface(%s);\n"
-                 c name v
+                 c name v;
+      if !in_callback then
+        iprintf oc "%s->lpVtbl->AddRef(%s);\n" c c
   | Type_pointer(Ref, ty_elt) ->
       let c' = allocate_space oc onstack ty_elt c in
       ml_to_c oc onstack pref ty_elt v c'
@@ -133,6 +141,8 @@ let rec c_to_ml oc pref ty c v =
   | Type_named(modl, name) ->
       iprintf oc "%s = camlidl_c2ml_%s_%s(&%s);\n" v modl name c
   | Type_pointer(Ref, Type_interface(modl, name)) ->
+      if !in_callback then
+        iprintf oc "%s->lpVtbl->AddRef(%s);\n" c c;
       iprintf oc "%s = camlidl_pack_interface(%s);\n" v c
   | Type_pointer(Ref, ty_elt) ->
       c_to_ml oc pref ty_elt (sprintf "*%s" c) v;

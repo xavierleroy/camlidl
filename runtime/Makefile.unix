@@ -2,7 +2,7 @@ include ../Makefile.config
 
 OCAMLC=ocamlc
 
-OBJS=idlalloc.o comintf.o cfactory.o
+OBJS=idlalloc.o comintf.o cfactory.o comerror.o
 
 all: camlidlruntime.a
 
@@ -25,7 +25,7 @@ clean:
 	$(OCAMLC) -ccopt "$(CFLAGS)" $*.c
 
 depend:
-	gcc $(OCAMLLIB) -MM *.c > .depend
+	gcc -I$(OCAMLLIB) -MM *.c > .depend
 
 include .depend
 

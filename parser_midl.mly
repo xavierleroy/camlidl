@@ -138,6 +138,15 @@ component:
         { [Comp_uniondecl $2] }
   | attributes enum_declarator SEMI
         { [Comp_enumdecl $2] }
+  | attributes STRUCT opt_ident SEMI
+        { [Comp_structdecl {sd_name = $3; sd_mod = "";
+                            sd_stamp = 0; sd_fields = []}] }
+  | attributes UNION opt_ident SWITCH LPAREN simple_type_spec ident RPAREN SEMI
+        { [Comp_structdecl {sd_name = $3; sd_mod = "";
+                            sd_stamp = 0; sd_fields = []}] }
+  | attributes UNION opt_ident SEMI
+        { [Comp_uniondecl {ud_name = $3; ud_mod = "";
+                           ud_stamp = 0; ud_cases = []}] }
   | fun_decl SEMI
         { [Comp_fundecl $1] }
   | attributes INTERFACE ident opt_superinterface
@@ -211,16 +220,16 @@ param_declarator:
 type_spec:
     simple_type_spec
         { $1 }
-  | STRUCT ident
+  | STRUCT opt_ident
         { Type_struct {sd_name=$2; sd_mod = ""; sd_stamp=0; sd_fields=[]} }
   | struct_declarator
         { Type_struct $1 }
-  | UNION ident
+  | UNION opt_ident
         { Type_union({ud_name=$2; ud_mod = ""; ud_stamp=0; ud_cases=[]},
                       no_switch) }
   | union_declarator
         { Type_union($1, no_switch) }
-  | ENUM ident
+  | ENUM opt_ident
         { Type_enum({en_name=$2; en_mod = ""; en_stamp=0; en_consts=[]},
                     no_enum_attr) }
   | enum_declarator
@@ -321,14 +330,14 @@ union_declarator:
         { {ud_name = $2; ud_mod = ""; ud_stamp = 0; ud_cases = List.rev $4} }
 ;
 union_body:
-    union_case                                          { $1 }
-  | union_body union_case                               { $2 @ $1 }
+    union_case                                          { [$1] }
+  | union_body union_case                               { $2 :: $1 }
 ;
 union_case:
     case_list opt_field_declarator SEMI
-        { List.map (fun lbl -> {case_label = Some lbl; case_field = $2}) $1 }
+        { {case_labels = List.rev $1; case_field = $2} }
   | DEFAULT COLON opt_field_declarator SEMI
-        { [{case_label = None; case_field = $3}] }
+        { {case_labels = []; case_field = $3} }
 ;
 case_list:
     case_label                                          { [$1] }

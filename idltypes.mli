@@ -35,7 +35,7 @@ and field =
   { field_name: string; field_typ: idltype }
 
 and union_case =
-  { case_label: string option; case_field: field option }
+  { case_labels: string list; case_field: field option }
 
 and enum_const =
   { const_name: string; const_val: lexpr option }

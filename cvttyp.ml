@@ -59,19 +59,19 @@ and out_struct oc sd =
   increase_indent();
   List.iter (out_field oc) sd.sd_fields;
   decrease_indent();
-  fprintf oc "}"
+  iprintf oc "}"
 
 and out_field oc f =
   iprintf oc "%a;\n" out_c_decl (f.field_name, f.field_typ)
 
 and out_union oc ud =
-  fprintf oc "struct ";
+  fprintf oc "union ";
   if ud.ud_name <> "" then fprintf oc "%s " ud.ud_name;
   fprintf oc "{\n";
   increase_indent();
   List.iter (out_case oc) ud.ud_cases;
   decrease_indent();
-  fprintf oc "}"
+  iprintf oc "}"
 
 and out_case oc c =
   match c.case_field with None -> () | Some f -> out_field oc f
@@ -83,7 +83,7 @@ and out_enum oc en =
   increase_indent();
   List.iter (out_enum_const oc) en.en_consts;
   decrease_indent();
-  fprintf oc "}"
+  iprintf oc "}"
 
 and out_enum_const oc cst =
   fprintf oc "%s" cst.const_name;

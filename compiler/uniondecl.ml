@@ -22,15 +22,20 @@ let ml_declaration oc ud =
     else
       output_string oc (String.capitalize c) in
   let emit_case = function
-    {case_label = None; case_field = None} -> (* default case, no arg *)
+    {case_labels = []; case_field = None} -> (* default case, no arg *)
       fprintf oc "  | %a of int\n" out_constr "default"
-  | {case_label = None; case_field = Some f} -> (* default case, one arg *)
+  | {case_labels = []; case_field = Some f} -> (* default case, one arg *)
       fprintf oc "  | %a of int * %a\n" 
                  out_constr "default" out_ml_type f.field_typ
-  | {case_label = Some lbl; case_field = None} -> (* named cases, no args *)
-      fprintf oc "  | %a\n" out_constr lbl
-  | {case_label = Some lbl; case_field = Some f} -> (* named cases, one arg *)
-      fprintf oc "  | %a of %a\n" out_constr lbl out_ml_type f.field_typ in
+  | {case_labels = lbls; case_field = None} -> (* named cases, no args *)
+      List.iter
+        (fun lbl -> fprintf oc "  | %a\n" out_constr lbl)
+        lbls
+  | {case_labels = lbls; case_field = Some f} -> (* named cases, one arg *)
+      List.iter
+        (fun lbl ->
+          fprintf oc "  | %a of %a\n" out_constr lbl out_ml_type f.field_typ)
+        lbls in
   List.iter emit_case ud.ud_cases
 
 (* Convert an IDL union declaration to a C union declaration *)
@@ -80,6 +85,7 @@ let transl_c_to_ml oc ud =
   let pc = divert_output() in
   let v = new_ml_variable() in
   union_c_to_ml c_to_ml pc ud (sprintf "(*%s)" c) v discr;
+  iprintf pc "return %s;\n" v;
   output_variable_declarations oc;
   end_diversion oc;
   fprintf oc "}\n\n";

@@ -9,7 +9,7 @@
 #include "camlidlruntime.h"
 #include "comstuff.h"
 
-extern int camlidl_num_components;
+int camlidl_num_components = 0;
 
 value camlidl_lookup_method(char * name)
 {
@@ -164,7 +164,7 @@ value camlidl_com_create_instance(value clsid, value iid)
   if (FAILED(res)) raise_com_error(res);
   return camlidl_pack_interface(instance);
 #else
-  invalid_arg("Com.create_instance not implemented");
+  invalid_argument("Com.create_instance not implemented");
 #endif
 }
 

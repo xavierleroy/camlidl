@@ -152,7 +152,14 @@ let make_discriminated_union name switch_name switch_type body =
     sd_fields = [ {field_name = switch_name; field_typ = switch_type};
                   {field_name = "u"; field_typ = ty_union} ] }
 
-let typedef_names = ref StringSet.empty
+let type_names =
+  ref (List.fold_right
+        (fun itf s -> StringSet.add itf.intf_name s)
+        Predef.interfaces
+        (List.fold_right
+          (fun td s -> StringSet.add td.td_name s)
+          Predef.typedefs
+          StringSet.empty))
 
 let make_typedef attrs tybase decls =
   let rec merge_attributes ty td = function
@@ -175,7 +182,7 @@ let make_typedef attrs tybase decls =
       merge_attributes (apply_type_attribute ty attr) td rem in
   let merge_definition tybase decl =
     let (name, ty) = decl tybase in
-    typedef_names := StringSet.add name !typedef_names;
+    type_names := StringSet.add name !type_names;
     let td = {td_name = name; td_mod = "";
               td_type = Type_void; (* dummy *)
               td_abstract = false; td_mltype = None;
@@ -265,6 +272,7 @@ let make_interface name attrs superintf comps =
     let intf =
       { intf_name = name; intf_mod = ""; intf_super = super;
         intf_methods = methods; intf_uid = !uid } in
+    type_names := StringSet.add name !type_names;
     Comp_interface intf :: others @ [Comp_interface intf_forward]
   end
 

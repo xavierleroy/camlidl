@@ -43,8 +43,8 @@ val make_discriminated_union :
   string ->
   idltype -> union_case list -> struct_decl
     (* Convert a union switch(...) into a struct encapsulating an union *)
-val typedef_names : StringSet.t ref
-    (* The set of a typedef-ed idents seen so far *)
+val type_names : StringSet.t ref
+    (* The set of type names (defined by typedef or interface) seen so far *)
 val make_typedef :
   (string * lexpr list) list ->
   idltype ->

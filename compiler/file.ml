@@ -39,11 +39,22 @@ let gen_type_def oc intf =
     if !first then fprintf oc "type " else fprintf oc "and ";
     first := false in
   let emit_typedef = function
-      Comp_typedecl td -> start_decl(); Typedef.ml_declaration oc td
-    | Comp_structdecl s -> start_decl(); Structdecl.ml_declaration oc s
-    | Comp_uniondecl u -> start_decl(); Uniondecl.ml_declaration oc u
-    | Comp_enumdecl e -> start_decl(); Enumdecl.ml_declaration oc e
-    | Comp_interface i -> start_decl(); Intf.ml_declaration oc i
+      Comp_typedecl td ->
+        start_decl(); Typedef.ml_declaration oc td
+    | Comp_structdecl s ->
+        if s.sd_fields <> [] then begin
+          start_decl(); Structdecl.ml_declaration oc s
+        end
+    | Comp_uniondecl u ->
+        if u.ud_cases <> [] then begin
+          start_decl(); Uniondecl.ml_declaration oc u
+        end
+    | Comp_enumdecl e ->
+        start_decl(); Enumdecl.ml_declaration oc e
+    | Comp_interface i ->
+        if i.intf_methods <> [] then begin
+          start_decl(); Intf.ml_declaration oc i
+        end
     | _ -> () in
   List.iter emit_typedef intf;
   fprintf oc "\n"
@@ -128,7 +139,7 @@ let rec process_comp oc = function
       if kind = Div_c || (kind = Div_h && not !Clflags.include_header)
       then output_string oc txt
   | Comp_interface i ->
-      Intf.emit_transl oc i
+      if i.intf_methods <> [] then Intf.emit_transl oc i
   | Comp_import(filename, comps) ->
       List.iter (declare_comp oc) comps
 
@@ -163,7 +174,7 @@ let process_definition oc = function
   | Comp_uniondecl ud ->
       if ud.ud_name <> "" then Uniondecl.c_declaration oc ud
   | Comp_enumdecl en ->
-      if en.en_name <> "" then Enumdecl.c_declaration oc en
+      Enumdecl.c_declaration oc en
   | Comp_fundecl fd ->
       Funct.c_declaration oc fd
   | Comp_constdecl cd ->

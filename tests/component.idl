@@ -1,9 +1,3 @@
-{|
-
-#include "comcomp.h"
-
-|}
-
 [object, uuid(00000000-0000-0000-0000-000000000081)]
 interface IX : IUnknown {
   void F(int x);
