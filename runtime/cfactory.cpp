@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: cfactory.cpp,v 1.8 2001-07-30 14:05:17 xleroy Exp $ */
+/* $Id: cfactory.cpp,v 1.9 2004-07-08 09:48:33 xleroy Exp $ */
 
 /* The class factory and DLL support */
 
@@ -25,6 +25,11 @@ extern "C" {
 }
 #include "comstuff.h"
 #include "registry.h"
+
+#ifdef __CYGWIN32__
+#include <sys/param.h>
+#define _MAX_PATH MAXPATHLEN
+#endif
 
 /* Count of server locks */
 static long camlidl_num_server_locks = 0;
@@ -175,11 +180,14 @@ STDAPI DllCanUnloadNow()
 
 BOOL APIENTRY DllMain(HANDLE module, DWORD reason, void *reserved)
 {
-  char * argv[1];
+  char * argv[2];
+  char dll_path[_MAX_PATH];
 
   switch(reason) {
   case DLL_PROCESS_ATTACH:
-    argv[0] = NULL;
+    GetModuleFileName( (HMODULE) module, dll_path, _MAX_PATH );
+    argv[0] = dll_path;
+    argv[1] = NULL;
     camlidl_module_handle = (HMODULE) module;
 #if 0
     int fd = open("/tmp/camllog", O_RDWR|O_TRUNC|O_CREAT, _S_IWRITE|_S_IREAD);
