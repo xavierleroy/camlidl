@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvtval.ml,v 1.19 1999-02-19 14:33:28 xleroy Exp $ *)
+(* $Id: cvtval.ml,v 1.20 2000-08-18 11:23:03 xleroy Exp $ *)
 
 open Printf
 open Utils
@@ -33,6 +33,39 @@ let allocate_space oc onstack ty c =
     "*" ^ c
   end
 
+(* Helper functions to deal with option types / NULL pointers *)
+
+let option_ml_to_c oc v c conv =
+  iprintf oc "if (%s == Val_int(0)) {\n" v;
+  increase_indent();
+  iprintf oc "%s = NULL;\n" c;
+  decrease_indent();
+  iprintf oc "} else {\n";
+  increase_indent();
+  let v' = new_ml_variable() in
+  iprintf oc "%s = Field(%s, 0);\n" v' v;
+  conv v';
+  decrease_indent();
+  iprintf oc "}\n"
+
+let option_c_to_ml oc c v conv =
+  iprintf oc "if (%s == NULL) {\n" c;
+  increase_indent();
+  iprintf oc "%s = Val_int(0);\n" v;
+  decrease_indent();
+  iprintf oc "} else {\n";
+  increase_indent();
+  let v' = new_ml_variable() in
+  conv v';
+  iprintf oc "Begin_root(%s)\n" v';
+  increase_indent();
+  iprintf oc "%s = camlidl_alloc_small(1, 0);\n" v;
+  iprintf oc "Field(%s, 0) = %s;\n" v v';
+  decrease_indent();
+  iprintf oc "End_roots();\n";
+  decrease_indent();
+  iprintf oc "}\n"
+
 (* Translate the ML value [v] and store it into the C lvalue [c].
    [ty] is the IDL type of the value being converted.
    [pref] is the access prefix for the dependent parameters (size,
@@ -44,10 +77,15 @@ let allocate_space oc onstack ty c =
 
 let rec ml_to_c oc onstack pref ty v c =
   match ty with
-    Type_int(Long | ULong) ->
-      iprintf oc "%s = Long_val(%s);\n" c v
-  | Type_int _ ->
-      iprintf oc "%s = Int_val(%s);\n" c v
+    Type_int(kind, repr) ->
+      let conv =
+        match repr with
+          Iunboxed ->
+            if kind = Long || kind = ULong then "Long_val" else "Int_val"
+        | Inative -> "Nativeint_val"
+        | I32 -> "Int32_val"
+        | I64 -> "Int64_val" in
+      iprintf oc "%s = %s(%s);\n" c conv v
   | Type_float | Type_double ->
       iprintf oc "%s = Double_val(%s);\n" c v
   | Type_void ->
@@ -89,23 +127,20 @@ let rec ml_to_c oc onstack pref ty v c =
       let c' = allocate_space oc onstack ty_elt c in
       ml_to_c oc onstack pref ty_elt v c'
   | Type_pointer(Unique, ty_elt) ->
-      iprintf oc "if (%s == Val_int(0)) {\n" v;
-      increase_indent();
-      iprintf oc "%s = NULL;\n" c;
-      decrease_indent();
-      iprintf oc "} else {\n";
-      increase_indent();
-      let v' = new_ml_variable() in
-      iprintf oc "%s = Field(%s, 0);\n" v' v;
-      ml_to_c oc onstack pref (Type_pointer(Ref, ty_elt)) v' c;
-      decrease_indent();
-      iprintf oc "}\n"
+      option_ml_to_c oc v c
+        (fun v' -> ml_to_c oc onstack pref (Type_pointer(Ref, ty_elt)) v' c)
   | Type_pointer(Ptr, ty_elt) ->
       iprintf oc "%s = (%a) Field(%s, 0);\n" c out_c_type ty v
   | Type_pointer(Ignore, ty_elt) ->
       iprintf oc "%s = NULL;\n" c
-  | Type_array(attr, ty_elt) ->
+  | Type_array({maybe_null=false} as attr, ty_elt) ->
       Array.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c
+  | Type_array({maybe_null=true} as attr, ty_elt) ->
+      option_ml_to_c oc v c
+        (fun v' ->
+          Array.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v' c)
+  | Type_bigarray(attr, ty_elt) ->
+      Array.bigarray_ml_to_c oc pref attr ty_elt v c
   | Type_interface(modl, name) ->
       error (sprintf "Reference to interface %s that is not a pointer" name)
 
@@ -116,10 +151,15 @@ let rec ml_to_c oc onstack pref ty v c =
 
 let rec c_to_ml oc pref ty c v =
   match ty with
-    Type_int(Long | ULong) ->
-      iprintf oc "%s = Val_long(%s);\n" v c
-  | Type_int _ ->
-      iprintf oc "%s = Val_int(%s);\n" v c
+    Type_int(kind, repr) ->
+      let conv =
+        match repr with
+          Iunboxed ->
+            if kind = Long || kind = ULong then "Val_long" else "Val_int"
+        | Inative -> "copy_nativeint"
+        | I32 -> "copy_int32"
+        | I64 -> "copy_int64" in
+      iprintf oc "%s = %s(%s);\n" v conv c
   | Type_float | Type_double ->
       iprintf oc "%s = copy_double(%s);\n" v c
   | Type_void ->
@@ -155,28 +195,32 @@ let rec c_to_ml oc pref ty c v =
   | Type_pointer(Ref, ty_elt) ->
       c_to_ml oc pref ty_elt (sprintf "*%s" c) v;
   | Type_pointer(Unique, ty_elt) ->
-      iprintf oc "if (%s == NULL) {\n" c;
-      increase_indent();
-      iprintf oc "%s = Val_int(0);\n" v;
-      decrease_indent();
-      iprintf oc "} else {\n";
-      increase_indent();
-      let v' = new_ml_variable() in
-      c_to_ml oc pref (Type_pointer(Ref, ty_elt)) c v';
-      iprintf oc "Begin_root(%s)\n" v';
-      increase_indent();
-      iprintf oc "%s = camlidl_alloc_small(1, 0);\n" v;
-      iprintf oc "Field(%s, 0) = %s;\n" v v';
-      decrease_indent();
-      iprintf oc "End_roots();\n";
-      decrease_indent();
-      iprintf oc "}\n"
+      option_c_to_ml oc c v
+        (c_to_ml oc pref (Type_pointer(Ref, ty_elt)) c)
   | Type_pointer(Ptr, ty_elt) ->
       iprintf oc "%s = camlidl_alloc_small(1, Abstract_tag);\n" v;
       iprintf oc "Field(%s, 0) = (value) %s;\n" v c
   | Type_pointer(Ignore, ty_elt) ->
       ()
-  | Type_array(attr, ty_elt) ->
+  | Type_array({maybe_null=false} as attr, ty_elt) ->
       Array.array_c_to_ml c_to_ml oc pref attr ty_elt c v
+  | Type_array({maybe_null=true} as attr, ty_elt) ->
+      option_c_to_ml oc c v
+        (Array.array_c_to_ml c_to_ml oc pref attr ty_elt c)
+  | Type_bigarray(attr, ty_elt) ->
+      Array.bigarray_c_to_ml oc pref attr ty_elt c v
   | Type_interface(modl, name) ->
       error (sprintf "Reference to interface %s that is not a pointer" name)
+
+(* Allocate suitable space for the C out parameter [c]. *)
+
+let allocate_output_space oc c ty =
+  match ty with
+    Type_pointer(attr, ty_arg) ->
+      let c' = new_c_variable ty_arg in
+      iprintf oc "%s = &%s;\n" c c'
+  | Type_array(attr, ty_arg) ->
+      Array.array_allocate_output_space oc attr ty_arg c
+  | Type_bigarray(attr, ty_arg) ->
+      Array.bigarray_allocate_output_space oc attr ty_arg c
+  | _ -> ()

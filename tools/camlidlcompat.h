@@ -52,5 +52,14 @@
 #define mltype(x)
 #define mlname(x)
 #define null_terminated
+#define bigarray
+#define camlint
+#define int32
+#define int64
+#define nativeint
+#define fortran
+#define managed
+#define int_default(x)
+#define long_default(x)
 
 #endif

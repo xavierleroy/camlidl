@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: predef.ml,v 1.3 1999-03-15 15:21:38 xleroy Exp $ *)
+(* $Id: predef.ml,v 1.4 2000-08-18 11:23:03 xleroy Exp $ *)
 
 (* Predefined types and interfaces *)
 
@@ -19,7 +19,7 @@ open Intf
 
 let hresult =
   { td_name = "HRESULT"; td_mod = "Com";
-    td_type = Type_int Long;
+    td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
     td_errorcode = true;
@@ -28,7 +28,7 @@ let hresult =
 
 let hresult_bool =
   { td_name = "HRESULT_bool"; td_mod = "Com";
-    td_type = Type_int Long;
+    td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
     td_errorcode = false;
@@ -37,7 +37,7 @@ let hresult_bool =
 
 let hresult_int =
   { td_name = "HRESULT_int"; td_mod = "Com";
-    td_type = Type_int Long;
+    td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
     td_errorcode = false;
@@ -46,7 +46,7 @@ let hresult_int =
 
 let bstr =
   { td_name = "BSTR"; td_mod = "Com";
-    td_type = Type_int Long;
+    td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
     td_errorcode = false;

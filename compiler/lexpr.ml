@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexpr.ml,v 1.5 2000-08-11 13:25:46 xleroy Exp $ *)
+(* $Id: lexpr.ml,v 1.6 2000-08-18 11:23:03 xleroy Exp $ *)
 
 (* Evaluation and pretty-printing of limited expressions *)
 
@@ -115,7 +115,7 @@ open Buffer
 let b = create 80
 
 let rec tstype trail = function
-    Type_int kind -> add_string b (integer_type kind); add_string b trail
+    Type_int(kind,_) -> add_string b (integer_type kind); add_string b trail
   | Type_float -> add_string b "float"; add_string b trail
   | Type_double -> add_string b "double"; add_string b trail
   | Type_void -> add_string b "void"; add_string b trail
@@ -139,6 +139,8 @@ let rec tstype trail = function
           Some n -> sprintf "%s[]" trail
         | None -> sprintf "*%s" trail in
       tstype trail ty
+  | Type_bigarray(attr, ty) ->
+      tstype (sprintf "*%s" trail) ty
   | Type_interface(modl, intf_name) ->
       add_string b "struct "; add_string b intf_name; add_string b trail
 
@@ -308,6 +310,11 @@ let rec is_dependent v ty =
       is_free_opt v attr.size ||
       is_free_opt v attr.length ||
       is_dependent v ty
+  | Type_bigarray(attr, ty) ->
+      List.exists
+        (fun a -> is_free_opt v a.size || is_free_opt v a.length)
+        attr.dims
+      || is_dependent v ty
   | Type_union(name, attr) ->
       is_free v attr.discriminant
   | Type_pointer(_, Type_union(name, attr)) ->

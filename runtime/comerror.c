@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comerror.c,v 1.7 1999-03-15 15:21:40 xleroy Exp $ */
+/* $Id: comerror.c,v 1.8 2000-08-18 11:23:04 xleroy Exp $ */
 
 /* Error handling */
 
@@ -19,6 +19,8 @@
 #include <caml/mlvalues.h>
 #include <caml/memory.h>
 #include <caml/callback.h>
+#include <caml/fail.h>
+#include <caml/alloc.h>
 #include "camlidlruntime.h"
 #include "comstuff.h"
 

@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.7 1999-03-16 15:40:53 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.8 2000-08-18 11:23:03 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -28,7 +28,7 @@ let null_attr_var = Expr_string ""
 
 let no_bounds =
   { bound = None; size = None; length = None;
-    is_string = false; null_terminated = false }
+    is_string = false; maybe_null = false; null_terminated = false }
 
 let one_bound n = { no_bounds with bound = Some n }
 
@@ -37,10 +37,14 @@ let no_switch = { discriminant = null_attr_var }
 let no_enum_attr = { bitset = false }
 
 let default_ptrkind = Unique (* as per the MIDL specs *)
+let default_intkind = Iunboxed (* backward compatibility with CamlIDL 1.0 *)
+let default_longkind = Iunboxed (* backward compatibility with CamlIDL 1.0 *)
 
 let pointer_default = ref default_ptrkind
+let int_default = ref default_intkind
+let long_default = ref default_longkind
 
-(* Apply a type-related attribute to a type *)
+(* Apply a size_is or length_is attribute to an array or pointer type *)
 
 let rec merge_array_attr merge_fun rexps ty =
   match (rexps, ty) with
@@ -55,38 +59,93 @@ let rec merge_array_attr merge_fun rexps ty =
       else
         Type_array(merge_fun no_bounds re,
                    merge_array_attr merge_fun rem ty_elt)
+  | (_, Type_bigarray(attr, ty_elt)) ->
+      let dims' = merge_bigarray_dims merge_fun rexps attr.dims in
+      Type_bigarray({attr with dims = dims'}, ty_elt)
   | (_, _) ->
       eprintf "Warning: size_is or length_is attribute applied to \
                type `%a', ignored.\n" out_c_type ty;
       ty
+
+and merge_bigarray_dims merge_fun rexps dims =
+  match (rexps, dims) with
+    ([], _) -> dims
+  | (_, []) -> eprintf "Warning: too many dimensions in size_is or length_is \
+                         attribute, extra dimensions ignored\n"; []
+  | (re::res, d::ds) ->
+      merge_fun d re :: merge_bigarray_dims merge_fun res ds
+
+(* Convert an array or pointer type to a bigarray type *)
+
+let make_bigarray ty =
+  (* Extract "spine" of array / pointer types,
+     with dimensions and type of elements *)
+  let rec extract_spine dims = function
+    Type_pointer(kind, ty) ->
+      extract_spine (no_bounds :: dims) ty
+  | Type_array(attr, ty) ->
+      extract_spine (attr :: dims) ty
+  | ty ->
+      (List.rev dims, ty) in
+  let (dims, ty_tail) = extract_spine [] ty in
+  match ty_tail with
+    Type_int(_,_) | Type_float | Type_double ->
+      Type_bigarray({dims = dims; fortran_layout = false; malloced = false},
+                    ty_tail)
+  | _ ->
+      eprintf "Warning: bigarray attribute applied to type `%a', ignored\n"
+              out_c_type ty;
+      ty
+
+(* Apply a type-related attribute to a type *)
 
 let is_star_attribute name = String.length name >= 1 && name.[0] = '*'
 let star_attribute name = String.sub name 1 (String.length name - 1)
 
 let rec apply_type_attribute ty attr =
   match (attr, ty) with
-    (("ref", _), Type_pointer(attr, ty_elt)) ->
+  | (("nativeint", _), Type_int((Int|UInt|Long|ULong as kind), _)) ->
+      Type_int(kind, Inative)
+  | (("int32", _), Type_int((Int|UInt|Long|ULong as kind), _)) ->
+      Type_int(kind, I32)
+  | (("int64", _), Type_int((Int|UInt|Long|ULong as kind), _)) ->
+      Type_int(kind, I64)
+  | (("camlint", _), Type_int((Int|UInt|Long|ULong as kind), _)) ->
+      Type_int(kind, Iunboxed)
+  | (("ref", _), Type_pointer(attr, ty_elt)) ->
       Type_pointer(Ref, ty_elt)
   | (("unique", _), Type_pointer(attr, ty_elt)) ->
       Type_pointer(Unique, ty_elt)
+  | (("unique", _), Type_array(attr, ty_elt)) ->
+      Type_array({attr with maybe_null = true}, ty_elt)
   | (("ptr", _), Type_pointer(attr, ty_elt)) ->
       Type_pointer(Ptr, ty_elt)
   | (("ignore", _), Type_pointer(attr, ty_elt)) ->
       Type_pointer(Ignore, ty_elt)
-  | (("string", _), Type_array(attr, (Type_int(Char|UChar|Byte) as ty_elt))) ->
+  | (("string", _), Type_array(attr, (Type_int((Char|UChar|Byte), _) as ty_elt))) ->
       Type_array({attr with is_string = true}, ty_elt)
-  | (("string", _), Type_pointer(attr, (Type_int(Char|UChar|Byte) as ty_elt))) ->
-      Type_array({no_bounds with is_string = true}, ty_elt)
+  | (("string", _), Type_pointer(attr, (Type_int((Char|UChar|Byte), _) as ty_elt))) ->
+      let attr' = {no_bounds with is_string = true;
+                                  maybe_null = (attr = Unique)} in
+      Type_array(attr', ty_elt)
   | (("null_terminated", _), Type_array(attr, ty_elt))->
       Type_array({attr with null_terminated = true}, ty_elt)
   | (("null_terminated", _), Type_pointer(attr, ty_elt)) ->
       Type_array({no_bounds with null_terminated = true}, ty_elt)
-  | (("size_is", rexps), (Type_array(_, _) | Type_pointer(_, _))) ->
+  | (("size_is", rexps),
+     (Type_array(_, _) | Type_pointer(_, _) | Type_bigarray(_, _))) ->
       merge_array_attr (fun attr re -> {attr with size = Some re})
                        rexps ty
-  | (("length_is", rexps), (Type_array(_, _) | Type_pointer(_, _))) ->
+  | (("length_is", rexps),
+     (Type_array(_, _) | Type_pointer(_, _) | Type_bigarray(_, _))) ->
       merge_array_attr (fun attr re -> {attr with length = Some re})
                        rexps ty
+  | (("bigarray", _), (Type_array(_, _) | Type_pointer(_, _))) ->
+      make_bigarray ty
+  | (("fortran", _), Type_bigarray(attrs, ty_elt)) ->
+      Type_bigarray({attrs with fortran_layout = true}, ty_elt)
+  | (("managed", _), Type_bigarray(attrs, ty_elt)) ->
+      Type_bigarray({attrs with malloced = true}, ty_elt)
   | (("switch_is", [rexp]), Type_union(name, attr)) ->
       Type_union(name, {attr with discriminant = rexp})
   | (("switch_is", [rexp]), Type_pointer(attr, Type_union(name, attr'))) ->
@@ -245,14 +304,40 @@ let make_typedef attrs tybase decls =
           split_decls (decl :: past) rem in
   split_decls [] decls
 
-let update_pointer_default attrs =
+let update_int_default dfl arg =
+  match arg with
+    [Expr_ident "camlint"] -> dfl := Iunboxed
+  | [Expr_ident "nativeint"] -> dfl := Inative
+  | [Expr_ident "int32"] -> dfl := I32
+  | [Expr_ident "int64"] -> dfl := I64
+  | _ -> ()
+
+let update_defaults attrs =
   List.iter
     (function
         ("pointer_default", [Expr_ident "ref"]) -> pointer_default := Ref
       | ("pointer_default", [Expr_ident "unique"]) -> pointer_default := Unique
       | ("pointer_default", [Expr_ident "ptr"]) -> pointer_default := Ptr
+      | ("int_default", arg) -> update_int_default int_default arg
+      | ("long_default", arg) -> update_int_default long_default arg
       | _ -> ())
     attrs
+
+let default_stack =
+  ref ([] : (pointer_kind * integer_repr * integer_repr) list)
+
+let save_defaults () =
+  default_stack :=
+    (!pointer_default, !int_default, !long_default) :: !default_stack
+
+let restore_defaults () =
+  match !default_stack with
+    [] -> assert false
+  | (pd, id, ld) :: rem ->
+      pointer_default := pd;
+      int_default := id;
+      long_default := ld;
+      default_stack := rem
 
 let make_interface name attrs superintf comps =
   let obj = ref false in
@@ -261,6 +346,8 @@ let make_interface name attrs superintf comps =
     ("object", _) -> obj := true
   | ("uuid", [Expr_string u]) -> uid := u
   | ("pointer_default", _) -> () (*treated elsewhere*)
+  | ("int_default", _) -> () (*treated elsewhere*)
+  | ("long_default", _) -> () (*treated elsewhere*)
   | ("local", _) -> () (*ignored*)
   | ("endpoint", _) -> () (*ignored*)
   | ("version", _) -> () (*ignored*)
@@ -286,9 +373,8 @@ let make_interface name attrs superintf comps =
                   name s;
           ""
         end in
-  pointer_default := default_ptrkind;
   if not !obj then
-    comps
+    List.rev comps
   else begin
     (* This is an object interface: split into methods and other definitions,
        lift the definitions out, build an interface from the methods *)
@@ -332,16 +418,24 @@ let make_diversion (id, txt) =
       Div_c in
   (kind, txt)
 
+(* Build an integer type *)
+
+let make_int kind =
+  match kind with
+    Int | UInt -> Type_int(kind, !int_default)
+  | Long | ULong -> Type_int(kind, !long_default)
+  | k -> Type_int(kind, Iunboxed) (* small int types always unboxed *)
+
 (* Apply an "unsigned" or "signed" modifier to an integer type *)
 
 let make_unsigned kind =
-  Type_int(match kind with
+  make_int (match kind with
              Int -> UInt | Long -> ULong | Small -> USmall
            | Short -> UShort | Char -> UChar | SChar -> UChar
            | k -> k)
 
 let make_signed kind =
-  Type_int(match kind with
+  make_int (match kind with
              UInt -> Int | ULong -> Long | USmall -> Small
            | UShort -> Short | Char -> SChar | UChar -> SChar
            | k -> k)
@@ -351,7 +445,7 @@ let make_signed kind =
 let handle_t_type() =
   eprintf
     "Warning: type `handle_t' unsupported, treating as an opaque pointer.\n";
-  Type_pointer(Ptr, Type_int Int)
+  Type_pointer(Ptr, Type_int(Int, Iunboxed))
 
 (* Warn about the hyper type *)
 
@@ -363,7 +457,7 @@ let hyper_type() =
 
 let wchar_t_type() =
   eprintf "Warning: type `wchar_t' unsupported, treating as `char'.\n";
-  Type_int Char
+  Type_int(Char, Iunboxed)
 
 (* Apply a "star" modifier to an attribute *)
 

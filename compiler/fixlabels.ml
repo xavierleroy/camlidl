@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: fixlabels.ml,v 1.1 1999-03-16 15:40:51 xleroy Exp $ *)
+(* $Id: fixlabels.ml,v 1.2 2000-08-18 11:23:03 xleroy Exp $ *)
 
 (* Prefix record labels with struct/typedef name if required or requested *)
 
@@ -43,6 +43,7 @@ let add_label s =
 let rec collect_type = function
     Type_pointer(_, ty) -> collect_type ty
   | Type_array(_, ty) -> collect_type ty
+  | Type_bigarray(_, ty) -> collect_type ty
   | Type_struct sd -> List.iter collect_field sd.sd_fields
   | Type_union(ud, _) -> List.iter collect_case ud.ud_cases
   | _ -> ()

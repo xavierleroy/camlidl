@@ -9,9 +9,9 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: array.ml,v 1.11 2000-08-11 13:26:02 xleroy Exp $ *)
+(* $Id: array.ml,v 1.12 2000-08-18 11:23:02 xleroy Exp $ *)
 
-(* Handling of arrays *)
+(* Handling of arrays and bigarrays *)
 
 open Printf
 open Utils
@@ -29,7 +29,7 @@ let is_float_type =
    are also treated as "no allocation". *)
 
 let rec no_allocation_type = function
-    Type_int _ -> true
+    Type_int(_, Iunboxed) -> true
   | Type_float -> true
   | Type_double -> true
   | Type_pointer(kind, ty) -> kind = Ref && no_allocation_type ty
@@ -165,16 +165,89 @@ let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
     end
   end
 
-(* Determine size of out array *)
+(* Determine the output size of an array *)
 
-let size_out_param name attr =
+let array_output_size attr =
   match attr with
-    {length = Some re} ->
-      Lexpr.tostring "" re
-  | {size = Some re} ->
-      Lexpr.tostring "" re
-  | {bound = Some le} ->
-      let n = Lexpr.eval_int le in
-      string_of_int n
-  | _ ->
-      error ("Cannot determine array size for out parameter " ^ name)
+    {length = Some re} -> re
+  | {size = Some re} -> re
+  | {bound = Some le} -> le
+  | _ -> error "Cannot determine array size for C -> ML conversion"
+
+(* Allocate room for an out array *)
+
+let array_allocate_output_space oc attr ty_elt c =
+  if attr.bound = None then begin
+    iprintf oc "%s = camlidl_malloc(%a * sizeof(%a), _ctx);\n"
+               c Lexpr.output ("", array_output_size attr) out_c_type ty_elt;
+    need_context := true
+  end
+
+(* Translation from an ML bigarray [v] to a C array [c] *)
+
+let bigarray_ml_to_c oc pref attr ty_elt v c =
+  iprintf oc "%s = Bigarray_val(%s)->data;\n" c v;
+  (* Update dependent size variables, if any *)
+  iter_index
+    (fun i attr ->
+      match attr.size with
+        None -> ()
+      | Some re -> iprintf oc "%a = Bigarray_val(%s)->dim[%d];\n" 
+                           Lexpr.output (pref, re) v i)
+    0 attr.dims
+
+(* Return the flags to alloc_bigarray_dims corresponding to the given
+   big array attributes *)
+
+let bigarray_alloc_kind = function
+    Type_int((Char | UChar | Byte), _) -> "BIGARRAY_UINT8"
+  | Type_int((SChar | Small), _) -> "BIGARRAY_SINT8"
+  | Type_int(Short, _) -> "BIGARRAY_SINT16"
+  | Type_int(UShort, _) -> "BIGARRAY_UINT16"
+  | Type_int((Int | UInt), _) -> "BIGARRAY_INT32"
+  | Type_int((Long | ULong), I64) -> "BIGARRAY_INT64"
+  | Type_int((Long | ULong), _) -> "BIGARRAY_NATIVE_INT"
+  | Type_float -> "BIGARRAY_FLOAT32"
+  | Type_double -> "BIGARRAY_FLOAT64"
+  | _ -> assert false
+
+let bigarray_alloc_layout attr =
+  if attr.fortran_layout
+  then "BIGARRAY_FORTRAN_LAYOUT"
+  else "BIGARRAY_C_LAYOUT"
+
+let bigarray_alloc_managed attr =
+  if attr.malloced
+  then "BIGARRAY_MANAGED"
+  else "BIGARRAY_EXTERNAL"
+
+(* Translation from a C array [c] to an ML bigarray [v] *)
+
+let bigarray_c_to_ml oc pref attr ty_elt c v =
+  iprintf oc "%s = alloc_bigarray_dims(\n" v;
+  iprintf oc "        %s | %s | %s,\n"
+             (bigarray_alloc_kind ty_elt)
+             (bigarray_alloc_layout attr)
+             (bigarray_alloc_managed attr);
+  iprintf oc "        %d, %s" (List.length attr.dims) c;
+  List.iter
+    (fun attr ->
+      let e = array_output_size attr in
+      fprintf oc ", %a" Lexpr.output (pref, e))
+    attr.dims;
+  fprintf oc ");\n"
+
+(* Allocate room for an out bigarray *)
+
+let bigarray_allocate_output_space oc attr ty_elt c =
+  (* Since the conversion to ML bigarray does not copy the data,
+     we must allocate permanent space using stat_alloc
+     (instead of transient space using camlidl_alloc),
+     and we set the "malloced" attribute to true so that the
+     ML bigarray will be managed by the Caml GC *)
+  iprintf oc "%s = stat_alloc(" c;
+  List.iter
+    (fun a -> fprintf oc "%a * " Lexpr.output ("", array_output_size a))
+    attr.dims;
+  fprintf oc "sizeof(%a));\n" out_c_type ty_elt;
+  attr.malloced <- true

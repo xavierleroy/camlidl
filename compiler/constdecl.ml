@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: constdecl.ml,v 1.8 1999-02-19 14:33:27 xleroy Exp $ *)
+(* $Id: constdecl.ml,v 1.9 2000-08-18 11:23:02 xleroy Exp $ *)
 
 (* Handling of constant declarations *)
 
@@ -44,16 +44,25 @@ let ml_definition oc c =
   let v = eval c.cd_value in
   let name = String.uncapitalize c.cd_name in
   match (c.cd_type, v) with
-    (Type_int(Char | UChar | SChar), Cst_int n) ->
+    (Type_int((Char | UChar | SChar), _), Cst_int n) ->
       fprintf oc "let %s = '%s'\n\n"
                  name (Char.escaped (Char.chr (n land 0xFF)))
-  | (Type_int(Boolean), Cst_int n) ->
+  | (Type_int(Boolean, _), Cst_int n) ->
       fprintf oc "let %s = %s\n\n"
                  name (if n <> 0 then "true" else "false")
-  | (Type_int(_), Cst_int n) ->
+  | (Type_int(_, Iunboxed), Cst_int n) ->
       fprintf oc "let %s = %d\n\n"
                  name n
-  | (Type_pointer(_, Type_int(Char | UChar | SChar)), Cst_string s) ->
+  | (Type_int(_, Inative), Cst_int n) ->
+      fprintf oc "let %s = Nativeint.of_int %d\n\n"
+                 name n
+  | (Type_int(_, I32), Cst_int n) ->
+      fprintf oc "let %s = Int32.of_int %d\n\n"
+                 name n
+  | (Type_int(_, I64), Cst_int n) ->
+      fprintf oc "let %s = Int64.of_int %d\n\n"
+                 name n
+  | (Type_pointer(_, Type_int((Char | UChar | SChar), _)), Cst_string s) ->
       fprintf oc "let %s = \"%s\"\n\n"
                  name (String.escaped s)
   | _ ->

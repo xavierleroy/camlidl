@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: uniondecl.ml,v 1.13 1999-03-09 16:27:02 xleroy Exp $ *)
+(* $Id: uniondecl.ml,v 1.14 2000-08-18 11:23:03 xleroy Exp $ *)
 
 (* Handling of union declarations *)
 
@@ -77,7 +77,7 @@ let transl_ml_to_c oc ud =
   fprintf oc "{\n";
   let pc = divert_output() in
   increase_indent();
-  let discr = new_c_variable (Type_int Int) in
+  let discr = new_c_variable (Type_int(Int, Iunboxed)) in
   iprintf pc "%s = -1;\n" discr; (* keeps gcc happy *)
   union_ml_to_c ml_to_c pc false ud v (sprintf "(*%s)" c) discr;
   iprintf pc "return %s;\n" discr;

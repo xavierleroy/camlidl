@@ -24,4 +24,16 @@ void f8([in, out] int * p, [in, out] long * q);
 
 int f9(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8);
 
+/* Boxed ints */
+[nativeint] int f10([int64] long x);
+[int64] long f11([int32] int x);
+[int32] unsigned int f12([nativeint] unsigned long x);
+
+/* Default ints */
+[int_default(int32), long_default(int64)] interface Basics_Integers {
+  int f13(int x);
+  long f14(long x);
+}
+
+int f15(int x);
 }

@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: cvttyp.ml,v 1.17 1999-02-19 14:33:27 xleroy Exp $ *)
+(* $Id: cvttyp.ml,v 1.18 2000-08-18 11:23:02 xleroy Exp $ *)
 
 open Utils
 open Printf
@@ -34,7 +34,7 @@ let integer_type = function
 
 let rec out_c_decl oc (id, ty) =
   match ty with
-    Type_int kind -> fprintf oc "%s %s" (integer_type kind) id
+    Type_int(kind, repr) -> fprintf oc "%s %s" (integer_type kind) id
   | Type_float -> fprintf oc "float %s" id
   | Type_double -> fprintf oc "double %s" id
   | Type_void -> fprintf oc "void %s" id
@@ -62,6 +62,8 @@ let rec out_c_decl oc (id, ty) =
           Some n -> sprintf "%s[%d]" id (Lexpr.eval_int n)
         | None -> sprintf "*%s" id in
       out_c_decl oc (id', ty)
+  | Type_bigarray(attr, ty) ->
+      out_c_decl oc (sprintf "*%s" id, ty)
   | Type_interface(modl, intf_name) ->
       fprintf oc "struct %s %s" intf_name id
 
@@ -124,13 +126,31 @@ let out_mltype_stamp oc kind modl name stamp =
   then fprintf oc "%s_%d" kind stamp
   else output_string oc (String.uncapitalize name)  
 
+(* Convert an IDL type to an ML bigarray element type *)
+
+let ml_bigarray_kind ty =
+  match ty with
+    Type_int((Char | UChar | Byte), _) -> "Bigarray.int8_unsigned_elt"
+  | Type_int((SChar | Small), _) -> "Bigarray.int8_signed_elt"
+  | Type_int(Short, _) -> "Bigarray.int16_signed_elt"
+  | Type_int(UShort, _) -> "Bigarray.int16_unsigned_elt"
+  | Type_int((Int | UInt), _) -> "Bigarray.int32_elt"
+  | Type_int((Long | ULong), I64) -> "Bigarray.int64_elt"
+  | Type_int((Long | ULong), _) -> "Bigarray.nativeint_elt"
+  | Type_float -> "Bigarray.float32_elt"
+  | Type_double -> "Bigarray.float64_elt"
+  | _ -> assert false
+
 (* Convert an IDL type to an ML type *)
 
 let rec out_ml_type oc ty =
   match ty with
-    Type_int Boolean -> output_string oc "bool"
-  | Type_int (Char | UChar | SChar) -> output_string oc "char"
-  | Type_int kind -> output_string oc "int"
+    Type_int(Boolean, _) -> output_string oc "bool"
+  | Type_int((Char | UChar | SChar), _) -> output_string oc "char"
+  | Type_int(_, Iunboxed) -> output_string oc "int"
+  | Type_int(_, Inative) -> output_string oc "nativeint"
+  | Type_int(_, I32) -> output_string oc "int32"
+  | Type_int(_, I64) -> output_string oc "int64"
   | Type_float | Type_double -> output_string oc "float"
   | Type_void -> output_string oc "void"
   | Type_named(modl, name) -> out_mltype_name oc (modl, name)
@@ -151,7 +171,22 @@ let rec out_ml_type oc ty =
   | Type_array(attr, ty) ->
       if attr.is_string
       then fprintf oc "string"
-      else fprintf oc "%a array" out_ml_type ty
+      else fprintf oc "%a array" out_ml_type ty;
+      if attr.maybe_null
+      then fprintf oc " option"
+  | Type_bigarray(attr, ty) ->
+      let layout =
+        if attr.fortran_layout
+        then "Bigarray.fortran_layout"
+        else "Bigarray.c_layout" in
+      let typeconstr =
+        match List.length attr.dims with
+          1 -> "Bigarray.Array1.t"
+        | 2 -> "Bigarray.Array2.t"
+        | 3 -> "Bigarray.Array3.t"
+        | _ -> "Bigarray.Genarray.t" in
+      fprintf oc "(%a, %s, %s) %s"
+        out_ml_type ty (ml_bigarray_kind ty) layout typeconstr
   | Type_interface(modl, name) ->
       fprintf oc "%a Com.interface" out_mltype_name (modl, name)      
 
