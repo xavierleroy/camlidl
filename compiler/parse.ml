@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse.ml,v 1.6 2001-07-30 14:23:31 xleroy Exp $ *)
+(* $Id: parse.ml,v 1.7 2002-04-19 14:42:20 xleroy Exp $ *)
 
 (* Source parsing *)
 
@@ -21,11 +21,15 @@ open Linenum
 let read_source_file sourcename filename =
   let ic = open_in_bin filename in
   let lb = Lexing.from_channel ic in
+  let saved_current_file = !Linenum.current_file
+  and saved_current_lexbuf = !Linenum.current_lexbuf in
   Linenum.current_file := filename;
   Linenum.current_lexbuf := lb;
   try
     let res = Parser_midl.file Lexer_midl.token lb in
     close_in ic;
+    Linenum.current_file := saved_current_file;
+    Linenum.current_lexbuf := saved_current_lexbuf;
     res
   with Parsing.Parse_error ->
          close_in ic;
