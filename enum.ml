@@ -22,10 +22,24 @@ let enum_c_to_ml c_to_ml oc en c v =
                !current_function en.en_name;
     iprintf oc "}\n"
   end else begin
-    let i = new_c_variable (Type_int Int) in
-    iprintf oc "for (%s = 0; _transl_table_enum_%d[%s] != %s; %s++)\n"
-               i en.en_stamp i c i;
-    iprintf oc "  if (%s >= %d) invalid_argument(\"%s: bad enum %s value\");\n"
-               i (List.length en.en_consts) !current_function en.en_name;
-    iprintf oc "%s = Val_int(%s);\n" v i
+    iprintf oc "%s = camlidl_find_enum(%s, _transl_table_enum_%d, %d, \
+                                       \"%s: bad enum %s value\");\n"
+               v c en.en_stamp (List.length en.en_consts)
+               !current_function en.en_name
   end
+
+(* Translate an ML list [v] to a C enumset [c] *)
+
+let enumset_ml_to_c ml_to_c oc en v c =
+  if en.en_name = "" then
+    error "[set] attribute does not apply to anonymous enum";
+  iprintf oc "%s = convert_flag_list(%s, _transl_table_enum_%d);\n"
+             c v en.en_stamp
+
+(* Translate a C enumset [c] to an ML list [v] *)
+
+let enumset_c_to_ml c_to_ml oc en c v =
+  if en.en_name = "" then
+    error "[set] attribute does not apply to anonymous enum";
+  iprintf oc "%s = camlidl_alloc_flag_list(%s, _transl_table_enum_%d, %d);\n"
+             v c en.en_stamp (List.length en.en_consts)

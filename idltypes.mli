@@ -16,6 +16,12 @@ type array_attributes =
     is_string: bool;
     null_terminated: bool }
 
+type union_attributes =
+  { discriminant: restricted_expr }
+
+type enum_attributes =
+  { bitset: bool }
+
 type idltype =
     Type_int of integer_kind
   | Type_float
@@ -24,8 +30,8 @@ type idltype =
   | Type_pointer of pointer_kind * idltype
   | Type_array of array_attributes * idltype
   | Type_struct of struct_decl
-  | Type_union of union_decl * restricted_expr
-  | Type_enum of enum_decl
+  | Type_union of union_decl * union_attributes
+  | Type_enum of enum_decl * enum_attributes
   | Type_named of string
 
 and field =

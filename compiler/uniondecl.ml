@@ -13,13 +13,14 @@ open Union
 let ml_declaration oc ud =
   if ud.ud_name = ""
   then fprintf oc "union_%d = {\n" ud.ud_stamp
-  else fprintf oc "union_%s = {\n" ud.ud_name;
+  else fprintf oc "%s = {\n" ud.ud_name;
   let out_constr oc c =
-    let s =
-      if ud.ud_name <> "" then sprintf "%s_%s" ud.ud_name c
-      else if c = "default" then sprintf "union_%d_default" ud.ud_stamp
-      else c in
-    output_string oc (String.capitalize s) in
+    if c = "default" then
+      if ud.ud_name <> ""
+      then fprintf oc "Default_%s" ud.ud_name
+      else fprintf oc "Default_%d" ud.ud_stamp
+    else
+      output_string oc (String.capitalize c) in
   let emit_case = function
     {case_label = None; case_field = None} -> (* default case, no arg *)
       fprintf oc "  | %a of int\n" out_constr "default"
@@ -35,9 +36,9 @@ let ml_declaration oc ud =
 (* Forward declaration of the translation functions *)
 
 let declare_transl oc ud =
-  fprintf oc "int _camlidl_ml2c_%s_union_%s(value, union %s *);\n"
+  fprintf oc "int camlidl_ml2c_%s_union_%s(value, union %s *);\n"
              !module_name ud.ud_name ud.ud_name;
-  fprintf oc "value _camlidl_c2ml_%s_union_%s(int, union %s *);\n\n"
+  fprintf oc "value camlidl_c2ml_%s_union_%s(int, union %s *);\n\n"
              !module_name ud.ud_name ud.ud_name
 
 (* Translation function from an ML datatype to a C union *)
@@ -46,7 +47,7 @@ let transl_ml_to_c oc ud =
   current_function := sprintf "union %s" ud.ud_name;
   let v = new_var "_v" in
   let c = new_var "_c" in
-  fprintf oc "int _camlidl_ml2c_%s_union_%s(value %s, union %s * %s)\n"
+  fprintf oc "int camlidl_ml2c_%s_union_%s(value %s, union %s * %s)\n"
              !module_name ud.ud_name v ud.ud_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
@@ -57,7 +58,6 @@ let transl_ml_to_c oc ud =
   output_variable_declarations oc;
   end_diversion oc;
   fprintf oc "}\n\n";
-  check_no_deallocates "union";
   current_function := ""
 
 (* Translation function from a C union to an ML datatype *)
@@ -66,7 +66,7 @@ let transl_c_to_ml oc ud =
   current_function := sprintf "union %s" ud.ud_name;
   let discr = new_var "_discr" in
   let c = new_var "_c" in
-  fprintf oc "value _camlidl_c2ml_%s_union_%s(int %s, union %s * %s)\n"
+  fprintf oc "value camlidl_c2ml_%s_union_%s(int %s, union %s * %s)\n"
              !module_name ud.ud_name discr ud.ud_name c;
   fprintf oc "{\n";
   let pc = divert_output() in

@@ -50,13 +50,12 @@ let array_ml_to_c ml_to_c oc pref attr ty_elt v c =
     begin match attr.bound with
       None ->
         (* Allocate C array of same size as ML array *)
-        iprintf oc "%s = (%a) stat_alloc("
-                   c out_c_type (Type_array(attr, ty_elt));
+        iprintf oc "%s = camlidl_temp_alloc(" c;
         if attr.null_terminated
         then fprintf oc "(%s + 1)" size
         else fprintf oc "%s" size;
         fprintf oc " * sizeof(%a));\n" out_c_type ty_elt;
-        add_to_deallocate c
+        need_deallocation := true;
     | Some n ->
         (* Check compatibility of actual size w.r.t. expected size *)
         iprintf oc "if (%s %s %d) invalid_argument(\"%s\");\n"
@@ -109,8 +108,7 @@ let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
           (n, string_of_int n)
       | {null_terminated = true} ->
           let sz = new_c_variable (Type_named "mlsize_t") in
-          iprintf oc "for (%s = 0; %s[%s] != 0; %s++) /*nothing*/;\n"
-                     sz c sz sz;
+          iprintf oc "%s = camlidl_ptrarray_size((void **) %s);\n" sz c;
           (max_int, sz)
       | _ ->
           error "Cannot determine array size for C -> ML conversion" in

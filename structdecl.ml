@@ -13,7 +13,7 @@ open Struct
 let ml_declaration oc sd =
   if sd.sd_name = ""
   then fprintf oc "struct_%d = {\n" sd.sd_stamp
-  else fprintf oc "struct_%s = {\n" sd.sd_name;
+  else fprintf oc "%s = {\n" sd.sd_name;
   List.iter
     (fun f ->
       fprintf oc "  %s: %a; \n"
@@ -24,9 +24,9 @@ let ml_declaration oc sd =
 (* Forward declaration of the translation functions *)
 
 let declare_transl oc sd =
-  fprintf oc "void _camlidl_ml2c_%s_struct_%s(value, struct %s *);\n"
+  fprintf oc "void camlidl_ml2c_%s_struct_%s(value, struct %s *);\n"
              !module_name sd.sd_name sd.sd_name;
-  fprintf oc "value _camlidl_c2ml_%s_struct_%s(struct %s *);\n\n"
+  fprintf oc "value camlidl_c2ml_%s_struct_%s(struct %s *);\n\n"
              !module_name sd.sd_name sd.sd_name
 
 (* Translation function from an ML record to a C struct *)
@@ -35,7 +35,7 @@ let transl_ml_to_c oc sd =
   current_function := sprintf "struct %s" sd.sd_name;
   let v = new_var "_v" in
   let c = new_var "_c" in
-  fprintf oc "void _camlidl_ml2c_%s_struct_%s(value %s, struct %s * %s)\n"
+  fprintf oc "void camlidl_ml2c_%s_struct_%s(value %s, struct %s * %s)\n"
              !module_name sd.sd_name v sd.sd_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
@@ -43,7 +43,6 @@ let transl_ml_to_c oc sd =
   output_variable_declarations oc;
   end_diversion oc;
   fprintf oc "}\n\n";
-  check_no_deallocates "struct";
   current_function := ""
 
 (* Translation function from a C struct to an ML record *)
@@ -51,7 +50,7 @@ let transl_ml_to_c oc sd =
 let transl_c_to_ml oc sd =
   current_function := sprintf "struct %s" sd.sd_name;
   let c = new_var "_c" in
-  fprintf oc "value _camlidl_c2ml_%s_struct_%s(struct %s * %s)\n"
+  fprintf oc "value camlidl_c2ml_%s_struct_%s(struct %s * %s)\n"
              !module_name sd.sd_name sd.sd_name c;
   fprintf oc "{\n";
   let pc = divert_output() in

@@ -15,7 +15,9 @@ let one_bound n = { no_bounds with bound = Some n }
 
 let no_ptrattr = Ref
 
-let no_switch = null_attr_var
+let no_switch = { discriminant = null_attr_var }
+
+let no_enum_attr = { bitset = false }
 
 (* Apply a type-related attribute to a type *)
 
@@ -30,7 +32,10 @@ let rec merge_array_attr merge_fun rexps ty =
                non-array, ignored.\n";
       ty
 
-let apply_type_attribute ty attr =
+let is_star_attribute name = String.length name >= 1 && name.[0] = '*'
+let star_attribute name = String.sub name 1 (String.length name - 1)
+
+let rec apply_type_attribute ty attr =
   match (attr, ty) with
     (("ref", _), Type_pointer(attr, ty_elt)) ->
       Type_pointer(Ref, ty_elt)
@@ -54,10 +59,18 @@ let apply_type_attribute ty attr =
   | (("length_is", rexps), Type_array(_, _)) ->
       merge_array_attr (fun attr re -> {attr with length = Some re})
                        rexps ty
-  | (("switch_is", [rexp]), Type_union(name, discr)) ->
-      Type_union(name, rexp)
-  | (("switch_is", [rexp]), Type_pointer(attr, Type_union(name, discr))) ->
-      Type_pointer(attr, Type_union(name, rexp))
+  | (("switch_is", [rexp]), Type_union(name, attr)) ->
+      Type_union(name, {attr with discriminant = rexp})
+  | (("switch_is", [rexp]), Type_pointer(attr, Type_union(name, attr'))) ->
+      Type_pointer(attr, Type_union(name, {attr' with discriminant = rexp}))
+  | (("set", _), Type_enum(name, attr)) ->
+      Type_enum(name, {attr with bitset = true})
+  | ((name, rexps), Type_pointer(attr, ty_elt)) when is_star_attribute name ->
+      Type_pointer(attr,
+                   apply_type_attribute ty_elt (star_attribute name, rexps))
+  | ((name, rexps), Type_array(attr, ty_elt)) when is_star_attribute name ->
+      Type_array(attr,
+                 apply_type_attribute ty_elt (star_attribute name, rexps))
   | ((name, _), _) ->
       eprintf
         "Warning: attribute `%s' unknown or not applicable here, ignored.\n"
@@ -135,6 +148,10 @@ let make_unsigned = function
       Type_int(match kind with Int -> UInt | Long -> ULong | Small -> USmall
                              | Short -> UShort | Char -> UChar | k -> k)
   | ty -> ty
+
+(* Apply a "star" modifier to an attribute *)
+
+let make_star_attribute (name, args) = ("*" ^ name, args)
 
 %}
 
@@ -257,8 +274,9 @@ type_spec:
   | UNION IDENT          { Type_union({ud_name=$2; ud_stamp=0; ud_cases=[]},
                                       no_switch) }
   | union_declarator     { Type_union($1, no_switch) }
-  | ENUM IDENT           { Type_enum {en_name=$2; en_stamp=0; en_consts=[]} }
-  | enum_declarator      { Type_enum $1 }
+  | ENUM IDENT           { Type_enum({en_name=$2; en_stamp=0; en_consts=[]},
+                                     no_enum_attr) }
+  | enum_declarator      { Type_enum($1, no_enum_attr) }
 ;
 simple_type_spec:
     FLOAT                                       { Type_float }
@@ -379,6 +397,8 @@ attribute_list:
 attribute:
     IDENT                                       { ($1, []) }
   | IDENT LPAREN attr_vars RPAREN               { ($1, List.rev $3) }
+  | STAR attribute                              { make_star_attribute $2 }
+  | attribute STAR                              { make_star_attribute $1 }
 ;
 attr_vars:
     attr_var                                    { [$1] }

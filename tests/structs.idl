@@ -16,6 +16,9 @@ struct s2 {
   int n;
   long *l;
 };
+struct s4 {
+  float x, y, z;
+};
 
 |}
 
@@ -47,3 +50,9 @@ int foo4([in] struct s2 * s);
 
 void foo5([out] struct s2 * s);
 
+struct s4 {
+  float x, y, z;
+};
+
+int foo6([in] struct s4 * s);
+void foo7([out] struct s4 * s);
