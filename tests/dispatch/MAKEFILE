@@ -7,7 +7,7 @@ DIR_SERVER = InProc
 #
 # Flags - Always compiles debug
 #
-CPP_FLAGS=/c /MTd /Zi /Od /D_DEBUG
+CPP_FLAGS=/c /MT /Zi /Od /D_DEBUG
 EXE_LINK_FLAGS= /NOD /DEBUG
 DLL_LINK_FLAGS=/NOD /DLL /DEBUG
 
