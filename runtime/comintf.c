@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comintf.c,v 1.10 2000-08-19 11:05:00 xleroy Exp $ */
+/* $Id: comintf.c,v 1.11 2004-07-08 09:49:37 xleroy Exp $ */
 
 /* Helper functions for handling COM interfaces */
 
@@ -25,17 +25,6 @@
 #include "comstuff.h"
 
 int camlidl_num_components = 0;
-
-value camlidl_lookup_method(char * name)
-{
-  static value * lookup_clos = NULL;
-
-  if (lookup_clos == NULL) {
-    lookup_clos = caml_named_value("Oo.new_method");
-    if (lookup_clos == NULL) invalid_argument("Oo.new_method not registered");
-  }
-  return callback(*lookup_clos, copy_string(name));
-}
 
 static void camlidl_finalize_interface(value intf)
 {
