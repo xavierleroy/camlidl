@@ -1,0 +1,10 @@
+//!! Array of strings
+interface Test {
+
+	typedef [string]char* LPSTR;
+        typedef struct tagCALPSTR
+        {
+            unsigned long   cElems;
+            [size_is( cElems )]LPSTR*  pElems;
+        } CALPSTR;
+}

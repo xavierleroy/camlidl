@@ -1,0 +1,8 @@
+//!! More dependent parameter tests
+interface Test {
+  void count([out] long* sizeArray);
+  void arrayIn( [in]long sizeIn,
+                [in, size_is(sizeIn)]long aIn[]);
+  void arrayOut( [in, out]long* psizeOut,
+  	         [out, size_is(*psizeOut)] long aOut[]);
+}

@@ -1,0 +1,8 @@
+//!!! Testing dependent arguments
+
+[object,pointer_default(unique),uuid(D3980A60-910C-1068-9341-00DD010F2F1C)]
+interface IFoo /*: IBar*/ {
+   void Bar( [out]int *len
+	    , [out,size_is(,*len)]char** ps);
+}
+
