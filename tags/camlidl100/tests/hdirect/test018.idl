@@ -1,0 +1,6 @@
+typedef struct tagPALETTEENTRY {
+    int             x;
+    [size_is(x)]int foo[];
+} PALETTEENTRY;
+
+

@@ -1,0 +1,51 @@
+/* Structs, unions and typedefs */
+
+struct s1 {
+  int x;
+  double d;
+  float f;
+  long l[3];
+};
+
+int foo1([in] struct s1 * s);
+
+void foo2([out] struct s1 * s);
+
+typedef struct {
+  int x;
+  struct { int y; int z; } t;
+  double d;
+} t;
+
+int foo3([in] t * s);
+
+struct s2 {
+  int n;
+  [size_is(n)] long l[];
+};
+
+int foo4([in] struct s2 * s);
+
+void foo5([out] struct s2 * s);
+
+struct s4 {
+  float x, y, z;
+};
+
+int foo6([in] struct s4 * s);
+void foo7([out] struct s4 * s);
+
+// Forward declarations
+
+struct s5;
+
+struct s6 {
+  int data;
+  [unique] struct s5 * next;
+};
+
+struct s5 {
+  int count;
+  [unique] struct s6 * data;
+};
+

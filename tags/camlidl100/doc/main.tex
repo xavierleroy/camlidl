@@ -1,0 +1,25 @@
+\documentclass[11pt]{article}
+
+\usepackage{isolatin1}
+\usepackage{alltt}
+\usepackage{fullpage}
+\usepackage{syntaxdef}
+\usepackage{html}
+
+\newif\ifpdf\pdffalse
+\newif\ifplaintext\plaintextfalse
+
+\input{macros.tex}
+\def\index#1{}
+
+\title{Camlidl user's manual \\ Version 1.0}
+\author{Xavier Leroy \\
+        INRIA Rocquencourt}
+
+\begin{document}
+
+\maketitle
+
+\input manual.tex
+
+\end{document}

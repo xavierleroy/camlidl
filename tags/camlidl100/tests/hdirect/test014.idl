@@ -1,0 +1,10 @@
+//!!! Testing dependent arguments
+
+[uuid(00020405-0000-0000-C000-000000000046)]
+interface IFoo  {
+int f([in,out] int* len, 
+      [in] char foo,
+      [out] double *d,
+      [in, out, size_is(,*len)] char** str);
+void negate([in, out, string] char* x);
+}

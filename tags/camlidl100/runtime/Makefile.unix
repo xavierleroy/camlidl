@@ -1,0 +1,25 @@
+OBJS=idlalloc.o comintf.o comerror.o
+
+all: libcamlidl.a
+
+libcamlidl.a: $(OBJS)
+	- rm -f $@
+	ar rc $@ $(OBJS)
+	$(RANLIB) $@
+
+install:
+	cp camlidlruntime.h $(OCAMLLIB)/caml/camlidlruntime.h
+	cp libcamlidl.a $(OCAMLLIB)/libcamlidl.a
+	cd $(OCAMLLIB); $(RANLIB) libcamlidl.a
+
+clean:
+	rm -f *.a *.o
+
+.SUFFIXES: .c .o
+
+.c.o:
+	$(OCAMLC) -ccopt "$(CFLAGS)" $<
+
+$(OBJS): camlidlruntime.h comstuff.h
+
+depend:

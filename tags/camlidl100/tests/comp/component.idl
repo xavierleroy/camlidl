@@ -1,0 +1,14 @@
+[object, uuid(32bb8320-b41b-11cf-a6bb-0080c7b2d682)]
+interface IX : IUnknown {
+  HRESULT Fx();
+}
+
+[object, uuid(32bb8321-b41b-11cf-a6bb-0080c7b2d682)]
+interface IY : IUnknown {
+  HRESULT Fy(int x);
+}
+
+[object, uuid(32bb8322-b41b-11cf-a6bb-0080c7b2d682)]
+interface IZ : IUnknown {
+  HRESULT Fz(int x, [out] int * y);
+}

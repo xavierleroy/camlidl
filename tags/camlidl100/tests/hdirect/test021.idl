@@ -1,0 +1,8 @@
+
+[pointer_default(unique)]
+interface foo {
+  typedef [ptr]int* boz;
+  typedef [unique]boz* baz;
+  void bar([out]int* x,
+  	   [out]baz* y);
+}

@@ -1,0 +1,30 @@
+CC=cl
+CFLAGS=/nologo /Zi /MT /I$(OCAMLLIB)
+
+OBJS=idlalloc.obj comintf.obj comerror.obj superror.obj \
+  registry.obj
+
+all: libcamlidl.lib cfactory.obj
+
+libcamlidl.lib: $(OBJS)
+	- rm -f $@
+	lib /nologo /debugtype:CV /out:$@ $(OBJS)
+
+install:
+	cp camlidlruntime.h $(OCAMLLIB)/caml/camlidlruntime.h
+	cp libcamlidl.lib $(OCAMLLIB)/libcamlidl.lib
+	cp cfactory.obj $(OCAMLLIB)/cfactory.obj
+
+clean:
+	rm -f *.lib *.obj
+
+.SUFFIXES: .c .cpp .obj
+
+.c.obj:
+	$(CC) $(CFLAGS) -c $<
+.cpp.obj:
+	$(CC) $(CFLAGS) -c $<
+
+$(OBJS) cfactory.obj: camlidlruntime.h comstuff.h registry.h
+
+depend:

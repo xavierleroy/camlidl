@@ -1,0 +1,13 @@
+/* Test import statements */
+
+import "structs.idl";
+import "unix.idl";
+
+int bar1([in] struct s1 * s);
+void bar2([out] struct s1 * s);
+
+int openfile([in,string] char * name,
+             [in,set] enum open_flags flags,
+             [in] int perms)
+  {| _res = open(name, flags, perms);
+  |};

@@ -1,0 +1,34 @@
+//!! Forward type references 
+
+quote(C, "enum { VT_I4, VT_UI1, VT_R4, VT_R8, VT_BOOL, VT_BSTR,
+                 VT_I4_BYREF, VT_UI1_BYREF, VT_R4_BYREF, VT_R8_BYREF,
+                 VT_BOOL_BYREF, VT_BSTR_BYREF }; ")
+
+interface Test {
+
+// A cut-down version of the VARIANT type
+// defined by the Ole Automation interfaces.
+
+typedef [string] char * BSTR;
+
+typedef struct tagVARIANT VARIANT;
+
+struct tagVARIANT {
+    unsigned int vt;
+    [switch_is(vt)] union {
+      case VT_I4:   long lVal;
+      case VT_UI1:  unsigned char bVal;
+      case VT_R4:   float fltVal;
+      case VT_R8:   double dblVal;
+      case VT_BOOL: boolean bool;
+      case VT_BSTR: BSTR bstrVal;
+      case VT_I4_BYREF:   long * plVal;
+      case VT_UI1_BYREF:  unsigned char * pbVal;
+      case VT_R4_BYREF:   float * pfltVal;
+      case VT_R8_BYREF:   double * pdblVal;
+      case VT_BOOL_BYREF: boolean * pbool;
+      case VT_BSTR_BYREF: BSTR * pbstrVal;
+    } u;
+};
+
+}

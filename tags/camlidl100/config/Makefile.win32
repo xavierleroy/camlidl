@@ -1,0 +1,30 @@
+## Configuration section
+
+# Type of system
+OSTYPE=win32
+
+# How to invoke the C preprocessor
+CPP=cl /nologo /E
+
+# Suffixes for executables and libraries
+EXE=.exe
+LIB=.lib
+
+# We don't need ranlib
+RANLIB=echo
+
+# Location of the Objective Caml library in your installation
+OCAMLLIB=/ocaml/lib
+
+# Where to install the binaries
+BINDIR=/ocaml/bin
+
+# The Objective Caml compilers (the defaults below should be OK)
+OCAMLC=ocamlc -g
+OCAMLDEP=ocamldep
+OCAMLYACC=ocamlyacc -v
+OCAMLLEX=ocamllex
+
+# C/C++ compiler and its flags
+CC=cl
+CFLAGS=/nologo /MT /Zi

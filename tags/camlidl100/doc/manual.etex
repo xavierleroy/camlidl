@@ -1,0 +1,1093 @@
+\section{Overview}
+
+Camlidl generates stub code for interfacing Caml with C
+(as described in chapter 8 of the Objective Caml reference manual)
+from an IDL description of the C functions to be made available in Caml.
+Thus, Camlidl automates the most tedious task in interfacing C
+libraries with Caml programs.  It can also be used to interface Caml
+programs with other languages, as long as those languages have a
+well-defined C interface.
+
+In addition, Camlidl provides basic support for COM interfaces and
+components.  It supports both using COM components (usually written in
+C++ or C) from Caml programs, and packaging Caml objects as
+COM components that can then be used from C++ or C.
+
+\subsection{What is IDL?}
+
+IDL stands for Interface Description Language.  This is a generic term
+for a family of small languages that have been developed to provide
+type specifications for libraries written in C and C++.  Those
+languages resembles C declarations (as found in C header files), with
+extra annotations to provide more precise types for the arguments and
+results of the functions.
+
+The particular IDL used by Camlidl is inspired by Microsoft's IDL,
+which itself is an extension of the IDL found in DCE (The Open Group's
+Distributed Common Environment).  The initial motivation for those IDLs
+was to automate the generation of stub code for remote procedure calls
+and network objects, where the arguments to the function are marshaled
+at the calling site, then sent across the network or through
+interprocess communications to a server process, which unmarshals the
+arguments, compute the function application, marshal the results,
+sends them back to the calling site, where they are unmarshaled and
+returned to the caller.  IDLs were also found to be very useful for
+inter-language communications, since the same type information that
+guides the generation of marshaling stubs can be used to generate
+stubs to convert between the data representations of several
+languages.
+
+\subsection{What is COM?}
+
+COM is Microsoft's Common Object Model.  It provides a set of
+programming conventions as well as system support for packaging
+C++ objects as executable components that can be used in other
+programs, either by dynamic linking of the component inside the
+program, or through interprocess or internetwork communications
+between the program and a remote server.  COM components implement one
+or several interfaces, (similar to Caml object types or Java
+interfaces) identified by unique 128-bit interface identifiers (IIDs).
+COM specifies a standard protocol for reference counting of
+components, and for asking a component which interfaces it
+implements.
+
+While the full range of COM services and third-party components is
+available only on Microsoft's Windows operating systems, the basic COM
+conventions can also be used on Unix and other operating systems
+to exchange objects between Caml and C or C++.  Of particular
+interest is the encapsulation of Caml objects as COM components, which
+can then be used inside larger C or C++ applications; those
+applications do not need to know anything about Caml: they just call
+the component methods as if they were C++ methods or C
+functions, without knowing that they are actually implemented in Caml.
+
+For more information about COM, see for instance {\em Inside COM}
+by Dale Rogerson (Microsoft Press), or the Microsoft developer Web site
+"http://msdn.microsoft.com".
+
+\section{IDL syntax}
+
+This section describes the syntax of IDL files.  IDL syntax is very
+close to that of C declarations, with extra attributes between
+brackets adding information to the C types.  The following example
+should give the flavor of the syntax:
+\begin{verbatim}
+        int f([in,string] char * msg);
+\end{verbatim}
+This reads: ``"f" is a function taking a character string as input and
+returning an "int"''.
+
+\subsection{Lexical conventions}
+
+\paragraph{Blanks.} Space, newline, horizontal tabulation, carriage
+return, line feed and form feed are considered as blanks.  Blanks are
+ignored, but they separate adjacent tokens.
+
+\paragraph{Comments.} Both C-style comments "/* ... */" and
+Java-style comments "// ..." are supported.  C-style comments are
+introduced by "/*" and terminated by "*/".  Java-style comments are
+introduced by "//" and extend to the end of the line.  Comments are
+treated as blank characters.  Comments do not occur inside string or
+character literals. Nested C-style comments are not supported.
+
+\paragraph{Identifiers.} Identifiers have the same syntax as in C.
+\begin{syntax}
+ident: ("A" \ldots "Z" || "a" \ldots "z" || "_")
+       {"A" \ldots "Z" || "a" \ldots "z" || "0" \ldots "9" || "_"};
+\end{syntax}
+
+\paragraph{Literals.}  Integer literals, character literals and string
+literals have the same syntax as in C.
+\begin{syntax}
+integer: ['-'] {'0' \ldots '9'}
+         ['-'] '0x' {'0' \ldots '9' || 'a' \ldots 'f' || 'A' \ldots 'F'}
+         ['-'] '0' {'0' \ldots '7'};
+character: "'" (regular-char || escape-char) "'";
+string: '"' {regular-char || escape-char} '"';
+escape-char: '\' ('b'||'n'||'r'||'t') 
+           | '\' ('0'\ldots'7') ['0'\ldots'7'] ['0'\ldots'7'];
+\end{syntax}
+
+\paragraph{UUID.}  Unique identifiers are composed of 16 hexadecimal
+digits, in groups of 8, 4, 4, 4 and 12, separated by dashes.
+\begin{syntax}
+uuid: hex^8 '-' hex^4 '-' hex^4 '-' hex^4 '-' hex^4 hex^4 hex^4;
+hex: '0' \ldots '9' || 'a' \ldots 'f' || 'A' \ldots 'F';
+\end{syntax}
+
+\subsection{Limited expressions}
+
+Limited expressions are similar to C expressions, with the omission of
+assignment operators ("=", "+=", etc).  Operators have the same
+precedences and associativities as in C.  They are listed below in
+decreasing priority order.
+\begin{syntax} 
+lexpr:
+  ident
+| integer
+| character
+| 'true'
+| 'false'
+| string
+| sizeof '(' type-expr ')'
+| '(' lexpr ')'
+| lexpr ('.' || '->') ident
+| '(' type-expr ')' lexpr
+| ('&'||'*'||'!'||'~'||'-'||'+') lexpr
+| lexpr ('*'||'/'||'%') lexpr
+| lexpr ('+'||'-') lexpr
+| lexpr ('<<'||'>>') lexpr
+| lexpr ('=='||'!='||'>='||'<='||'>'||'<')
+| lexpr ('&'||'^'||'|') lexpr
+| lexpr ('&&'||'||') lexpr  
+| lexpr '?' lexpr ':' lexpr
+;
+\end{syntax}
+Constant limited expressions, written @const-lexpr@ below, can only
+reference identifiers that are bound by the IDL "const" declaration.
+
+\subsection{Attributes}
+
+\begin{syntax}
+attributes:
+  '[' attribute { ',' attribute } ']' ;
+attribute:
+  ident
+| ident '(' [lexpr] { ',' [lexpr] } ')'
+| ident '(' uuid ')'
+| attribute '*'
+| '*' attribute
+;
+\end{syntax}
+Attribute lists are written in brackets "[...]", and are always
+optional.  Each attribute is identified by a name, and may carry
+optional arguments.  Starred attributes apply to the element type of a
+pointer or array type, rather than to the pointer or array type itself.
+The following table summarizes the recognized attributes and their
+arguments.
+
+\begin{tableau}{|l|l|}{Attribute}{Context where it can appear}
+\entree{@"abstract"@      }
+       {"typedef" }
+\entree{@"auto_handle"@}
+       {interface, ignored}
+\entree{@"callback"@      }
+       {function declaration, ignored }
+\entree{@"cl2ml"'('fun-name')'@ }
+       {"typedef" }
+\entree{@"context_handle"@ }
+       {any type, ignored }
+\entree{@"endpoint"@      }
+       {interface, ignored }
+\entree{@"errorcheck"'('fun-name')'@ }
+       {"typedef" }
+\entree{@"errorcode"@     }
+       {"typedef" }
+\entree{@"ignore"@        }
+       {any pointer type  }
+\entree{@"implicit_handle"@ }
+       {interface, ignored }
+\entree{@"in"@            }
+       {function parameter }
+\entree{@"length_is"'('le_1','le_2','\ldots')'@  }
+       {array type  }
+\entree{@"local"@         }
+       {function declaration, (ignored) }
+\entree{@"local"@         }
+       {interface, ignored }
+\entree{@"ml2c"'('fun-name')'@ }
+       {"typedef" }
+\entree{@'mltype("' caml-type-expr '")' @ }
+       {"typedef" }
+\entree{@"null_terminated"@ }
+       {array of pointers  }
+\entree{@"object"@}
+       {interface}
+\entree{@"out"@           }
+       {function parameter }
+\entree{@"pointer_default"'(' 'ref'||'unique'||'ptr'')'@ }
+       {interface }
+\entree{@"ptr"@           }
+       {any pointer type  }
+\entree{@"ref"@           }
+       {any pointer type  }
+\entree{@"set"@           }
+       {enum type  }
+\entree{@"size_is"'('le_1','le_2','\ldots')'@  }
+       {array type  }
+\entree{@"string"@        }
+       {character array or pointer  }
+\entree{@"switch_is"'('le')'@ }
+       {union type or pointer to union  }
+\entree{@"switch_type"'('ty')'@ }
+       {union or pointer to union  }
+\entree{@"unique"@        }
+       {any pointer type  }
+\entree{@"uuid"'(' uuid ')'@ }
+       {interface }
+\entree{@"version"'(' version-number ')'@ }
+       {interface, ignored }
+\end{tableau}
+
+\subsection{Types and declarators}
+
+The declaration of an identifier along with its type is as in C:
+a type specification comes first, followed by the identifier possibly
+decorated with "*" and "[...]" to denote pointers and array types.
+For instance, "int x" declares an identifier "x" of type "int",
+while "int (*x)[]" declares an identifier "x" that is a pointer to an
+array of integers.
+\begin{syntax}
+type-spec:
+  ['unsigned'||'signed'] ('int'||'short'||'long'||'char')
+| 'byte'
+| 'float'
+| 'double'
+| 'boolean'
+| 'void'
+| ident
+| 'wchar_t'
+| 'handle_t'
+| 'struct' ident
+| 'union' ident
+| 'enum' ident
+| struct-decl
+| union-decl
+| enum-decl
+;
+declarator:
+  {'*'} direct-declarator
+;
+direct-declarator:
+  ident
+| '(' declarator ')'
+| direct-declarator '[' [const-lexpr] ']'
+;
+\end{syntax}
+
+\subsection{Structures, unions and enumerations}
+
+\begin{syntax}
+struct-decl:
+  'struct' [ident] '{' {field-decl} '}'
+;
+field-decl:
+  attributes type-spec declarator { ',' declarator } ';'
+;
+union-decl:
+  'union' [ident] '{' {union-case} '}'
+| 'union' [ident] 'switch' '(' type-spec ident ')' '{' {union-case} '}'
+;
+union-case:
+  {{'case' ident ':'}} [field-decl] ';'
+  'default' ':' [field-decl] ';'
+;
+enum-decl:
+  'enum' [ident] '{' enum-case {',' enum-case} [','] '}'
+;
+enum-case:
+  ident ['=' const-lexpr]
+;
+\end{syntax}
+
+IDL "struct" declarations are like those of C, with the addition of
+optional attributes on each field.  "union" declarations are also as
+in C, except that each case of an union must be labeled by one or
+several @'case' ident ':'@.  The first form of union declaration
+assumes that the discriminant of the union is provided separately
+via a "switch_is" annotation on the union type, while the second form
+encapsulates the discriminant along with the union itself
+(like in Pascal's "record case of" construct).
+
+\subsection{Function declarations}
+
+\begin{syntax}
+function-decl:
+  attributes type-spec {'*'} ident '(' params ')' {'quote''('ident','string')'}
+;
+params:
+  epsilon
+| 'void'
+| param { ',' param }
+;
+param:
+  attributes type-spec declarator
+;
+\end{syntax}
+Function declarations are like in ANSI C, with the addition of
+attributes on each parameter and on the function itself.
+Parameters must be named.  The optional @quote@ statements following the
+declaration are user-provided calling sequences and deallocation
+sequences that replaces the default sequences in the
+"camlidl"-generated stub code for the function.
+
+\subsection{Constant definitions}
+
+\begin{syntax}
+constant-decl: 'const' type-spec {'*'} ident '=' const-lexpr ';'
+\end{syntax}
+A constant declaration associates a name to a limited expression.
+The limited expression can refer to constant names declared earlier,
+but cannot refer to other kinds of identifiers.
+
+\subsection{IDL files}
+
+\begin{syntax}
+file: {decl} ;
+decl:
+  function-decl ';'
+| constant-decl ';'
+| struct-decl ';'
+| union-decl ';'
+| enum-decl ';'
+| 'typedef' attributes type-spec declarator { ',' declarator } ';'
+| attributes 'interface' ident [ ':' ident ] '{' {decl} '}'
+| 'struct' ident ';'
+| 'union' ident ';'
+| 'union' 'switch' '(' type-spec ident ')' ';'
+| attributes 'interface' ident ';'
+| 'import' string ';'
+| 'quote' '(' [ident ','] string ')'
+| 'cpp_quote' '(' string ')'
+\end{syntax}
+An IDL file is a sequence of IDL declarations.  Declarations include
+function declarations, constant declarations, type declarations
+(structs, unions, enums, as well as a C-style "typedef" declaration to
+name a type expression), and interfaces.
+
+An interface declaration gives a name and attributes to a collection
+of declarations.  For interfaces with the "object" attribute,
+an optional super-interface can be provided, as in
+@'interface' intf ':' super-intf@.  The name of the interface can be
+used as a type name in the remainder of the file.
+
+Forward declarations of structs, unions and interfaces are supported
+in the usual C manner, by just giving the name of the struct, union or
+interface, but not its actual contents.
+
+The "import" statement reads another IDL file and makes available its
+type and constant declarations in the remainder of the file.
+No code is generated for the functions and interfaces declared in the
+imported file.  The same file can be imported several times, but is
+read in only the first time.
+
+The @"quote" "(" ident ',' str ')'@ diversion copies the string @str@
+verbatim to one of the files generated by the "camlidl" compiler.
+The @ident@ determines the file where @str@ is copied:
+it can be "ml" for the Caml implementation file (".ml"),
+"mli" for the Caml interface file (".mli"),
+"mlmli" for both Caml files,
+"h" for the C header file (".h"),
+and "c" for the C source file containing the generated stub code (".c"
+file).  For backward compatibility, @"cpp_quote" "(" str ")"@ is
+recognized as synonymous for @"quote" "(" "h" "," str ")"@.
+
+\section{The Caml-IDL mapping}
+
+This section describes how IDL types, function declarations, and
+interfaces are mapped to Caml types, functions and classes.
+
+\subsection{Base types}
+
+\begin{tableau}{|l|l|}{IDL type \var{ty}}{Caml type \transl{\var{ty}}}
+\entree{All integer types ("byte", "short", "int", "long")}{"int"}
+\entree{"char", "unsigned char", "signed char"}{"char"}
+\entree{"float", "double"}{"float"}
+\entree{"boolean"}{"bool"}
+\end{tableau}
+
+Since the Caml "int" type has one bit of tag, the conversion from IDL
+types "int" and "long" loses the most significant bit on 32-bit
+platforms.  On 64-bit platforms, the conversion from "int" is exact,
+but the conversion from "long" loses the most significant bit.
+
+\subsection{Pointers}
+
+The mapping of IDL pointer types depends on their kinds.  Writing
+\transl{\var{ty}} for the Caml type corresponding to the IDL type
+$ty$, we have:
+\begin{alltt}
+       [ref] \var{ty} *  =  \transl{\var{ty}}
+    [unique] \var{ty} *  =  \transl{\var{ty}} option
+       [ptr] \var{ty} *  =  \transl{\var{ty}} Com.opaque
+\end{alltt}
+In other terms, IDL pointers of kind "ref" are ignored during the mapping:
+"[ref] "\var{ty}" *" is mapped to the same Caml type as \var{ty}.
+A pointer \var{p} to a C value \var{c}" = *"\var{p} is translated to
+the Caml value corresponding to \var{c}.
+
+IDL pointers of kind "unique" are mapped to an "option" type.  The
+option value is "None" for a null pointer, and "Some("\var{v}")"
+for a non-null pointer to a C value \var{c} that translates to the ML
+value \var{v}.
+
+IDL pointers of kind "ptr" are mapped to a "Com.opaque" type.
+This is an abstract type that encapsulates the C pointer without
+attempting to convert it to an ML data structure.
+
+IDL pointers of kind "ignore" denote struct fields and function
+parameters that need not be exposed in the Caml code.  Those pointers
+are simply set to null when converting from Caml to C, and ignored
+when converting from C to Caml.  They cannot occur elsewhere.
+
+If no explicit pointer kind is given, the "pointer_default" attribute
+of the enclosing interface, if any, determines the kind of the pointer.
+If no "pointer_default" attribute is in scope, the kind "unique" is
+assumed.
+
+\subsection{Arrays}
+
+IDL arrays of characters that carry the "[string]" attribute are mapped
+to the Caml "string" type:
+\begin{tableau}{|l|l|}{IDL type \var{ty}}{Caml type \transl{\var{ty}}}
+\entree{"[string] char []"}{"string"}
+\entree{"[string] unsigned char []"}{"string"}
+\entree{"[string] signed char []"}{"string"}
+\entree{"[string] byte []"}{"string"}
+\end{tableau}
+Caml string values are translated to standard null-terminated C strings.
+Be careful about embedded null characters in the Caml string, which
+will be recognized as end of string by C functions.
+
+All other IDL arrays are translated to ML arrays:
+\begin{alltt}
+        \var{ty} []  =  \transl{\var{ty}} array
+\end{alltt}
+For instance, "double []" becomes "float array".
+Consequently, multi-dimensional arrays are translated to Caml arrays
+of arrays.  For instance, "int [][]" becomes "int array array".
+
+Conversion between a C array and an ML array proceed element by
+element.  For the conversion from C to ML, the number of elements of
+the ML array is determined as follows (in the order presented):
+\begin{itemize}
+\item By the "length_is" attribute, if present.
+\item By the "size_is" attribute, if present.
+\item By the bound written in the array type, if any.
+\item By searching the first null element of the C array, if the
+"null_terminated" attribute is present.
+\end{itemize}
+For instance, C values of IDL type "[length_is(n)] double[]" are
+mapped to Caml "float array" of "n" elements.  C values of IDL type
+"double[10]" are mapped to Caml "float array" of 10 elements.
+
+The "length_is" and "size_is" attributes take as argument one or
+several limited expressions.  Each expression applies to one dimension
+of the array.  For instance, "[size_is(*dimx, *dimy)] double d[][]"
+specifies a matrix of "double" whose first dimension has size
+"*dimx" and the second has size "*dimy".
+
+\subsection{Structs}
+
+IDL structs are mapped to Caml record types.  The names and types of
+the IDL struct fields determine the names and types of the Caml record
+type:
+\begin{alltt}
+struct \var{s} \{ ... ; \nth{ty}{i} \nth{id}{i} ; ... \}  =  type struct_\var{s} = \{ ... ; \nth{id}{i} : \transl{\nth{ty}{i}} ; ... \}
+\end{alltt}
+Example: "struct s { int n; double d[4]; }" becomes
+"type struct_s = {n: int; d: float array}".
+
+Exceptions to this rule are as follows:
+\begin{itemize}
+\item Fields of the IDL struct that are pointers with the "[ignore]"
+attribute do not appear in the Caml record type.
+Example: "struct s { double x,y; [ignore] void * data; }"
+becomes "type struct_s = {x : float; y: float}".
+Those ignored pointer fields are set to "NULL" when converting from a
+Caml record to a C struct.
+
+\item Integer fields of the IDL struct that appear in a "length_is",
+"size_is" or "switch_is" attribute of another field also do not appear
+in the Caml record type.  (We call those fields {\em dependent} fields.)
+Example: "struct s { int idx; int len; [size_is(len)] double d[]; }"
+is translated to the Caml record type 
+"type struct_s = {idx: int; d: float array}".
+The value of "len" is recovered from the size of the Caml array "d",
+and thus doesn't need to be represented explicitly in the Caml record.
+
+\item If, after elimination of ignored pointer fields and dependent
+fields as described above, the IDL struct has only one field
+$ty~id$, we avoid creating a one-field Caml record type
+and translate the IDL struct type directly to the Caml type
+\transl{\var{ty}}.
+Example: "struct s { int len; [size_is(len)] double d[]; }"
+is translated to the Caml type abbreviation "type struct_s = double array".
+\end{itemize}
+
+\subsection{Unions}
+
+IDL discriminated unions are translated to Caml sum types.  Each case
+of the union corresponds to a constructor of the sum type.  The
+constructor is constant if the union case has no associated field,
+otherwise has one argument corresponding to the union case field.  If
+the union has a "default" case, an extra constructor
+"Default_"\var{unionname} is added to the Caml sum type, carrying an
+"int" argument (the value of the discriminating field),
+and possibly another argument corresponding to the default field.
+Examples:
+\begin{alltt}
+union u1 { case A: int x; case B: case C: double d; case D: ; }
+        {\rm becomes} type union_u1 = A of int | B of float | C of float | D
+union u2 { case A: int x; case B: double d; default: ; }
+        {\rm becomes} type union_u2 = A of int | B of float | Default_u of int
+union u3 { case A: int x; default: double d; }
+        {\rm becomes} type union_u3 = A of int | Default_v of int * double
+\end{alltt}
+All IDL unions must be discriminated, either via the special syntax
+"union "\var{name}" switch(int "\var{discr}")"\ldots, or via the
+attribute "switch_is("\var{discr}")", where \var{discr} is a C l-value
+built from other parameters of the current function, or other fields
+of the current "struct".  Both the discriminant and the
+case labels must be of an integer type.  Unless a "default" case is
+given, the value of the discriminant must be one of the cases of the
+union.
+
+\subsection{Enums}
+
+IDL enums are translated to Caml enumerated types (sum types with only
+constant constructors).  The names of the constructors are determined
+by the names of the enum labels.  The values attached to the enum
+labels are ignored.
+Example:
+"enum e { A, B = 2, C = 4 }" becomes "type enum_e = A | B | C".
+
+The @"set"@ attribute can be applied to a named enum to denote a
+bitfield obtained by logical ``or'' of zero, one or several labels of
+the enum.  The corresponding ML value is a list of zero, one or
+several constructors of the Caml enumerated type.  Consider for
+instance:
+\begin{verbatim}
+enum e { A = 1, B = 2, C = 4 };
+typedef [set] enum e eset;
+\end{verbatim}
+The Caml type "eset" is equal to "enum_e list".
+The C integer 6 (= "B | C") is translated to the ML list "[B; C]".
+The ML list "[A; C]" is translated to the C integer "A | C", that is "5".
+
+\subsection{Type definitions}
+
+An IDL "typedef" statement is normally translated
+to a Caml type abbreviation.  For instance,
+"typedef [string] char * str" becomes "type str = string".
+
+If the @"abstract"@ attribute is given, a Caml abstract type is
+generated instead of a type abbreviation, thus hinding from Caml the
+representation of the type in question.  For instance,
+"typedef [abstract] void * handle" becomes "type handle".
+In this case, the IDL type in the "typedef" is ignored.
+
+If the @"mltype" "(" '"'  caml-type-expr '"' ")"@ attribute is given,
+the Caml type is made equal to @caml-type-expr@.  This is often used
+in conjunction with the @"ml2c"@ and @"c2ml"@ attributes to implement
+custom translation of data structures between C and ML.  For instance,
+"typedef [mltype(\"int list\")] struct mylist_struct * mylist"
+becomes "type mylist = int list".
+
+If the @"c2ml("funct-name")" and @"ml2c("funct-name")" attributes are
+given, the user-provided C functions given as attributes will be
+called to perform Caml to C and C to Caml conversions for values of
+the typedef-ed type, instead of using the "camlidl"-generated
+conversion functions.  This allows user-controlled translation of data
+structures.  The prototypes of the conversion functions must be
+\begin{alltt}
+        value c2ml(\var{ty} * input);
+        void ml2c(value input, \var{ty} * output);
+\end{alltt}
+where \var{ty} is the name of the type defined by "typedef".  In other
+terms, the "c2ml" function is passed a reference to a \var{ty} and
+returns the corresponding Caml value, while the "ml2c" function is
+passed a Caml value as first argument and stores the corresponding C
+value in the \var{ty} reference passed as second argument.
+
+If the @"errorcheck("fn")"@ attribute is provided for the "typedef" \var{ty},
+the error checking function @fn@ is called each time a function result
+of type \var{ty} is converted from C to Caml.  The function can then check
+the \var{ty} value for values indicating an error condition, and raise the
+appropriate exception.  If in addition the @"errorcode"@ attribute is
+provided, the conversion from C to Caml is suppressed: values of type
+\var{ty} are only passed to @fn@ for error checking, then discarded.
+
+\subsection{Functions}
+
+IDL function declarations are translated to Caml functions.
+The parameters and results of the Caml function are determined from
+those of the IDL function according to the following rules:
+\begin{itemize}
+\item First, dependent parameters (parameters that are "size_is",
+"length_is" or "switch_is" of other parameters) as well as parameters
+that are ignored pointers are removed.
+
+\item The remaining parameters are split into Caml function inputs and
+Caml function outputs.  Parameters with the "[in]" attribute are added
+to the inputs of the function.  Parameters with the "[out]"
+attribute are added to the outputs of the function.  Parameters with
+the "[in,out]" attribute are added both to the inputs and to the
+outputs of the function.
+
+\item The return value of the IDL function is added to the outputs of
+the Caml function (in first position), unless it is of type "void" or
+of a type name that carries the "errorcode" attribute.  In the latter
+two cases, the return value of the IDL function is not transmitted to
+Caml.
+\item The Caml function is then given type
+@in_1 " -> " \ldots " -> " in_p " -> " out_1 " * " \ldots " * " out_q@
+where @in_1 \ldots in_p@ are the types of its inputs
+and @out_1 \ldots out_q@ are the types of its outputs.
+If there are no inputs, a "unit" parameter is added.
+If there are no outputs, a "unit" result is added.
+\end{itemize}
+Examples:
+\begin{alltt}
+int f([in] double x, [in] double y)             f : float -> float -> int
+\end{alltt}
+\begin{quote} Two "double" input, one "int" output \end{quote}
+\begin{alltt}
+void g([in] int x)                              g : int -> unit
+\end{alltt}
+\begin{quote} One "int" input, no output \end{quote}
+\begin{alltt}
+int h()                                         h : unit -> int
+\end{alltt}
+\begin{quote} No input, one "int" result \end{quote}
+\begin{alltt}
+void i([in] int x, [out] double * y)            i : int -> double
+\end{alltt}
+\begin{quote} One "int" input, one "double" output (as an "out"
+parameter) \end{quote}
+\begin{alltt}
+int j([in] int x, [out] double * y)             j : int -> int * double
+\end{alltt}
+\begin{quote} One "int" input, one "int" output (in the result), one
+"double" output (as an "out" parameter) \end{quote}
+\begin{alltt}
+void k([in,out,ref] int * x)                    k : int -> int
+\end{alltt}
+\begin{quote} The "in,out" parameter is both one "int" input and one
+"int" output. \end{quote}
+\begin{alltt}
+HRESULT l([in] int x, [out] int * res1, [out] int * res2)
+                                                l : int -> int * int
+\end{alltt}
+\begin{quote} "HRESULT" is a predefined type with the "errorcode"
+attribute, hence it is ignored.  It remains one "int" input and
+two "int" outputs ("out" parameters) \end{quote}
+\begin{alltt}
+void m([in] int len, [in,size_is(len)] double d[])
+                                                m : float array -> int
+\end{alltt}
+\begin{quote} "len" is a dependent parameter, hence is ignored.  The
+only input is the "double" array \end{quote}
+\begin{alltt}
+void n([in] int inputlen, [out] int * outputlen, 
+       [in,out,size_is(inputlen),length_is(*outputlen)] double d[])
+                                                n : float array -> float array
+\end{alltt}
+\begin{quote} The two parameters "inputlen" and "outputlen" are
+dependent, hence ignored.  The "double" array is both an input
+and an output. \end{quote}
+
+\paragraph{Error checking:}
+For every output that is of a named type with the @"errorcheck("fn")"@
+attribute, the error checking function @fn@ is called after the C
+function returns.  That function is assumed to raise a Caml exception
+if it finds an output denoting an error.
+
+\paragraph{Custom calling and deallocation sequences:}
+The IDL declaration for a function can optionally specify a custom
+calling sequence and/or a custom deallocation sequence, via @quote@
+clauses following the function declaration:
+\begin{syntax}
+function-decl:
+  attributes type-spec {'*'} ident '(' params ')' 
+  { 'quote''(' ident ',' string ')' } ;
+\end{syntax}
+The general shape of a "camlidl"-generated stub function is as
+follows:
+\begin{alltt}
+value caml_wrapper(value camlparam1, ..., value camlparamK)
+{
+  /* Convert the function parameters from Caml to C */
+  param1 = ...;
+  ...
+  paramN = ...;
+  /* Call the C function 'ident' */
+  _res = ident(param1, ..., paramN);
+  /* Convert the function result and out parameters to Caml values */
+  camlres = ...;
+  /* Return result to Caml */
+  return camlres;
+}
+\end{alltt}
+A @'quote(call,' string ')'@ clause causes the C statements in
+@string@ to be inserted in the generated stub code
+instead of the default calling sequence "_res = ident(param1, ..., paramN)".
+Thus, the statements in @string@ find the converted parameters in
+local variables that have the same names as the parameters in the IDL
+declaration, and should leave the result of the function, if any, in
+the local variable named "_res".
+
+A @'quote(dealloc,' string ')'@ clause causes the C statements in
+@string@ to be inserted in the generated stub code just before the
+stub function returns, hence after the conversion of the C function
+results to Caml values.  Again, the statements in @string@ have access
+to the function result in the local variable named "_res", and to out
+parameters in local variables having the same names as the
+parameters.  Since the function results and out parameters have
+already been converted to Caml values, the code in @string@ can safely
+deallocate the data structures they point to.
+
+Custom calling sequences are typically used to rearrange or combine
+function parameters, and to perform extra error checks on the
+arguments and results.  For instance, the Unix "write" system call can
+be specified in IDL as follows:
+\begin{verbatim}
+        int write([in] int fd,
+                  [in,string,length_is(len)] char * data,
+                  [in] int len,
+                  [in] int ofs,
+                  [in] int towrite)
+          quote(call,
+            " /* Validate the arguments */
+              if (ofs < 0 || ofs + towrite >= len) failwith(\"write\");
+              /* Perform the write */
+              _res = write(fd, data + ofs, towrite);
+              /* Validate the result */
+              if (_res == -1) failwith(\"write\"); ");
+\end{verbatim}
+%
+Custom deallocation sequences are useful to free data structures
+dynamically allocated and returned by the C function.  For instance,
+a C function "f" that returns a "malloc"-ed string can be specified in
+IDL as follows:
+\begin{verbatim}
+        [string] char * f([in] int x)
+          quote(dealloc, "free(_res); ");
+\end{verbatim}
+If the string is returned as an "out" parameter instead, we would write:
+\begin{verbatim}
+        void f ([in] int x, [out, string*] char ** str)
+          quote(dealloc, "free(*str); ");
+\end{verbatim}
+
+\subsection{Interfaces}
+
+IDL interfaces that do not have the @"object"@ attribute are
+essentially ignored.  That is, the declarations contained in the
+interface are processed as if they occurred at the top-level of the
+IDL file.  The @"pointer_default"@ attribute to the interface can be
+used to specify the default pointer kind for the declarations
+contained in the interface.  Other attributes, as well as the name of
+the super-interface if any, are ignored.
+
+IDL interfaces having the @"object"@ attribute specify COM-style object
+interfaces.  The function declarations contained in the interface
+specify the methods of the COM interface.  Other kinds of declarations
+(type declarations, @"import"@ statements, etc) are treated as if they
+occurred at the top-level of the IDL file.  An optional
+super-interface can be given, in which case the COM interface
+implements the methods of the super-interface in addition to those
+specified in the IDL interface.
+Example:
+\begin{verbatim}
+[object, uuid(...)] interface IA { typedef int t; int f(int x); }
+[object] interface IB : IA { import "foo.idl"; void g([string] char * s); }
+\end{verbatim}
+This defines a type "t" and imports the file "foo.idl" as usual.  In
+addition, two interfaces are declared: "IA", containing one
+method "f" from "int" to "int", and "IB", containing
+two methods, "f" from "int" to "int" and "g" from "string" to "unit".
+
+The definition of an object interface \var{i} generates the following
+Caml definitions:
+\begin{itemize}
+\item An abstract type \var{i} identifying the interface.
+COM interfaces of type \var{i} are represented in Caml
+with type \var{i} " Com.interface".
+\item If a super-interface $s$ is given, a conversion function
+$s$"_of_"\var{i} of type
+\var{i} " Com.interface -> " $s$ " Com.interface".
+\item If the "uuid("$iid$")" attribute is given, a value
+"iid_"\var{i} of type \var{i}" Com.iid" holding the given interface
+identifier.
+\item A Caml class \var{i}"_class", with the same methods as the COM
+interface.
+\item A function "use_"\var{i} of type \var{i} " Com.interface ->
+"\var{i}"_class", to transform a COM object into a Caml object. This
+allows the methods of the COM object to be invoked from Caml.
+\item A function "make_"\var{i} of type "#"\var{i}"_class -> "\var{i}
+" Com.interface", to transform a Caml object into a COM object with
+interface \var{i}.  This allows the methods of the Caml object to be
+invoked from any COM client.
+\end{itemize}
+
+Example: in the "IA" and "IB" example above, the following Caml
+definitions are generated for "IA":
+\begin{verbatim}
+type iA
+val iid_iA : iA Com.iid
+class iA_class : iA Com.interface -> object method f : int -> int end
+val use_iA : iA Com.interface -> iA_class
+val make_iA : #iA_class -> iA Com.interface
+\end{verbatim}
+For "IB", we get:
+\begin{verbatim}
+type iB
+val iA_of_iB : iB Com.interface -> iA Com.interface
+class iB_class :
+  iB Com.interface -> object inherit iA_class method g : string -> unit end
+val use_iB : iB Com.interface -> iB_class
+val make_iB : #iB_class -> iB Com.interface
+\end{verbatim}
+
+\paragraph{Error handling in interfaces:}  Conventionally, methods of
+COM interfaces always return a result of type "HRESULT" that says
+whether the method succeeded or failed, and in the latter case returns
+an error code to its caller.
+
+When calling an interface method from Caml, if the method returns an
+"HRESULT" denoting failure, the exception "Com.Error" is raised with a
+message describing the error.  Successful "HRESULT" return values are
+ignored.  To make them available to Caml, "camlidl" defines the types
+"HRESULT_bool" and "HRESULT_int".  If those types are used as return
+types instead of "HRESULT", failure results are mapped to
+"Com.Error" exceptions as before, but successful results are mapped to
+the Caml types "bool" and "int" respectively.  (For "HRESULT_bool",
+the "S_OK" result is mapped to "true" and other successful results are
+mapped to "false".  For "HRESULT_int", the low 16 bits of the result
+code are returned as a Caml "int".)
+
+When calling a Caml method from a COM client, any exception that
+escapes the Caml method is mapped back to a failure "HRESULT".  A
+textual description of the uncaught exception is saved using
+"SetLastError", and can be consulted by the COM client using
+"GetLastError" (this is the standard convention for passing extended
+error information in COM).
+
+If the IDL return type of the method is not one of the "HRESULT"
+types, any exception escaping the Caml method aborts the whole program
+after printing a description of the exception.  Hence, programmers of
+Caml components should either use "HRESULT" as result type, or make
+very sure that all exceptions are properly caught by the method.
+
+\section{Using "camlidl"}
+
+\subsection{Overview}
+
+The "camlidl" stub generator is invoked as follows:
+\begin{alltt}
+        camlidl \var{options} \var{file1}.idl \var{file2}.idl ...
+\end{alltt}
+For each file \var{f}".idl" given on the command line, "camlidl"
+generates the following files:
+\begin{itemize}
+\item A Caml interface file \var{f}".mli" that defines the Caml view
+of the IDL file.  It contains Caml definitions for the types declared
+in the IDL file, as well as declarations for the functions and the
+interfaces.
+\item A Caml implementation file \var{f}".ml" that implements the
+\var{f}".mli" file.
+\item A C source file \var{f}".c" that contains the stub functions for
+converting between C and Caml data representations.
+\item If the "-header" option is given, a C header file \var{f}".h"
+containing C declarations for the types declared in the IDL file.
+\end{itemize}
+The generated ".ml" and ".c" files must be compiled and linked with
+the remainder of the Caml program.
+
+\subsection{Options}
+
+The followign command-line options are recognized by "camlidl".
+
+\begin{options}
+
+\item["-cpp"]
+Pre-process the source IDL files with the C preprocessor.  This option
+is set by default.
+
+\item["-D " \var{symbol}"="\var{value}]
+Define a preprocessor symbol.  The option "-D"\var{symbol}"="\var{value}
+is passed to the C preprocessor.  The \var{value} can be omitted,
+as in "-D" \var{symbol}, and defaults to "1".
+
+\item["-header"]
+Generate a C header file containing C declarations for the types
+declared in the IDL file.
+
+\item["-I " \var{dir}]
+Add the directory \var{dir} to the list of directories searched for
+".idl" files, as given on the command line or recursively loaded
+by @"import"@ statements.
+
+\item["-nocpp"]
+Suppresses the pre-processing of source IDL files.
+
+\item["-no-include"]
+By default, "camlidl" emits a "#include \""\var{f}".h\"" statement in
+the generated C code.  The \var{f}".h" header file being included is
+either the one generated by "camlidl -header", or generated by another
+tool (such as Microsoft's "midl" compiler) from the IDL file, or
+hand-written.  The \var{f}".h" file is assumed to provide all C type
+declarations needed for compiling the stub code.
+
+The "-no-include" option suppresses the automatic inclusion of the
+\var{f}".h" file.  The IDL file should then include the right header
+files and provide the right type declarations via @"quote"@ statements.
+
+\item["-prepro" \var{preprocessing-command}]
+Set the command that is executed to pre-process the source IDL files.
+The default is the C preprocessor.
+
+\end{options}
+
+\subsection{The "camlidldll" script}
+
+Under Windows, a "bash" script called "camlidldll" is provided to
+automate the construction of a DLL containing a COM component written
+in Caml.
+
+The script "camlidldll" accepts the same command-line arguments and
+options as the "ocamlc" compiler.  It produces a DLL file that
+encapsulates the Caml and C object files given on the command line.
+Use "regsvr32 /s "\var{file}".dll" to record the components in the
+system registry.
+
+\input com.tex
+
+\section{Hints on writing IDL files}
+
+\subsection{Writing an IDL file for a C library}
+
+When writing an IDL file for a C library that doesn't have an IDL interface
+already, the include files for that library are a good starting point:
+just copy the relevant type and functin declarations to the IDL file,
+then annotate them with IDL attributes to describe more precisely
+their actual behavior.  The documentation of the library must be read
+carefully to determine the mode of function parameters ("in", "out",
+"inout"), the actual sizes of arrays, etc.
+
+The type definitions in the IDL file need not correspond exactly with
+those in the include files.  Often, a cleaner Caml interface can be
+obtained by omitting irrelevant struct fields, or cheating on their types.
+For instance, the Unix library functions for reading library entries
+uses the following structure:
+\begin{verbatim}
+        struct dirent {
+            long int d_ino;
+            __off_t d_off;
+            unsigned short int d_reclen;
+            unsigned char d_type;
+            char d_name[256];
+        };
+\end{verbatim}
+Of those fields, only "d_name" and "d_ino" are of interest to the
+user; the other fields are internal information for the library
+functions, are not specified in the POSIX specs, and therefore must
+not be used.  Thus, in the IDL file, you should declare:
+\begin{verbatim}
+        struct dirent {
+            long int d_ino;
+            char d_name[256];
+        };
+\end{verbatim}
+Thus, the Caml code will have "type struct_dirent = { d_ino: int;
+d_name: string}" as desired.  However, the generated stub code, being
+compiled against the ``true'' definition of "struct dirent", will find
+those two fields at the correct offsets in the actual struct.
+
+In the same vein, one can declare certain integer fields or variables
+as "double" in the IDL file, so that they are represented by "float"
+in Caml, and all 32 bits of the integer are preserved in Caml.  For
+instance, the Unix function to get the current type is declared as
+\begin{verbatim}
+        time_t time(time_t * t);
+\end{verbatim}
+where "time_t" is usually defined as "long".  If "time_t" is mapped to
+Caml's "int" time, the loss of the 32-th bit causes problems around
+year 2005.  A simple solution is to pretend (in the IDL file) that
+"time" returns a double:
+\begin{verbatim}
+        double time() " _res = time(NULL); ";
+\end{verbatim}
+This way, "time" will have the expected Caml type "unit -> float".
+Again, the stub code ``knows'' that "time" actually returns an integer,
+and therefore will insert the right integer-float coercions.
+
+\subsection{Reusing Microsoft-provided IDL files}
+
+The Microsoft software development kit provides a number of IDL files
+describing various libraries and components.  In its current state,
+"camlidl" cannot exploit those files directly: they use many
+(undocumented) Microsoft IDL features that are not implemented yet in
+"camlidl"; symmetrically, "camlidl" introduces several new annotations
+that are not recognized by Microsoft's "MIDL" compiler.  So, significant
+editing work on the IDL files is required.
+
+The C preprocessor can be used to alleviate the "camlidl"-"MIDL"
+incompatibilities: "camlidl" defines the preprocessor symbol "CAMLIDL"
+when preprocessing its input files, while "MIDL" does not.  Hence,
+one can bracket incompatible definitions in 
+"#ifdef CAMLIDL ... #else ... #endif".  Similarly, the
+"camlidl"-specific attributes can be encapsulated in preprocessor
+macros, as follows:
+\begin{verbatim}
+        #ifdef CAMLIDL
+        #define ABSTRACT abstract
+        #define MLTYPE(x) mltype(x)
+        #else
+        #define ABSTRACT
+        #define MLTYPE(x)
+        #endif
+
+        typedef [ABSTRACT,MLTYPE(int)] char t;
+\end{verbatim}
+
+\section{Release notes}
+
+Here are some caveats and open issues that apply to the current
+release.
+
+\paragraph{Deallocation of function results and "out" parameters:}
+If a C function dynamically allocates some of its outputs (either
+returned or stored in "out" parameters), its IDL declaration must
+contain a @'quote(dealloc,' string ')'@ clause to properly free the
+space occupieid by those outputs after they have been converted to
+Caml.  Otherwise, memory leaks will occur.
+
+This does not conform to the MIDL and COM specifications, which say
+that space for "out" data structures must be allocated
+with "CoTaskMemAlloc" by the callee, and automatically freed
+using "CoTaskMemFree" by the generated stub code.  (The specs don't
+say what happens with the return value of the function.)
+value.  However, there are many functions in Win32 (not to mention the
+Unix world) that do not follow this convention, and
+return data structures (e.g. strings) that are statically
+allocated, or require special deallocation functions.  Hence,
+"camlidl" leaves deallocation of outputs entirely under user control.
+
+\paragraph{Allocation and deallocation of "in,out" parameters:}
+For "in,out" parameters, the MIDL/COM rules are that the caller (the
+stub code) should allocate the inputs, the callee should free them
+and allocate again its outputs, and the caller should free the outputs.
+As explained above, "camlidl"-generated stubs don't automatically free
+the outputs.  Worse, the inputs passed to the functions are allocated
+partially on the stack and partially in the heap
+(using "CoTaskMemAlloc"), so the callee may perform an incorrect
+free on a stack-allocated argument.  The best thing to do is avoid
+"in,out" parameters entirely, and split them into one "in" and one
+"out" parameter.
+
+\paragraph{Reference-counting of COM interfaces:}
+Caml finalized objects are used to call "Release" automatically on COM
+interfaces that become unreachable.  The reference counting of
+interfaces passed as "in" and "out" parameters is correctly
+implemented.  However, "in,out" parameters that are interfaces are not
+correctly handled.  Again, avoid "in,out" parameters.
+
+\paragraph{COM support:}
+The support for COM is currently minimal.  COM components registered
+in the system registry can be imported via "Com.create_instance".
+Components written in Caml can be exported as DLLs, but not yet as
+standalone servers.  Dispatch interfaces and the Automation framework
+are not supported yet, thus Caml components cannot be used from Visual
+Basic.

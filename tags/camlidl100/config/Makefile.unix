@@ -1,0 +1,36 @@
+## Configuration section
+
+# Type of system -- do not change
+OSTYPE=unix
+
+# How to invoke the C preprocessor
+# Works on most Unix systems:
+CPP=/lib/cpp
+# Alternatives:
+# CPP=cpp
+# CPP=/usr/ccs/lib/cpp
+# CPP=gcc -x c -E
+
+# How to invoke ranlib (only relevant for Unix)
+RANLIB=ranlib
+# If ranlib is not needed:
+#RANLIB=:
+
+# Location of the Objective Caml library in your installation
+OCAMLLIB=/usr/local/lib/ocaml
+
+# Where to install the binaries
+BINDIR=/usr/local/bin
+
+# The Objective Caml compilers (the defaults below should be OK)
+OCAMLC=ocamlc -g
+OCAMLOPT=ocamlopt
+OCAMLYACC=ocamlyacc -v
+OCAMLLEX=ocamllex
+OCAMLDEP=ocamldep
+
+# Extra flags to pass to the C compiler
+CFLAGS=-g
+
+# Extension for lib files (do not change)
+LIB=.a

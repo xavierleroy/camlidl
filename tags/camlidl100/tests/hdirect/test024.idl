@@ -1,0 +1,9 @@
+
+import "test023.idl";
+
+interface foo {
+  typedef struct _cp {
+     [ref]struct _pt* p;
+     int    col;
+  } ColourPoint;
+}

@@ -1,0 +1,8 @@
+interface ITest {
+typedef int* pInt;
+void foo([in]pInt x,[out]pInt y);
+typedef struct _bar {
+  int a;
+  pInt y;
+} baz;
+}
