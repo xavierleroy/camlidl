@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: cfactory.cpp,v 1.5 1999-03-15 15:21:40 xleroy Exp $ */
+/* $Id: cfactory.cpp,v 1.6 1999-03-16 15:42:25 xleroy Exp $ */
 
 /* The class factory and DLL support */
 
@@ -162,6 +162,13 @@ STDAPI DllCanUnloadNow()
     return S_FALSE;
 }
 
+#if 0
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <io.h>
+#include <stdio.h>
+#endif
+
 /* DLL entry point */
 
 BOOL APIENTRY DllMain(HANDLE module, DWORD reason, void *reserved)
@@ -172,6 +179,12 @@ BOOL APIENTRY DllMain(HANDLE module, DWORD reason, void *reserved)
   case DLL_PROCESS_ATTACH:
     argv[0] = NULL;
     camlidl_module_handle = (HMODULE) module;
+#if 0
+    int fd = open("/tmp/camllog", O_RDWR|O_TRUNC|O_CREAT, _S_IWRITE|_S_IREAD);
+    dup2(fd, 1);
+    dup2(fd, 2);
+    close(fd);
+#endif
     caml_startup(argv);
     break;
   /* TODO: free all memory when DLL detached */
