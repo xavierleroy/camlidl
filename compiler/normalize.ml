@@ -130,7 +130,10 @@ let normalize_fundecl fd =
   res
   
 let enter_typedecl td =
-  let td' = { td with td_type = normalize_type td.td_type } in
+  let td' =
+    if td.td_abstract
+    then td
+    else { td with td_type = normalize_type td.td_type } in
   all_type_decls := Comp_typedecl td' :: !all_type_decls;
   td'
 
@@ -140,7 +143,8 @@ let normalize_component = function
   | Comp_uniondecl ud -> Comp_uniondecl(enter_union ud)
   | Comp_enumdecl en -> Comp_enumdecl(enter_enum en)
   | Comp_fundecl fd -> Comp_fundecl(normalize_fundecl fd)
-  | Comp_diversion s -> Comp_diversion s
+  | Comp_constdecl cd -> Comp_constdecl cd
+  | Comp_diversion(ty, s) -> Comp_diversion(ty, s)
 
 let interface intf =
   let intf' = List.map normalize_component intf in

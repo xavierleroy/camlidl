@@ -78,6 +78,8 @@ type interface_component =
   | Comp_enumdecl of enum_decl
   | Comp_fundecl of function_decl
   | Comp_constdecl of constant_decl
-  | Comp_diversion of string
+  | Comp_diversion of diversion_type * string
+
+and diversion_type = Div_c | Div_ml
 
 type interface = interface_component list

@@ -25,8 +25,8 @@ let process_comp oc = function
       Funct.emit_wrapper oc fd
   | Comp_constdecl cd ->
       ()
-  | Comp_diversion txt ->
-      output_string oc txt
+  | Comp_diversion(kind, txt) ->
+      if kind = Div_c then output_string oc txt
 
 let gen_c_stub oc intf =
   (* Output the header *)
