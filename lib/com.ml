@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: com.ml,v 1.6 1999-02-19 14:33:45 xleroy Exp $ *)
+(* $Id: com.ml,v 1.7 1999-03-15 15:21:39 xleroy Exp $ *)
 
 (* Run-time library for COM components *)
 
@@ -30,6 +30,7 @@ external query_interface: 'a interface -> 'b iid -> 'b interface =
   "camlidl_com_queryInterface"
 
 type iUnknown
+type iDispatch
 
 let iUnknown_of (intf : 'a interface) = (Obj.magic intf : iUnknown interface)
 
@@ -55,3 +56,7 @@ type 'a component_factory =
 
 external register_factory : 'a component_factory -> unit
     = "camlidl_com_register_factory"
+
+type hRESULT_int = int
+type hRESULT_bool = bool
+type bSTR = string

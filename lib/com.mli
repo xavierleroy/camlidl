@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: com.mli,v 1.7 1999-02-22 09:59:30 xleroy Exp $ *)
+(* $Id: com.mli,v 1.8 1999-03-15 15:21:39 xleroy Exp $ *)
 
 (* Module [Com]: run-time library for COM components *)
 
@@ -48,6 +48,10 @@ val query_interface : 'a interface -> 'b iid -> 'b interface
 type iUnknown
         (* The type of the interface [IUnknown], from which all other
            interfaces derive. *)
+
+type iDispatch
+        (* The type of the interface [IDispatch], from which all
+           dispatch interfaces derive. *)
 
 val iUnknown_of : 'a interface -> iUnknown interface
         (* Return the [IUnknown] interface of the given component.
@@ -102,6 +106,10 @@ val register_factory : 'a component_factory -> unit
            in the registry.  Other programs can then create instances
            of the component by calling [CreateInstance] from C and C++
            or [Com.create_instance] from Caml. *)
+
+type hRESULT_int = int
+type hRESULT_bool = bool
+type bSTR = string
 
 (*--*)
 

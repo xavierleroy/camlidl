@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comerror.c,v 1.6 1999-02-19 14:33:46 xleroy Exp $ */
+/* $Id: comerror.c,v 1.7 1999-03-15 15:21:40 xleroy Exp $ */
 
 /* Error handling */
 
@@ -102,24 +102,24 @@ void camlidl_check_hresult(HRESULT hr)
   if (FAILED(hr)) camlidl_hresult_error(hr);
 }
 
-value camlidl_c2ml_hresult_bool(HRESULT hr)
+value camlidl_c2ml_Com_HRESULT_bool(HRESULT hr)
 {
   if (FAILED(hr)) camlidl_hresult_error(hr);
   return Val_bool(hr == S_OK);
 }
 
-void camlidl_ml2c_hresult_bool(value v, HRESULT * hr)
+void camlidl_ml2c_Com_HRESULT_bool(value v, HRESULT * hr)
 {
   *hr = Bool_val(v) ? S_OK : S_FALSE;
 }
 
-value camlidl_c2ml_hresult_int(HRESULT hr)
+value camlidl_c2ml_Com_HRESULT_int(HRESULT hr)
 {
   if (FAILED(hr)) camlidl_hresult_error(hr);
   return Val_int(HRESULT_CODE(hr));
 }
 
-void camlidl_ml2c_hresult_int(value v, HRESULT * hr)
+void camlidl_ml2c_Com_HRESULT_int(value v, HRESULT * hr)
 {
   *hr = MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, Int_val(v) & 0xFFFF);
 }
@@ -138,7 +138,7 @@ HRESULT camlidl_result_exception(char * methname, value exn_bucket)
     wstrlen = strlen(methname);
     wstr = (wchar_t *) malloc((wstrlen + 1) * sizeof(wchar_t));
     if (wstr != NULL) {
-      mbstowcs(wstr, methname, wstrlen);
+      mbstowcs(wstr, methname, wstrlen + 1);
       createrr->lpVtbl->SetSource(createrr, wstr);
       free(wstr);
     }
@@ -147,7 +147,7 @@ HRESULT camlidl_result_exception(char * methname, value exn_bucket)
       wstrlen = strlen(exndesc);
       wstr = (wchar_t *) malloc((wstrlen + 1) * sizeof(wchar_t));
       if (wstr != NULL) {
-        mbstowcs(wstr, methname, wstrlen);
+        mbstowcs(wstr, exndesc, wstrlen + 1);
         createrr->lpVtbl->SetDescription(createrr, wstr);
         free(wstr);
       }

@@ -8,6 +8,12 @@ linkopts=''
 camlopts=''
 linkobjs=''
 camlobjs=''
+camlobjfile="caml$$.obj"
+resourcefile="caml$$.rc"
+resfile=''
+tlbcounter=0
+
+rm -f $resourcefile
 
 # Parse the command line
 
@@ -33,17 +39,32 @@ while : ; do
         camlobjs="$camlobjs $1";;
     *.obj|*.lib)
         linkobjs="$linkobjs $1";;
+    *.tlb)
+        tlbcounter=`expr $tlbcounter + 1`
+        echo "$tlbcounter typelib $1" >> $resourcefile;;
     *)  echo "Don't know what to do with \"$1\", ignored" 1>&2;;
   esac
   shift
 done
 
-ocamlc -custom -output-obj -o camlidldll.obj $camlopts $camlobjs && \
-link /nologo /incremental:no /dll /out:${output} /libpath:$camllib \
+if test $tlbcounter -ne 0; then
+  echo "1 num_typelibs { $tlbcounter }" >> $resourcefile
+  resfile="caml$$.res"
+  rc /fo$resfile $resourcefile || { exit $?; }
+  rm -f $resourcefile
+fi
+
+ocamlc -custom -output-obj -o $camlobjfile $camlopts com.cma $camlobjs && \
+link /nologo /incremental:no /dll /machine:ix86 \
+  /out:${output} /libpath:$camllib \
   /export:DllGetClassObject,@2,PRIVATE \
   /export:DllCanUnloadNow,@3,PRIVATE \
   /export:DllRegisterServer,@4,PRIVATE \
   /export:DllUnregisterServer,@5,PRIVATE \
-  $linkopts $linkobjs \
+  $resfile \
+  $linkopts $camlobjfile $linkobjs \
   ${camllib}\\cfactory.obj libcamlidl.lib \
   libcamlrun.lib ole32.lib oleaut32.lib advapi32.lib
+exitcode=$?
+rm -f $resfile $camlobjfile
+exit $exitcode

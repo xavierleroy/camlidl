@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: parser_midl.mly,v 1.10 1999-02-24 12:27:44 xleroy Exp $ */
+/* $Id: parser_midl.mly,v 1.11 1999-03-15 15:21:38 xleroy Exp $ */
 
 /* Parser for Microsoft IDL */
 
@@ -166,7 +166,7 @@ component:
     LBRACE component_list RBRACE
     /* Valid MIDL attributes: object uuid local endpoint version
            pointer_default implicit_handle auto_handle */
-        { make_interface $3 $1 $4 $6 }
+        { make_interface $3 $1 $4 (List.rev $6) }
   | attributes INTERFACE tydef_ident SEMI
         { [make_forward_interface $3] }
   | IMPORT STRING SEMI

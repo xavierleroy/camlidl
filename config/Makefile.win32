@@ -21,6 +21,7 @@ BINDIR=/ocaml/bin
 
 # The Objective Caml compilers (the defaults below should be OK)
 OCAMLC=ocamlc -g
+OCAMLOPT=ocamlopt
 OCAMLDEP=ocamldep
 OCAMLYACC=ocamlyacc -v
 OCAMLLEX=ocamllex

@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: intf.ml,v 1.17 1999-02-24 12:27:43 xleroy Exp $ *)
+(* $Id: intf.ml,v 1.18 1999-03-15 15:21:38 xleroy Exp $ *)
 
 (* Handling of COM-style interfaces *)
 
@@ -53,6 +53,7 @@ let ml_class_declaration oc intf =
   fprintf oc "  %s Com.interface ->\n" mlintf;
   fprintf oc "    object\n";
   if intf.intf_super.intf_name <> "IUnknown"
+  && intf.intf_super.intf_name <> "IDispatch"
   then fprintf oc "      inherit %s_class\n" mlsuper;
   List.iter
     (fun meth ->
@@ -76,12 +77,18 @@ let ml_class_declaration oc intf =
 (* Declare the interface in C *)
 
 let rec declare_vtbl oc self intf =
-  if intf.intf_name = "IUnknown" then begin
+  if intf.intf_name = "IUnknown" || intf.intf_name = "IDispatch" then begin
     iprintf oc "DECLARE_VTBL_PADDING\n";
-    iprintf oc "HRESULT (STDMETHODCALLTYPE *QueryInterface)(struct %s * self, IID *, void **);\n"
+    iprintf oc "HRESULT (STDMETHODCALLTYPE *QueryInterface)(struct %s *, IID *, void **);\n"
                self;
-    iprintf oc "ULONG (STDMETHODCALLTYPE *AddRef)(struct %s * self);\n" self;
-    iprintf oc "ULONG (STDMETHODCALLTYPE *Release)(struct %s * self);\n" self
+    iprintf oc "ULONG (STDMETHODCALLTYPE *AddRef)(struct %s *);\n" self;
+    iprintf oc "ULONG (STDMETHODCALLTYPE *Release)(struct %s *);\n" self;
+    if intf.intf_name = "IDispatch" then begin
+      iprintf oc "HRESULT (STDMETHODCALLTYPE *GetTypeInfoCount)(struct %s *, UINT *);\n" self;
+      iprintf oc "HRESULT (STDMETHODCALLTYPE *GetTypeInfo)(struct %s *, UINT, LCID, ITypeInfo **);\n" self;
+      iprintf oc "HRESULT (STDMETHODCALLTYPE *GetIDsOfNames)(struct %s *, REFIID, OLECHAR**, UINT, LCID, DISPID *);\n" self;
+      iprintf oc "HRESULT (STDMETHODCALLTYPE *Invoke)(struct %s *, DISPID, REFIID, LCID, WORD, DISPPARAMS *, VARIANT *, EXCEPINFO *, UINT *);\n" self
+    end
   end else begin
     declare_vtbl oc self intf.intf_super;
     List.iter
@@ -99,15 +106,21 @@ let rec declare_vtbl oc self intf =
   end
 
 let rec declare_class oc self intf =
-  if intf.intf_name = "IUnknown" then begin
-    iprintf oc "HRESULT STDMETHODCALLTYPE QueryInterface(IID *, void **);\n";
-    iprintf oc "ULONG STDMETHODCALLTYPE AddRef();\n";
-    iprintf oc "ULONG STDMETHODCALLTYPE Release();\n"
+  if intf.intf_name = "IUnknown" || intf.intf_name = "IDispatch" then begin
+    iprintf oc "virtual HRESULT STDMETHODCALLTYPE QueryInterface(IID *, void **);\n";
+    iprintf oc "virtual ULONG STDMETHODCALLTYPE AddRef();\n";
+    iprintf oc "virtual ULONG STDMETHODCALLTYPE Release();\n";
+    if intf.intf_name = "IDispatch" then begin
+      iprintf oc "virtual HRESULT STDMETHODCALLTYPE GetTypeInfoCount(UINT *);\n";
+      iprintf oc "virtual HRESULT STDMETHODCALLTYPE GetTypeInfo(UINT, LCID, ITypeInfo **);\n";
+      iprintf oc "virtual HRESULT STDMETHODCALLTYPE GetIDsOfNames(REFIID, OLECHAR**, UINT, LCID, DISPID *);\n";
+      iprintf oc "virtual HRESULT STDMETHODCALLTYPE Invoke(DISPID, REFIID, LCID, WORD, DISPPARAMS *, VARIANT *, EXCEPINFO *, UINT *);\n"
+    end
   end else begin
     declare_class oc self intf.intf_super;
     List.iter
       (fun m ->
-        iprintf oc "%a("
+        iprintf oc "virtual %a("
                    out_c_decl (sprintf "(STDMETHODCALLTYPE *%s)" m.fun_name,
                                m.fun_res);
         let first = ref true in
@@ -174,7 +187,8 @@ let ml_class_definition oc intf =
   (* Define the wrapper class *)
   fprintf oc "class %s_class (intf : %s Com.interface) =\n" intfname intfname;
   fprintf oc "  object\n";
-  if intf.intf_super.intf_name <> "IUnknown" then
+  if intf.intf_super.intf_name <> "IUnknown"
+  && intf.intf_super.intf_name <> "IDispatch" then
     fprintf oc "    inherit (%s_class (%s_of_%s intf))\n"
                supername supername intfname;
   List.iter
@@ -308,10 +322,16 @@ let declare_callback_wrapper oc intf meth =
 (* Generate the vtable for an interface (for the make_ conversion) *)
 
 let rec emit_vtbl oc intf =
-  if intf.intf_name = "IUnknown" then begin
+  if intf.intf_name = "IUnknown" || intf.intf_name = "IDispatch" then begin
     fprintf oc "  (void *) camlidl_QueryInterface,\n";
     fprintf oc "  (void *) camlidl_AddRef,\n";
     fprintf oc "  (void *) camlidl_Release,\n";
+    if intf.intf_name = "IDispatch" then begin
+      fprintf oc "  (void *) camlidl_GetTypeInfoCount,\n";
+      fprintf oc "  (void *) camlidl_GetTypeInfo,\n";
+      fprintf oc "  (void *) camlidl_GetIDsOfNames,\n";
+      fprintf oc "  (void *) camlidl_Invoke,\n"
+    end
   end else begin
     emit_vtbl oc intf.intf_super;
     List.iter
@@ -330,16 +350,22 @@ let emit_vtable oc intf =
 (* Generate the make_ conversion (takes an ML object, wraps it into
    a COM interface) *)
 
+let rec is_dispinterface intf =
+  if intf.intf_name = "IDispatch" then true
+  else if intf.intf_name = "IUnknown" then false
+  else is_dispinterface intf.intf_super
+
 let emit_make_interface oc intf =
+  let disp = if is_dispinterface intf then 1 else 0 in
   fprintf oc "value camlidl_makeintf_%s_%s(value vobj)\n"
              !module_name intf.intf_name;
   fprintf oc "{\n";
   if intf.intf_uid = "" then
-    fprintf oc "  return camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, NULL);\n"
-               !module_name intf.intf_name
+    fprintf oc "  return camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, NULL, %d);\n"
+               !module_name intf.intf_name disp
   else
-    fprintf oc "  return camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, &IID_%s);\n"
-               !module_name intf.intf_name intf.intf_name;
+    fprintf oc "  return camlidl_make_interface(&camlidl_%s_%s_vtbl, vobj, &IID_%s, %d);\n"
+               !module_name intf.intf_name intf.intf_name disp;
   fprintf oc "}\n\n"
 
 (* Definition of the translation functions *)

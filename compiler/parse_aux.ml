@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.5 1999-02-24 12:27:43 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.6 1999-03-15 15:21:38 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -145,11 +145,20 @@ let make_fun_declaration attrs ty_res name params quotes =
         eprintf "Warning: quote type `%s' unknown, ignoring the quote.\n"
                 label in
   List.iter parse_quote quotes;
+  let truename = ref name in
   let rec merge_attributes ty = function
       [] -> ty
-    | (("callback" | "local"), _) :: rem -> merge_attributes ty rem
-    | attr :: rem -> merge_attributes (apply_type_attribute ty attr) rem in
-  { fun_name = name;
+    | (("callback" | "local"), _) :: rem ->
+          merge_attributes ty rem
+    | ("propget", _) :: rem ->
+          truename := "get_" ^ name; merge_attributes ty rem
+    | ("propput", _) :: rem ->
+          truename := "put_" ^ name; merge_attributes ty rem
+    | ("propputref", _) :: rem ->
+          truename := "putref_" ^ name; merge_attributes ty rem
+    | attr :: rem ->
+          merge_attributes (apply_type_attribute ty attr) rem in
+  { fun_name = !truename;
     fun_mod = "";
     fun_res = merge_attributes ty_res attrs;
     fun_params = params;
