@@ -9,22 +9,26 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: idltypes.mli,v 1.17 1999-03-16 15:40:52 xleroy Exp $ *)
+(* $Id: idltypes.mli,v 1.18 2000-08-18 11:23:03 xleroy Exp $ *)
 
 type integer_kind =
     Int | Long | Small | Short | Char
   | UInt | ULong | USmall | UShort | UChar
   | SChar | Byte | Boolean
 
+type integer_repr =
+    Iunboxed | Inative | I32 | I64
+
 type pointer_kind = Ref | Unique | Ptr | Ignore
 
 type idltype =
-    Type_int of integer_kind
+    Type_int of integer_kind * integer_repr
   | Type_float
   | Type_double
   | Type_void
   | Type_pointer of pointer_kind * idltype
   | Type_array of array_attributes * idltype
+  | Type_bigarray of bigarray_attributes * idltype
   | Type_struct of struct_decl
   | Type_union of union_decl * union_attributes
   | Type_enum of enum_decl * enum_attributes
@@ -36,7 +40,13 @@ and array_attributes =
     size: lexpr option;
     length: lexpr option;
     is_string: bool;
+    maybe_null: bool;
     null_terminated: bool }
+
+and bigarray_attributes =
+  { dims: array_attributes list;
+    fortran_layout: bool;
+    mutable malloced: bool }
 
 and union_attributes =
   { discriminant: lexpr }

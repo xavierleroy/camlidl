@@ -1,8 +1,9 @@
 \section{Overview}
 
 Camlidl generates stub code for interfacing Caml with C
-(as described in chapter 8 of the Objective Caml reference manual)
-from an IDL description of the C functions to be made available in Caml.
+(as described in chapter ``Interfacing with C'' of the Objective Caml
+reference manual) from an IDL description of the C functions to be
+made available in Caml.
 Thus, Camlidl automates the most tedious task in interfacing C
 libraries with Caml programs.  It can also be used to interface Caml
 programs with other languages, as long as those languages have a
@@ -169,24 +170,42 @@ arguments.
 \begin{tableau}{|l|l|}{Attribute}{Context where it can appear}
 \entree{@"abstract"@      }
        {"typedef" }
+\entree{@"bigarray"@      }
+       {array type}
+\entree{@"camlint"@       }
+       {"int" or "long" integer type}
 \entree{@"c2ml"'('fun-name')'@ }
        {"typedef" }
 \entree{@"errorcheck"'('fun-name')'@ }
        {"typedef" }
 \entree{@"errorcode"@     }
        {"typedef" }
+\entree{@"fortran"@       }
+       {array type with "bigarray" attribute}
 \entree{@"ignore"@        }
        {any pointer type  }
 \entree{@"in"@            }
        {function parameter }
+\entree{@"int_default"'(' 'camlint'||'nativeint'||'int32'||'int64'')'@ }
+       {interface }
+\entree{@"int32"@         }
+       {"int" or "long" integer type}
+\entree{@"int64"@         }
+       {"int" or "long" integer type}
 \entree{@"length_is"'('le_1','le_2','\ldots')'@  }
        {array type  }
+\entree{@"long_default"'(' 'camlint'||'nativeint'||'int32'||'int64'')'@ }
+       {interface }
+\entree{@"managed"@       }
+       {array type with "bigarray" attribute}
 \entree{@"ml2c"'('fun-name')'@ }
        {"typedef" }
 \entree{@'mlname(' label-name ')' @ }
        {"struct" field }
 \entree{@'mltype("' caml-type-expr '")' @ }
        {"typedef" }
+\entree{@"nativeint"@       }
+       {"int" or "long" integer type}
 \entree{@"null_terminated"@ }
        {array of pointers  }
 \entree{@"object"@}
@@ -213,7 +232,7 @@ arguments.
 \entree{@"switch_type"'('ty')'@ }
        {union or pointer to union  }
 \entree{@"unique"@        }
-       {any pointer type  }
+       {any pointer or array type  }
 \entree{@"uuid"'(' uuid ')'@ }
        {interface }
 \end{tableau}
@@ -379,16 +398,34 @@ interfaces are mapped to Caml types, functions and classes.
 \subsection{Base types}
 
 \begin{tableau}{|l|l|}{IDL type \var{ty}}{Caml type \transl{\var{ty}}}
-\entree{All integer types ("byte", "short", "int", "long")}{"int"}
+\entree{"byte", "short"}{"int"}
+\entree{"int", "long" with "[camlint]" attribute}{"int"}
+\entree{"int", "long" with "[nativeint]" attribute}{"nativeint"}
+\entree{"int", "long" with "[int32]" attribute}{"int32"}
+\entree{"int", "long" with "[int64]" attribute}{"int64"}
 \entree{"char", "unsigned char", "signed char"}{"char"}
 \entree{"float", "double"}{"float"}
 \entree{"boolean"}{"bool"}
 \end{tableau}
 
-Since the Caml "int" type has one bit of tag, the conversion from IDL
+Depending on the attributes, the "int" and "long" integer types are
+converted to one of the Caml integer types "int", "nativeint",
+"int32", or "int64".  Values of Caml type "int32" are exactly 32-bit wide
+and values of type "int64" are exactly 64-bit wide on all platforms.
+Values of type "nativeint" have the natural word size of the platform,
+and are large enough to accommodate any C "int" or "long int" without
+loss of precision.  Values of Caml type "int" have the natural word
+size of the platform minus one bit of tag, hence the conversion from IDL
 types "int" and "long" loses the most significant bit on 32-bit
 platforms.  On 64-bit platforms, the conversion from "int" is exact,
 but the conversion from "long" loses the most significant bit.
+
+If no explicit integer attribute is given for an "int" or "long" type,
+the "int_default" or "long_default" attribute of the enclosing
+interface, if any, determines the kind of the integer.
+If no "int_default" or "long_default" attribute is in scope, the kind
+"camlint" is assumed, which maps IDL "int" and "long" types to the
+Caml "int" type.
 
 \subsection{Pointers}
 
@@ -396,9 +433,9 @@ The mapping of IDL pointer types depends on their kinds.  Writing
 \transl{\var{ty}} for the Caml type corresponding to the IDL type
 $ty$, we have:
 \begin{alltt}
-       [ref] \var{ty} *  =  \transl{\var{ty}}
-    [unique] \var{ty} *  =  \transl{\var{ty}} option
-       [ptr] \var{ty} *  =  \transl{\var{ty}} Com.opaque
+       [ref] \var{ty} *  \(\Rightarrow\)  \transl{\var{ty}}
+    [unique] \var{ty} *  \(\Rightarrow\)  \transl{\var{ty}} option
+       [ptr] \var{ty} *  \(\Rightarrow\)  \transl{\var{ty}} Com.opaque
 \end{alltt}
 In other terms, IDL pointers of kind "ref" are ignored during the mapping:
 "[ref] "\var{ty}" *" is mapped to the same Caml type as \var{ty}.
@@ -438,13 +475,26 @@ Caml string values are translated to standard null-terminated C strings.
 Be careful about embedded null characters in the Caml string, which
 will be recognized as end of string by C functions.
 
+IDL arrays carrying the "[bigarray]" attribute are translated to Caml
+``big arrays'', as described in the next section.
+
 All other IDL arrays are translated to ML arrays:
 \begin{alltt}
-        \var{ty} []  =  \transl{\var{ty}} array
+        \var{ty} []  \(\Rightarrow\)  \transl{\var{ty}} array
 \end{alltt}
 For instance, "double []" becomes "float array".
 Consequently, multi-dimensional arrays are translated to Caml arrays
 of arrays.  For instance, "int [][]" becomes "int array array".
+
+If the "unique" attribute is given, the IDL array is translated to an
+ML option type:
+\begin{alltt}
+        [string,unique] char []  \(\Rightarrow\)  string option
+        [unique] \var{ty} []     \(\Rightarrow\)  \transl{\var{ty}} array option
+\end{alltt}
+As in the case of pointers of kind "unique", the option value is
+"None" for a null C pointer, and "Some("\var{v}")" for a non-null
+C pointer to a C array that translates to the ML string or array \var{v}.
 
 Conversion between a C array and an ML array proceed element by
 element.  For the conversion from C to ML, the number of elements of
@@ -465,6 +515,30 @@ several limited expressions.  Each expression applies to one dimension
 of the array.  For instance, "[size_is(*dimx, *dimy)] double d[][]"
 specifies a matrix of "double" whose first dimension has size
 "*dimx" and the second has size "*dimy".
+
+\subsection{Big arrays}
+
+IDL arrays of integers or floats that carry the "[bigarray]" attribute
+are mapped to one of the Caml "Bigarray" types: "Array1.t" for
+one-dimensional arrays, "Array2.t" for 2-dimensional arrays,
+"Array3.t" for 3-dimensional arrays, and "Genarray.t" for arrays of 4
+dimensions or more.
+
+If the "[fortran]" attribute is given, the big array is accessed
+from Caml using the Fortran conventions (array indices start at 1;
+column-major memory layout).  By default, the big array is accessed
+from Caml using the C conventions (array indices start at 0; row-major
+memory layout).
+
+If the "[managed]" attribute is given on a big array type that is
+result type or out parameter type of a function, Caml assumes that the
+corresponding C array was allocated using "malloc()", and is not
+referenced anywhere else; then, the Caml garbage collector will free
+the C array when the corresponding Caml big array becomes unreachable.
+By default, Caml assumes that result or out C arrays are statically or
+permanently allocated, and keeps a pointer to them during conversion
+to Caml big arrays, and does not free them when the Caml bigarrays
+become unreachable.
 
 \subsection{Structs}
 
@@ -657,7 +731,13 @@ Caml function outputs.  Parameters with the "[in]" attribute are added
 to the inputs of the function.  Parameters with the "[out]"
 attribute are added to the outputs of the function.  Parameters with
 the "[in,out]" attribute are added both to the inputs and to the
-outputs of the function.
+outputs of the function, unless they are of type string or big array,
+in which case they are added to the inputs of the function only.
+(The reason for this exception is that strings and big arrays are
+shared between Caml and C, thus allowing true "in,out" behavior on the
+Caml function parameter, while other data types are copied during
+Caml/C conversion, thus turning a C "in,out" parameter into a Caml
+"copy in, copy out" parameter, that is, one parameter and one result.)
 
 \item The return value of the IDL function is added to the outputs of
 the Caml function (in first position), unless it is of type "void" or
@@ -720,6 +800,17 @@ void n([in] int inputlen, [out] int * outputlen,
 \begin{quote} The two parameters "inputlen" and "outputlen" are
 dependent, hence ignored.  The "double" array is both an input
 and an output. \end{quote}
+\begin{alltt}
+void p([in] int dimx, [in] int dimy,
+       [in,out,bigarray,size_is(dimx,dimy)] double d[][])
+p : (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array2.t -> unit
+\end{alltt}
+\begin{quote} The two parameters "dimx" and "dimy" are dependent
+(determined from the dimensions of the big array argument),
+hence ignored.  The two-dimensional array "d", although marked "[in,out]",
+is a big array, hence passed as an input that will be modified in
+place by the C function "p".  The Caml function has no outputs.
+\end{quote}
 
 \paragraph{Error checking:}
 For every output that is of a named type with the @"errorcheck("fn")"@
@@ -809,10 +900,11 @@ If the string is returned as an "out" parameter instead, we would write:
 IDL interfaces that do not have the @"object"@ attribute are
 essentially ignored.  That is, the declarations contained in the
 interface are processed as if they occurred at the top-level of the
-IDL file.  The @"pointer_default"@ attribute to the interface can be
-used to specify the default pointer kind for the declarations
-contained in the interface.  Other attributes, as well as the name of
-the super-interface if any, are ignored.
+IDL file.  The @"pointer_default"@, @"int_default"@ and
+@"long_default" attributes to the interface can be
+used to specify the default pointer kind and integer mappings
+for the declarations contained in the interface.  Other attributes, as
+well as the name of the super-interface if any, are ignored.
 
 IDL interfaces having the @"object"@ attribute specify COM-style object
 interfaces.  The function declarations contained in the interface
@@ -945,8 +1037,8 @@ is passed to the C preprocessor.  The \var{value} can be omitted,
 as in "-D" \var{symbol}, and defaults to "1".
 
 \item["-header"]
-Generate a C header file containing C declarations for the types
-declared in the IDL file.
+Generate a C header file \var{f}".h" containing C declarations for the
+types and functions declared in the IDL file \var{f}".c".
 
 \item["-I " \var{dir}]
 Add the directory \var{dir} to the list of directories searched for
@@ -963,7 +1055,8 @@ Suppresses the pre-processing of source IDL files.
 
 \item["-no-include"]
 By default, "camlidl" emits a "#include \""\var{f}".h\"" statement in
-the generated C code.  The \var{f}".h" header file being included is
+the file \var{f}".c" containing the generated C code.
+The \var{f}".h" header file being included is
 either the one generated by "camlidl -header", or generated by another
 tool (such as Microsoft's "midl" compiler) from the IDL file, or
 hand-written.  The \var{f}".h" file is assumed to provide all C type
@@ -1017,7 +1110,7 @@ carefully to determine the mode of function parameters ("in", "out",
 
 The type definitions in the IDL file need not correspond exactly with
 those in the include files.  Often, a cleaner Caml interface can be
-obtained by omitting irrelevant struct fields, or cheating on their types.
+obtained by omitting irrelevant struct fields, or changing their types.
 For instance, the Unix library functions for reading library entries
 uses the following structure:
 \begin{verbatim}
@@ -1039,26 +1132,38 @@ not be used.  Thus, in the IDL file, you should declare:
             char d_name[256];
         };
 \end{verbatim}
-Thus, the Caml code will have "type struct_dirent = { d_ino: int;
-d_name: string}" as desired.  However, the generated stub code, being
+Thus, the Caml code will have 
+"type struct_dirent = {d_ino: int; d_name: string}"
+as desired.  However, the generated stub code, being
 compiled against the ``true'' definition of "struct dirent", will find
 those two fields at the correct offsets in the actual struct.
 
-In the same vein, one can declare certain integer fields or variables
+Special attention must be paid to integer fields or variables.  
+By default, integer IDL types are mapped to the Caml type "int",
+which is convenient to use in Caml code, but loses one bit
+when converting from a C "long" integer, and may lose one bit (on
+32-bit platforms) when converting from a C "int" integer.  When the
+range of values represented by the C integer is small enough, this
+loss is acceptable.  Otherwise, you should use the attributes
+"nativeint", "int32" or "int64" so that integer IDL types are mapped
+to one of the Caml boxed integer types.  (We recommend that you use
+"int32" or "int64" for integers that are specified as being exactly 32
+bit wide or 64 bit wide, and "nativeint" for unspecified "int" or
+"long" integers.)
+
+Yet another possibility is to declare certain integer fields or variables
 as "double" in the IDL file, so that they are represented by "float"
 in Caml, and all 32 bits of the integer are preserved in Caml.  For
 instance, the Unix function to get the current type is declared as
 \begin{verbatim}
         time_t time(time_t * t);
 \end{verbatim}
-where "time_t" is usually defined as "long".  If "time_t" is mapped to
-Caml's "int" time, the loss of the 32-th bit causes problems around
-year 2005.  A simple solution is to pretend (in the IDL file) that
-"time" returns a double:
+where "time_t" is usually defined as "long".  We can nonetheless
+pretend (in the IDL file) that "time" returns a double:
 \begin{verbatim}
         double time() quote(" _res = time(NULL); ");
 \end{verbatim}
-This way, "time" will have the expected Caml type "unit -> float".
+This way, "time" will have the Caml type "unit -> float".
 Again, the stub code ``knows'' that "time" actually returns an integer,
 and therefore will insert the right integer-float coercions.
 
@@ -1140,7 +1245,9 @@ If a C function dynamically allocates some of its outputs (either
 returned or stored in "out" parameters), its IDL declaration must
 contain a @'quote(dealloc,' string ')'@ clause to properly free the
 space occupied by those outputs after they have been converted to
-Caml.  Otherwise, memory leaks will occur.
+Caml.  Otherwise, memory leaks will occur.  (The only exception is
+results and output parameters of type "[bigarray,managed] "\var{ty}"[]",
+where the Caml garbage collector takes care of deallocation.)
 
 This does not conform to the MIDL and COM specifications, which say
 that space for "out" data structures must be allocated

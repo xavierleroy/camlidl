@@ -15,4 +15,20 @@ void array4([in] int n, [out] int * m, [in, out, size_is(n), length_is(*m)] int 
 
 void array5([in,out] int *n, [in, out, size_is(*n), length_is(*n)] int t[]);
 
+/* Optional strings and arrays */
+
+[string,unique] char * optstr1([in,string,unique] unsigned char * s);
+
+void optarray1([in,null_terminated,unique] int options[]);
+
+/* Multidimensional arrays */
+
+void multarray1([in] int i, [in] int j, [in, size_is(i,j)] int t[][]);
+
+/* Big arrays */
+
+void bigarray1([bigarray,inout] double t[10][20]);
+void bigarray2([in] int dimx, [in] int dimy,
+               [in,bigarray,size_is(dimx,dimy)] long t[][],
+               [out,bigarray,size_is(dimy,dimx)] long tt[][]);
 }

@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: parser_midl.mly,v 1.12 1999-03-16 15:40:54 xleroy Exp $ */
+/* $Id: parser_midl.mly,v 1.13 2000-08-18 11:23:03 xleroy Exp $ */
 
 /* Parser for Microsoft IDL */
 
@@ -162,13 +162,15 @@ component:
                            ud_stamp = 0; ud_cases = []}] }
   | fun_decl SEMI
         { [Comp_fundecl $1] }
-  | attributes INTERFACE tydef_ident opt_superinterface
+  | interface_attributes INTERFACE tydef_ident opt_superinterface
     LBRACE component_list RBRACE
     /* Valid MIDL attributes: object uuid local endpoint version
            pointer_default implicit_handle auto_handle */
-        { make_interface $3 $1 $4 (List.rev $6) }
-  | attributes INTERFACE tydef_ident SEMI
-        { [make_forward_interface $3] }
+        { let i = make_interface $3 $1 $4 (List.rev $6) in
+          restore_defaults(); i }
+  | interface_attributes INTERFACE tydef_ident SEMI
+        { let i = [make_forward_interface $3] in
+          restore_defaults(); i }
   | IMPORT STRING SEMI
         { read_import $2 }
   | quote
@@ -256,19 +258,19 @@ type_spec:
 simple_type_spec:
     FLOAT                                       { Type_float }
   | DOUBLE                                      { Type_double }
-  | INT                                         { Type_int Int }
-  | UNSIGNED INT                                { Type_int UInt }
-  | SIGNED INT                                  { Type_int UInt }
-  | integer_size opt_int                        { Type_int $1 }
+  | INT                                         { make_int Int }
+  | UNSIGNED INT                                { make_int UInt }
+  | SIGNED INT                                  { make_int Int }
+  | integer_size opt_int                        { make_int $1 }
   | UNSIGNED integer_size opt_int               { make_unsigned $2 }
   | integer_size UNSIGNED opt_int               { make_unsigned $1 }
   | SIGNED integer_size opt_int                 { make_signed $2 }
   | integer_size SIGNED opt_int                 { make_signed $1 }
-  | CHAR                                        { Type_int Char }
-  | UNSIGNED CHAR                               { Type_int UChar }
-  | SIGNED CHAR                                 { Type_int SChar }
-  | BOOLEAN                                     { Type_int Boolean }
-  | BYTE                                        { Type_int Byte }
+  | CHAR                                        { make_int Char }
+  | UNSIGNED CHAR                               { make_int UChar }
+  | SIGNED CHAR                                 { make_int SChar }
+  | BOOLEAN                                     { make_int Boolean }
+  | BYTE                                        { make_int Byte }
   | VOID                                        { Type_void }
   | TYPEIDENT                                   { Type_named("", $1) }
   | WCHAR_T                                     { wchar_t_type() }
@@ -392,11 +394,12 @@ enum_case:
 
 /* Attributes */
 
+interface_attributes:
+    attributes          { let a = $1 in save_defaults(); update_defaults a; a }
+;
 attributes:
-    /* empty */
-        { [] }
-  | LBRACKET attribute_list RBRACKET
-        { let a = List.rev $2 in update_pointer_default a; a }
+    /* empty */                                         { [] }
+  | LBRACKET attribute_list RBRACKET                    { List.rev $2 }
 ;
 attribute_list:
     attribute                                           { [$1] }

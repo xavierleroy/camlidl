@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: file.ml,v 1.13 1999-02-19 14:33:17 xleroy Exp $ *)
+(* $Id: file.ml,v 1.14 2000-08-18 11:23:03 xleroy Exp $ *)
 
 (* Handling of interfaces *)
 
@@ -140,10 +140,9 @@ let rec process_comp oc = function
         then Uniondecl.declare_transl oc ud
         else Uniondecl.emit_transl oc ud
   | Comp_enumdecl en ->
-      if en.en_name <> "" then
-        if en.en_consts = []
-        then Enumdecl.declare_transl oc en
-        else Enumdecl.emit_transl oc en
+      if en.en_name <> ""
+      then Enumdecl.emit_transl oc en
+      else Enumdecl.emit_transl_table oc en
   | Comp_fundecl fd ->
       Funct.emit_wrapper oc fd
   | Comp_constdecl cd ->
@@ -169,6 +168,9 @@ let gen_c_stub oc intf =
     #include <caml/alloc.h>\n\
     #include <caml/fail.h>\n\
     #include <caml/callback.h>\n\
+    #ifdef Custom_tag\n\
+    #include <caml/bigarray.h>\n\
+    #endif\n\
     #include <caml/camlidlruntime.h>\n\n";
   if !Clflags.include_header then
     (* Include the .h for the module
@@ -187,7 +189,7 @@ let process_definition oc = function
   | Comp_uniondecl ud ->
       if ud.ud_name <> "" then Uniondecl.c_declaration oc ud
   | Comp_enumdecl en ->
-      Enumdecl.c_declaration oc en
+      if en.en_name <> "" then Enumdecl.c_declaration oc en
   | Comp_fundecl fd ->
       Funct.c_declaration oc fd
   | Comp_constdecl cd ->

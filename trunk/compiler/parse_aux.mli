@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.mli,v 1.4 1999-02-24 12:27:44 xleroy Exp $ *)
+(* $Id: parse_aux.mli,v 1.5 2000-08-18 11:23:03 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -32,6 +32,9 @@ val no_enum_attr : enum_attributes
     (* Default attributes for enums *)
 val pointer_default : pointer_kind ref
     (* Default pointer kind *)
+val int_default : integer_repr ref
+val long_default : integer_repr ref
+    (* Default integer representation for "int" and "long" types *)
 val make_param :
   (string * lexpr list) list -> idltype -> (idltype -> string * idltype) ->
         string * in_out * idltype
@@ -64,8 +67,12 @@ val make_typedef :
   (idltype -> string * idltype) list ->
   type_decl list
     (* Build a typedef declaration *)
-val update_pointer_default : (string * lexpr list) list -> unit
-    (* Update [!pointer_default] according to the given attr list *)
+val update_defaults : (string * lexpr list) list -> unit
+    (* Update [!pointer_default], [!int_default] and [!long_default]
+       according to the given attr list *)
+val save_defaults : unit -> unit
+val restore_defaults : unit -> unit
+    (* Save or restore the current defaults on a stack *)
 val make_interface :
   string -> (string * lexpr list) list -> string option -> components ->
     components
@@ -74,10 +81,12 @@ val make_forward_interface : string -> component
     (* Build a forward declaration for an interface *)
 val make_diversion : string * string -> diversion_type * string
     (* Represent a diversion *)
+val make_int : integer_kind -> idltype
+    (* Build an integer type (without [signed] or [unsigned] modifier) *)
 val make_unsigned : integer_kind -> idltype
-    (* Apply the [unsigned] modifier to an integer type *)
+    (* Build an integer type (with explicit [unsigned] modifier) *)
 val make_signed : integer_kind -> idltype
-    (* Apply the [signed] modifier to an integer type *)
+    (* Build an integer type (with explicit [signed] modifier) *)
 val handle_t_type : unit -> idltype
 val hyper_type : unit -> integer_kind
 val wchar_t_type : unit -> idltype

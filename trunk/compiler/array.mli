@@ -9,9 +9,9 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: array.mli,v 1.4 2000-08-11 13:26:02 xleroy Exp $ *)
+(* $Id: array.mli,v 1.5 2000-08-18 11:23:02 xleroy Exp $ *)
 
-(* Marshaling for arrays *)
+(* Marshaling for arrays and bigarrays *)
 
 open Idltypes
 
@@ -23,4 +23,15 @@ val array_c_to_ml :
   (out_channel -> string -> idltype -> string -> string -> unit) ->
     out_channel -> string -> array_attributes -> idltype -> string -> string ->
       unit
-val size_out_param : string -> array_attributes -> string
+val array_allocate_output_space :
+  out_channel -> array_attributes -> idltype -> string -> unit
+
+val bigarray_ml_to_c :
+  out_channel -> string -> bigarray_attributes -> idltype ->
+    string -> string -> unit
+val bigarray_c_to_ml :
+  out_channel -> string -> bigarray_attributes -> idltype ->
+    string -> string -> unit
+val bigarray_allocate_output_space :
+  out_channel -> bigarray_attributes -> idltype -> string -> unit
+

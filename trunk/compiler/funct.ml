@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: funct.ml,v 1.22 2000-08-11 13:26:02 xleroy Exp $ *)
+(* $Id: funct.ml,v 1.23 2000-08-18 11:23:03 xleroy Exp $ *)
 
 (* Generation of stub code for functions *)
 
@@ -51,7 +51,7 @@ let remove_dependent_parameters params =
     params
 
 (* Split parameters into in parameters and out parameters.
-   In/out get copied to both. *)
+   In/out get copied to both. Inout (in place) are viewed as in. *)
 
 let rec split_in_out = function
     [] -> ([], [])
@@ -60,7 +60,12 @@ let rec split_in_out = function
       match inout with
         In -> ((name, ty) :: ins, outs)
       | Out -> (ins, (name, ty) :: outs)
-      | InOut -> ((name, ty) :: ins, (name, ty) :: outs)
+      | InOut ->
+          match ty with
+            Type_array({is_string = true}, _) | Type_bigarray(_, _) ->
+              ((name, ty) :: ins, outs)
+          | _ -> 
+              ((name, ty) :: ins, (name, ty) :: outs)
 
 (* Determine if a typedef represents an error code *)
 
@@ -195,26 +200,20 @@ let emit_function oc fundecl ins outs locals emit_call =
   List.iter
     (fun (name, ty) -> ml_to_c pc true "" ty (sprintf "_v_%s" name) name)
     ins;
-  (* Initialize outs that are pointers so that they point
+  (* Initialize outs that are pointers or arrays so that they point
      to suitable storage *)
   List.iter
-    (function (name, Out, Type_pointer(attr, ty_arg)) ->
-                  let c = new_c_variable ty_arg in
-                  iprintf pc "%s = &%s;\n" name c
-            | (name, Out, Type_array(attr, ty_elt)) ->
-                  iprintf pc "%s = camlidl_malloc(%s * sizeof(%a), _ctx);\n"
-                          name (Array.size_out_param name attr)
-                          out_c_type ty_elt
+    (function (name, Out, ty) -> allocate_output_space pc name ty
             | _ -> ())
     fundecl.fun_params;
-  (* Generate the call to C function *)
+  (* Generate the call to the C function *)
   emit_call pc fundecl;
   (* Call error checking functions on result and out parameters
      that need it *)
   call_error_check pc "_res" fundecl.fun_res;
   List.iter
-    (fun (name, mode, ty) ->
-        if mode = Out || mode = InOut then call_error_check pc name ty)
+    (function (name, (Out|InOut), ty) -> call_error_check pc name ty
+            | _ -> ())
     fundecl.fun_params;
   (* Convert outs from C to ML *)
   begin match outs with

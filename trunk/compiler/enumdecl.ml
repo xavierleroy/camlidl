@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: enumdecl.ml,v 1.9 1999-02-22 09:59:55 xleroy Exp $ *)
+(* $Id: enumdecl.ml,v 1.10 2000-08-18 11:23:03 xleroy Exp $ *)
 
 (* Generation of converters for enums *)
 
@@ -48,13 +48,15 @@ let declare_transl oc en =
 
 (* Translation function from an ML datatype to a C enum *)
 
-let transl_ml_to_c oc en =
+let emit_transl_table oc en =
   fprintf oc "int camlidl_transl_table_%s_enum_%d[%d] = {\n"
              en.en_mod en.en_stamp (List.length en.en_consts);
   List.iter
     (fun c -> fprintf oc "  %s,\n" c.const_name)
     en.en_consts;
-  fprintf oc "};\n\n";
+  fprintf oc "};\n\n"
+
+let transl_ml_to_c oc en =
   current_function := sprintf "enum %s" en.en_name;
   let v = new_var "_v" in
   fprintf oc "int camlidl_ml2c_%s_enum_%s(value %s)\n"
@@ -62,7 +64,7 @@ let transl_ml_to_c oc en =
   fprintf oc "{\n";
   let pc = divert_output() in
   increase_indent();
-  let c = new_c_variable (Type_int Int) in
+  let c = new_c_variable (Type_int(Int, Iunboxed)) in
   enum_ml_to_c ml_to_c pc en v c;
   iprintf pc "return %s;\n" c;
   output_variable_declarations oc;
@@ -93,6 +95,7 @@ let transl_c_to_ml oc en =
 (* Emit the translation functions *)
 
 let emit_transl oc en =
+  emit_transl_table oc en;
   transl_ml_to_c oc en;
   transl_c_to_ml oc en
 
