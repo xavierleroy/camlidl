@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: com.ml,v 1.8 2000-08-19 11:04:59 xleroy Exp $ *)
+(* $Id: com.ml,v 1.9 2004-07-08 09:44:40 xleroy Exp $ *)
 
 (* Run-time library for COM components *)
 
@@ -36,7 +36,6 @@ type iDispatch
 let iUnknown_of (intf : 'a interface) = (Obj.magic intf : iUnknown interface)
 
 let _ =
-  Callback.register "Oo.new_method" Oo.new_method;
   Callback.register_exception "Com.Error" (Error(0, "", ""))
 
 external combine: 'a interface -> 'b interface -> 'a interface =
