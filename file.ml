@@ -23,7 +23,7 @@ type components = component list
 
 (* Generate the type definitions common to the .ml and the .mli *)
 
-let gen_type_def oc all_type_decls =
+let gen_type_def oc intf =
   let first = ref true in
   let start_decl () =
     if !first then fprintf oc "type " else fprintf oc "and ";
@@ -35,14 +35,14 @@ let gen_type_def oc all_type_decls =
     | Comp_enumdecl e -> start_decl(); Enumdecl.ml_declaration oc e
     | Comp_interface i -> start_decl(); Intf.ml_declaration oc i
     | _ -> () in
-  List.iter emit_typedef all_type_decls;
+  List.iter emit_typedef intf;
   fprintf oc "\n"
 
 (* Generate the .mli file *)
 
-let gen_mli_file oc intf all_type_decls =
+let gen_mli_file oc intf =
   fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
-  gen_type_def oc all_type_decls;
+  gen_type_def oc intf;
   (* Generate the function declarations *)
   let emit_fundecl = function
       Comp_fundecl fd -> Funct.ml_declaration oc fd
@@ -55,9 +55,9 @@ let gen_mli_file oc intf all_type_decls =
 
 (* Generate the .ml file *)
 
-let gen_ml_file oc intf all_type_decls =
+let gen_ml_file oc intf =
   fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
-  gen_type_def oc all_type_decls;
+  gen_type_def oc intf;
   (* Generate the function declarations and class definitions *)
   let emit_fundecl = function
       Comp_fundecl fd -> Funct.ml_declaration oc fd
@@ -68,56 +68,52 @@ let gen_ml_file oc intf all_type_decls =
     | _ -> () in
   List.iter emit_fundecl intf
 
+(* Declare the translation functions *)
+
+let declare_comp oc = function
+    Comp_typedecl td ->
+      Typedef.declare_transl oc td
+  | Comp_structdecl sd ->
+      if sd.sd_name <> "" then Structdecl.declare_transl oc sd
+  | Comp_uniondecl ud ->
+      if ud.ud_name <> "" then Uniondecl.declare_transl oc ud
+  | Comp_enumdecl en ->
+      if en.en_name <> "" then Enumdecl.declare_transl oc en
+  | Comp_fundecl fd ->
+      ()
+  | Comp_constdecl cd ->
+      ()
+  | Comp_diversion(kind, txt) ->
+      ()
+  | Comp_interface i ->
+      Intf.declare_transl oc i
+
 (* Process a component *)
 
 let process_comp oc = function
     Comp_typedecl td ->
       Typedef.emit_transl oc td
   | Comp_structdecl sd ->
-      if sd.sd_fields = []
-      then Structdecl.declare_transl oc sd
-      else Structdecl.emit_transl oc sd
+      if sd.sd_name <> "" then Structdecl.emit_transl oc sd
   | Comp_uniondecl ud ->
-      if ud.ud_cases = []
-      then Uniondecl.declare_transl oc ud
-      else Uniondecl.emit_transl oc ud
+      if ud.ud_name <> "" then Uniondecl.emit_transl oc ud
   | Comp_enumdecl en ->
-      if en.en_consts = []
-      then Enumdecl.declare_transl oc en
-      else Enumdecl.emit_transl oc en
+      if en.en_name <> "" then Enumdecl.emit_transl oc en
   | Comp_fundecl fd ->
       Funct.emit_wrapper oc fd
   | Comp_constdecl cd ->
       ()
   | Comp_diversion(kind, txt) ->
+      ()
+  | Comp_interface i ->
+      Intf.emit_transl oc i
+
+(* Process the diversions *)
+
+let process_diversion oc = function
+    Comp_diversion(kind, txt) ->
       if kind = Div_c then output_string oc txt
-  | Comp_interface i ->
-      if i.intf_methods <> []
-      then Intf.emit_transl oc i
-
-(* Import a component *)
-
-let import_comp oc = function
-    Comp_typedecl td ->
-      Typedef.declare_transl oc td
-  | Comp_structdecl sd ->
-      if sd.sd_fields <> []
-      then Structdecl.declare_transl oc sd
-  | Comp_uniondecl ud ->
-      if ud.ud_cases <> []
-      then Uniondecl.declare_transl oc ud
-  | Comp_enumdecl en ->
-      if en.en_consts <> []
-      then Enumdecl.declare_transl oc en
-  | Comp_fundecl fd ->
-      ()
-  | Comp_constdecl cd ->
-      ()
-  | Comp_diversion(kind, txt) ->
-      ()
-  | Comp_interface i ->
-      if i.intf_methods <> []
-      then Intf.declare_transl oc i
+  | _ -> ()
 
 (* Generate the C stub file *)
 
@@ -133,8 +129,12 @@ let gen_c_stub oc imports intf =
     #include <caml/fail.h>\n\
     #include <caml/callback.h>\n\
     #include <caml/camlidlruntime.h>\n\n";
+  (* Output the diversions *)
+  List.iter (process_diversion oc) intf;
   (* Declare the conversion functions for the imports *)
-  List.iter (import_comp oc) imports;
+  List.iter (declare_comp oc) imports;
+  (* Declare the conversion functions for our definitions *)
+  List.iter (declare_comp oc) intf;
   (* Process the interface *)
   List.iter (process_comp oc) intf
 

@@ -5,7 +5,7 @@ OCAMLLEX=ocamllex
 CC=gcc
 CFLAGS=-g -O -Wall -I/usr/local/lib/ocaml
 
-OBJS=utils.cmo cvttyp.cmo variables.cmo \
+OBJS=utils.cmo ebuff.cmo lexpr.cmo cvttyp.cmo variables.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
   structdecl.cmo enumdecl.cmo uniondecl.cmo \
   typedef.cmo funct.cmo constdecl.cmo intf.cmo \

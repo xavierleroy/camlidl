@@ -71,6 +71,14 @@ void camlidl_free(camlidl_arena arena)
   }
 }
 
+char * camlidl_malloc_string(value mlstring, camlidl_arena * arena)
+{
+  mlsize_t len = string_len(mlstring);
+  char * res = camlidl_malloc(len + 1, arena);
+  memcpy(res, String_val(mlstring), len + 1);
+  return res;
+}
+
 /* This function is for compatibility with OCaml 2.00 and earlier */
 
 #if defined(CAMLVERSION) && CAMLVERSION < 201

@@ -31,17 +31,17 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
       None ->
         if onstack
         then iprintf oc "%s = String_val(%s);\n" c v
-        else iprintf oc "%s = camlidl_malloc_string(_arena, %s);\n" c v
+        else iprintf oc "%s = camlidl_malloc_string(%s, _arena);\n" c v
     | Some n ->
         iprintf oc
             "if (string_length(%s) >= %d) invalid_argument(\"%s\");\n"
-            v n !current_function;
+            v (Lexpr.eval_int n) !current_function;
         iprintf oc "strcpy(%s, String_val(%s));\n" c v
     end;
     begin match attr.size with
       None -> ()
     | Some re -> iprintf oc "%a = string_length(%s);\n" 
-                         out_restr_expr (pref, re) v
+                         Lexpr.output (pref, re) v
     end
   end else begin
     (* Determine actual size of ML array *)
@@ -52,11 +52,11 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
     begin match attr.bound with
       None ->
         (* Allocate C array of same size as ML array *)
-        iprintf oc "%s = camlidl_malloc(_arena, " c;
+        iprintf oc "%s = camlidl_malloc(" c;
         if attr.null_terminated
         then fprintf oc "(%s + 1)" size
         else fprintf oc "%s" size;
-        fprintf oc " * sizeof(%a));\n" out_c_type ty_elt;
+        fprintf oc " * sizeof(%a), _arena);\n" out_c_type ty_elt;
         need_deallocation := true;
     | Some n ->
         (* Check compatibility of actual size w.r.t. expected size *)
@@ -64,15 +64,17 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
                 (if attr.null_terminated then size ^ " + 1" else size)
                 (if attr.size = None && not attr.null_terminated
                  then "!=" else ">")
-                n !current_function
+                (Lexpr.eval_int n) !current_function
     end;
     (* Copy the array elements *)
     let idx = new_c_variable (Type_named("", "mlsize_t")) in
     begin match attr with
       {bound = Some n; size = None} ->
-        iprintf oc "for (%s = 0; %s < %d; %s++) {\n" idx idx n idx
+        iprintf oc "for (%s = 0; %s < %d; %s++) {\n"
+                   idx idx (Lexpr.eval_int n) idx
     | _ ->
-        iprintf oc "for (%s = 0; %s < %s; %s++) {\n" idx idx size idx
+        iprintf oc "for (%s = 0; %s < %s; %s++) {\n"
+                   idx idx size idx
     end;
     increase_indent();
     if is_float_type ty_elt then
@@ -89,7 +91,7 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
     (* Update dependent size variable *)
     begin match attr.size with
       None -> ()
-    | Some re -> iprintf oc "%a = %s;\n" out_restr_expr (pref, re) size
+    | Some re -> iprintf oc "%a = %s;\n" Lexpr.output (pref, re) size
     end
   end
 
@@ -103,10 +105,11 @@ let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
     let (nsize, size) =
       match attr with
         {length = Some re} ->
-          (max_int, string_of_restr_expr pref re)
+          (max_int, Lexpr.tostring pref re)
       | {size = Some re} ->
-          (max_int, string_of_restr_expr pref re)
-      | {bound = Some n} ->
+          (max_int, Lexpr.tostring pref re)
+      | {bound = Some le} ->
+          let n = Lexpr.eval_int le in
           (n, string_of_int n)
       | {null_terminated = true} ->
           let sz = new_c_variable (Type_named("", "mlsize_t")) in

@@ -25,7 +25,7 @@ let new_ml_variable () =
 let new_ml_variable_block n =
   let name = new_var "_v" in
   let ty =
-    Type_array({bound = Some n; size=None; length=None;
+    Type_array({bound = Some(Expr_int n); size=None; length=None;
                 is_string=false; null_terminated=false},
                Type_named("", "value")) in
   temp_variables := (name, ty) :: !temp_variables;

@@ -3,6 +3,7 @@
 %{
 
 open Printf
+open Cvttyp
 open Idltypes
 open Funct
 open Typedef
@@ -10,7 +11,7 @@ open Constdecl
 open Intf
 open File
 
-let null_attr_var = Var ""
+let null_attr_var = Expr_string ""
 
 let no_bounds =
   { bound = None; size = None; length = None;
@@ -43,7 +44,7 @@ let rec merge_array_attr merge_fun rexps ty =
                    merge_array_attr merge_fun rem ty_elt)
   | (_, _) ->
       eprintf "Warning: size_is or length_is attribute applied to \
-               non-array, ignored.\n";
+               type `%a', ignored.\n" out_c_type ty;
       ty
 
 let is_star_attribute name = String.length name >= 1 && name.[0] = '*'
@@ -113,7 +114,10 @@ let make_param attrs tybase decl =
         match mode with Some InOut -> mode
                       | Some In -> Some InOut
                       | _ -> Some Out in
-      merge_attributes mode' ty rem
+      let ty' = 
+        match ty with Type_pointer(_, ty_elt) -> Type_pointer(Ref, ty_elt)
+                    | _ -> ty in
+      merge_attributes mode' ty' rem
   | attr :: rem ->
       merge_attributes mode (apply_type_attribute ty attr) rem in
   merge_attributes None ty attrs
@@ -143,7 +147,7 @@ let make_field attrs tybase decl =
 let make_discriminated_union name switch_name switch_type body =
   let ty_union =
     Type_union({ud_name = ""; ud_mod = ""; ud_stamp = 0; ud_cases = body},
-               {discriminant = Var switch_name}) in
+               {discriminant = Expr_ident switch_name}) in
   { sd_name = name; sd_mod = ""; sd_stamp = 0;
     sd_fields = [ {field_name = switch_name; field_typ = switch_type};
                   {field_name = "u"; field_typ = ty_union} ] }
@@ -153,38 +157,53 @@ let make_typedef attrs tybase decls =
     [] -> (ty, td)
   | ("abstract", _) :: rem ->
       merge_attributes ty {td with td_abstract = true} rem
-  | ("c2ml", [Var f]) :: rem ->
+  | ("c2ml", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_c2ml = Some f} rem
-  | ("ml2c", [Var f]) :: rem ->
+  | ("ml2c", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_ml2c = Some f} rem
-  | ("mltype", [Var f]) :: rem ->
+  | ("mltype", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_mltype = Some f} rem
   | ("errorcode", _) :: rem ->
       merge_attributes ty {td with td_errorcode = true} rem
-  | ("errorcheck", [Var f]) :: rem ->
+  | ("errorcheck", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_errorcheck = Some f} rem
   | (("handle" | "transmit_as" | "context_handle"), _) :: rem ->
       merge_attributes ty td rem
   | attr :: rem ->
       merge_attributes (apply_type_attribute ty attr) td rem in
-  List.map
-    (fun decl ->
-      let (name, ty) = decl tybase in
-      let td = {td_name = name; td_mod = "";
-                td_type = Type_void; (* dummy *)
-                td_abstract = false; td_mltype = None;
-                td_c2ml = None; td_ml2c = None;
-                td_errorcode = false; td_errorcheck = None} in
-      let (ty', td') = merge_attributes ty td attrs in
-      {td' with td_type = ty'})
-    decls
+  let merge_definition tybase decl =
+    let (name, ty) = decl tybase in
+    let td = {td_name = name; td_mod = "";
+              td_type = Type_void; (* dummy *)
+              td_abstract = false; td_mltype = None;
+              td_c2ml = None; td_ml2c = None;
+              td_errorcode = false; td_errorcheck = None} in
+    let (ty', td') = merge_attributes ty td attrs in
+    {td' with td_type = ty'} in
+  (* If one of the decls is just a name, generate it first,
+     then use it as the tybase for the others decls.
+     This helps for typedef struct {...} t, *p, ... *)
+  let rec split_decls past = function
+    [] -> (* didn't find a name, use original decls *)
+      List.map (merge_definition tybase) (List.rev past)
+  | decl :: rem ->
+      match decl (Type_named("%", "%")) with
+        (name, Type_named("%", "%")) ->
+        (* Found a name, define it first, and define the others in terms
+           of this name *)
+          merge_definition tybase decl ::
+          List.map (merge_definition (Type_named("", name)))
+                   (List.rev past @ rem)
+      | (_, _) ->
+          split_decls (decl :: past) rem in
+  split_decls [] decls
 
 let update_pointer_default attrs =
   List.iter
     (function
-        ("pointer_default", [Var "ref"]) -> pointer_default := Ref
-      | ("pointer_default", [Var "unique"]) -> pointer_default := Unique
-      | ("pointer_default", [Var "ptr"]) -> pointer_default := Ptr
+        ("pointer_default", [Expr_ident "ref"]) -> pointer_default := Ref
+      | ("pointer_default", [Expr_ident "unique"]) -> pointer_default := Unique
+      | ("pointer_default", [Expr_ident "ptr"]) -> pointer_default := Ptr
       | _ -> ())
     attrs
 
@@ -193,7 +212,7 @@ let make_interface name attrs superintf imports comps =
   let uid = ref "" in
   let parse_attr = function
     ("object", _) -> obj := true
-  | ("uuid", [Var u]) -> uid := u
+  | ("uuid", [Expr_string u]) -> uid := u
   | ("pointer_default", _) -> () (*treated elsewhere*)
   | ("local", _) -> () (*ignored*)
   | ("endpoint", _) -> () (*ignored*)
@@ -360,6 +379,7 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 %token SEMI
 %token SHORT
 %token SIGNED
+%token SIZEOF
 %token SLASH
 %token SMALL
 %token STAR
@@ -388,7 +408,8 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 %left LESSLESS GREATERGREATER
 %left PLUS MINUS
 %left STAR SLASH PERCENT
-%right prec_uminus BANG TILDE
+%right prec_uminus BANG TILDE prec_deref prec_addressof prec_cast
+%left DOT prec_dot MINUSGREATER LBRACKET prec_subscript
 
 /* Start symbol */
 
@@ -418,7 +439,7 @@ component:
   | const_decl SEMI
         { [], [Comp_constdecl $1] }
   | type_decl SEMI
-        { [], List.map (fun td -> Comp_typedecl td) $1 }
+        { [], List.map (fun td -> Comp_typedecl td) (List.rev $1) }
   | attributes struct_declarator SEMI
         /* Attributes are ignored, they are allowed just to avoid a
            parsing ambiguity with fun_decl */
@@ -446,17 +467,9 @@ component:
 /* Constant declaration */
 
 const_decl:
-    CONST simple_type_spec pointer_opt IDENT EQUAL const_exp
+    CONST simple_type_spec pointer_opt IDENT EQUAL lexpr
         { {cd_name = $4; cd_type = $3($2); cd_value = $6} }
 ;
-
-const_exp:
-    const_int
-        { Cst_int $1 }
-  | STRING
-        { Cst_string $1 }
-;
-
 /* Typedef */
 
 type_decl:
@@ -575,7 +588,7 @@ pointer_opt:
     /* empty */
         { fun ty -> ty }
   | pointer_opt STAR
-        { fun ty -> Type_pointer(!pointer_default, ty) }
+        { fun ty -> $1(Type_pointer(!pointer_default, ty)) }
 ;
 direct_declarator:
     IDENT
@@ -588,7 +601,7 @@ direct_declarator:
 array_bounds_declarator:
     LBRACKET RBRACKET                           { no_bounds }
   | LBRACKET STAR RBRACKET                      { no_bounds }
-  | LBRACKET const_int RBRACKET                 { one_bound $2 }
+  | LBRACKET lexpr RBRACKET                     { one_bound $2 }
 ;
 
 /* Struct declaration and discriminated unions */
@@ -659,7 +672,7 @@ enum_cases:
 ;
 enum_case:
     IDENT                                               { $1 }
-  | IDENT EQUAL const_int                               { $1 }
+  | IDENT EQUAL lexpr                                   { $1 }
 ;
 
 /* Attributes */
@@ -684,7 +697,7 @@ attribute:
   | attribute STAR
         { make_star_attribute $1 }
   | IDENT UUID
-        { ($1, [Var $2]) }
+        { ($1, [Expr_string $2]) }
 ;
 attr_vars:
     attr_var
@@ -693,75 +706,112 @@ attr_vars:
         { $3 :: $1 }
 ;
 attr_var:
-    IDENT
-        { Var $1 }
-  | STRING
-        { Var $1 }
-  | STAR IDENT
-        { Deref $2 }
+    lexpr
+        { $1 }
   | /*nothing*/
         { null_attr_var }
 ;
 
-/* Integer constants */
+/* Limited expressions */
 
-const_int:
-    INTEGER
-        { $1 }
+lexpr:
+    IDENT
+        { Expr_ident $1 }
+  | INTEGER
+        { Expr_int $1 }
   | CHARACTER
-        { Char.code $1 }
+        { Expr_int(Char.code $1) }
   | TRUE
-        { 1 }
+        { Expr_int 1 }
   | FALSE
-        { 0 }
-  | const_int QUESTIONMARK const_int COLON const_int %prec prec_conditional
-        { if $1 <> 0 then $3 else $5 }
-  | const_int BARBAR const_int
-        { if $1 <> 0 then $1 else $3 }
-  | const_int AMPERAMPER const_int
-        { if $1 = 0 then 0 else $3 }
-  | const_int BAR const_int
-        { $1 land $3 }
-  | const_int AMPER const_int
-        { $1 lor $3 }
-  | const_int CARET const_int
-        { $1 lxor $3 }
-  | const_int EQUALEQUAL const_int
-        { if $1 = $3 then 1 else 0 }
-  | const_int BANGEQUAL const_int
-        { if $1 <> $3 then 1 else 0 }
-  | const_int LESS const_int
-        { if $1 < $3 then 1 else 0 }
-  | const_int GREATER const_int
-        { if $1 > $3 then 1 else 0 }
-  | const_int LESSEQUAL const_int
-        { if $1 <= $3 then 1 else 0 }
-  | const_int GREATEREQUAL const_int
-        { if $1 >= $3 then 1 else 0 }
-  | const_int LESSLESS const_int
-        { $1 lsl $3 }
-  | const_int GREATERGREATER const_int
-        { $1 asr $3 }
-  | const_int PLUS const_int
-        { $1 + $3 }
-  | const_int MINUS const_int
-        { $1 - $3 }
-  | const_int STAR const_int
-        { $1 * $3 }
-  | const_int SLASH const_int
-        { if $3 = 0 then 0 else $1 / $3 }
-  | const_int PERCENT const_int
-        { if $3 = 0 then 0 else $1 mod $3 }
-  | PLUS const_int %prec prec_uminus
+        { Expr_int 0 }
+  | STRING
+        { Expr_string $1 }
+  | lexpr QUESTIONMARK lexpr COLON lexpr %prec prec_conditional
+        { Expr_cond($1, $3, $5) }
+  | lexpr BARBAR lexpr
+        { Expr_sequor($1, $3) }
+  | lexpr AMPERAMPER lexpr
+        { Expr_sequand($1, $3) }
+  | lexpr BAR lexpr
+        { Expr_logor($1, $3) }
+  | lexpr CARET lexpr
+        { Expr_logxor($1, $3) }
+  | lexpr AMPER lexpr
+        { Expr_logand($1, $3) }
+  | lexpr EQUALEQUAL lexpr
+        { Expr_eq($1, $3) }
+  | lexpr BANGEQUAL lexpr
+        { Expr_ne($1, $3) }
+  | lexpr LESS lexpr
+        { Expr_lt($1, $3) }
+  | lexpr GREATER lexpr
+        { Expr_gt($1, $3) }
+  | lexpr LESSEQUAL lexpr
+        { Expr_le($1, $3) }
+  | lexpr GREATEREQUAL lexpr
+        { Expr_ge($1, $3) }
+  | lexpr LESSLESS lexpr
+        { Expr_lshift($1, $3) }
+  | lexpr GREATERGREATER lexpr
+        { Expr_rshift($1, $3) }
+  | lexpr PLUS lexpr
+        { Expr_plus($1, $3) }
+  | lexpr MINUS lexpr
+        { Expr_minus($1, $3) }
+  | lexpr STAR lexpr
+        { Expr_times($1, $3) }
+  | lexpr SLASH lexpr
+        { Expr_div($1, $3) }
+  | lexpr PERCENT lexpr
+        { Expr_mod($1, $3) }
+  | PLUS lexpr %prec prec_uminus
         { $2 }
-  | MINUS const_int %prec prec_uminus
-        { - $2 }
-  | TILDE const_int
-        { lnot $2 }
-  | BANG const_int
-        { if $2 = 0 then 1 else 0 }
-  | LPAREN const_int RPAREN
+  | MINUS lexpr %prec prec_uminus
+        { Expr_neg($2) }
+  | TILDE lexpr
+        { Expr_lognot($2) }
+  | BANG lexpr
+        { Expr_boolnot($2) }
+  | STAR lexpr %prec prec_deref
+        { Expr_deref($2) }
+  | AMPER lexpr %prec prec_addressof
+        { Expr_addressof($2) }
+  | LPAREN type_expr RPAREN lexpr %prec prec_cast
+        { Expr_cast($2, $4) }
+  | SIZEOF LPAREN type_expr RPAREN
+        { Expr_sizeof($3) }
+  | lexpr LBRACKET lexpr RBRACKET %prec prec_subscript
+        { Expr_subscript($1, $3) }
+  | lexpr MINUSGREATER IDENT
+        { Expr_dereffield($1, $3) }
+  | lexpr DOT IDENT %prec prec_dot
+        { Expr_field($1, $3) }
+  | LPAREN lexpr RPAREN
         { $2 }
+;
+
+type_expr:
+    type_spec
+        { $1 }
+  | type_spec abstract_declarator
+        { $2($1) }
+;
+
+abstract_declarator:
+    STAR
+        { fun ty -> Type_pointer(!pointer_default, ty) }
+  | STAR direct_abstract_declarator
+        { fun ty -> $2(Type_pointer(!pointer_default, ty)) }
+  | direct_abstract_declarator
+        { $1 }
+;
+
+direct_abstract_declarator:
+    LPAREN abstract_declarator RPAREN
+        { $2 }
+  | direct_abstract_declarator array_bounds_declarator
+        { fun ty -> Type_array($2, ty) }
 ;
 
 /* Optional names for struct, union, enums */
