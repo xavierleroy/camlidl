@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comerror.c,v 1.9 2000-08-19 11:05:00 xleroy Exp $ */
+/* $Id: comerror.c,v 1.10 2001-06-09 14:48:20 xleroy Exp $ */
 
 /* Error handling */
 
@@ -105,24 +105,24 @@ void camlidl_check_hresult(HRESULT hr)
   if (FAILED(hr)) camlidl_hresult_error(hr);
 }
 
-value camlidl_c2ml_Com_HRESULT_bool(HRESULT hr)
+value camlidl_c2ml_Com_HRESULT_bool(HRESULT_bool * hr, camlidl_ctx ctx)
 {
-  if (FAILED(hr)) camlidl_hresult_error(hr);
-  return Val_bool(hr == S_OK);
+  if (FAILED(*hr)) camlidl_hresult_error(*hr);
+  return Val_bool(*hr == S_OK);
 }
 
-void camlidl_ml2c_Com_HRESULT_bool(value v, HRESULT * hr)
+void camlidl_ml2c_Com_HRESULT_bool(value v, HRESULT * hr, camlidl_ctx ctx)
 {
   *hr = Bool_val(v) ? S_OK : S_FALSE;
 }
 
-value camlidl_c2ml_Com_HRESULT_int(HRESULT hr)
+value camlidl_c2ml_Com_HRESULT_int(HRESULT_int * hr, camlidl_ctx ctx)
 {
-  if (FAILED(hr)) camlidl_hresult_error(hr);
-  return Val_int(HRESULT_CODE(hr));
+  if (FAILED(*hr)) camlidl_hresult_error(*hr);
+  return Val_int(HRESULT_CODE(*hr));
 }
 
-void camlidl_ml2c_Com_HRESULT_int(value v, HRESULT * hr)
+void camlidl_ml2c_Com_HRESULT_int(value v, HRESULT * hr, camlidl_ctx ctx)
 {
   *hr = MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_NULL, Int_val(v) & 0xFFFF);
 }

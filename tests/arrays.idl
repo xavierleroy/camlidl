@@ -1,4 +1,4 @@
-interface Arrays {
+[pointer_default(ref)] interface Arrays {
 /* Strings */
 
 [string] char * str1([in,string] unsigned char * s);
@@ -27,7 +27,7 @@ void multarray1([in] int i, [in] int j, [in, size_is(i,j)] int t[][]);
 
 /* Big arrays */
 
-void bigarray1([bigarray,inout] double t[10][20]);
+void bigarray1([bigarray,in,out] double t[10][20]);
 void bigarray2([in] int dimx, [in] int dimy,
                [in,bigarray,size_is(dimx,dimy)] long t[][],
                [out,bigarray,size_is(dimy,dimx)] long tt[][]);

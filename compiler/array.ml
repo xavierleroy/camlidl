@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: array.ml,v 1.13 2000-08-19 11:04:55 xleroy Exp $ *)
+(* $Id: array.ml,v 1.14 2001-06-09 14:48:19 xleroy Exp $ *)
 
 (* Handling of arrays and bigarrays *)
 
@@ -43,9 +43,12 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
   if attr.is_string then begin
     begin match attr.bound with
       None ->
-        if onstack
-        then iprintf oc "%s = String_val(%s);\n" c v
-        else iprintf oc "%s = camlidl_malloc_string(%s, _ctx);\n" c v
+        if onstack then
+          iprintf oc "%s = String_val(%s);\n" c v
+        else begin
+          iprintf oc "%s = camlidl_malloc_string(%s, _ctx);\n" c v;
+          need_context := true
+        end
     | Some n ->
         iprintf oc
             "if (string_length(%s) >= %d) invalid_argument(\"%s\");\n"

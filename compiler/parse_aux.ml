@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.9 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.10 2001-06-09 14:48:20 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -123,9 +123,9 @@ let rec apply_type_attribute ty attr =
       Type_pointer(Ptr, ty_elt)
   | (("ignore", _), Type_pointer(attr, ty_elt)) ->
       Type_pointer(Ignore, ty_elt)
-  | (("string", _), Type_array(attr, (Type_int((Char|UChar|Byte), _) as ty_elt))) ->
+  | (("string", _), Type_array(attr, ty_elt)) ->
       Type_array({attr with is_string = true}, ty_elt)
-  | (("string", _), Type_pointer(attr, (Type_int((Char|UChar|Byte), _) as ty_elt))) ->
+  | (("string", _), Type_pointer(attr, ty_elt)) ->
       let attr' = {no_bounds with is_string = true;
                                   maybe_null = (attr = Unique)} in
       Type_array(attr', ty_elt)

@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: normalize.ml,v 1.18 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: normalize.ml,v 1.19 2001-06-09 14:48:19 xleroy Exp $ *)
 
 (* Normalization of IDL types after parsing *)
 
@@ -29,6 +29,18 @@ let enums =   (Hashtbl.create 13 : (string, enum_decl) Hashtbl.t)
 let intfs =   (Hashtbl.create 13 : (string, interface) Hashtbl.t)
 let typedefs =(Hashtbl.create 13 : (string, type_decl) Hashtbl.t)
 
+let find_typedef s =
+  try
+    Hashtbl.find typedefs s
+  with Not_found ->
+    error("unknown type name " ^ s)
+
+let expand_typedef s = (find_typedef s).td_type
+
+let _ =
+  Typedef.find := find_typedef;
+  Cvttyp.expand_typedef := expand_typedef
+
 let all_comps = ref ([] : component list)
 
 let currstamp = ref 0
@@ -43,6 +55,11 @@ let error_if_fundecl kind =
 
 let make_module_name filename =
   Filename.chop_extension (Filename.basename filename)
+
+let rec is_char_type = function
+    Type_int((Char | UChar | Byte), _) -> true
+  | Type_named(modname, tyname) -> is_char_type (expand_typedef tyname)
+  | _ -> false
 
 (* Generic function to handle declarations and definitions of struct,
    unions, enums and interfaces *)
@@ -91,7 +108,11 @@ let rec normalize_type = function
     Type_pointer(kind, ty_elt) ->
       Type_pointer(kind, normalize_type ty_elt)
   | Type_array(attr, ty_elt) ->
-      Type_array(attr, normalize_type ty_elt)
+      let norm_ty_elt = normalize_type ty_elt in
+      if attr.is_string && not (is_char_type norm_ty_elt) then
+        error "[string] argument applies only to \
+               char array or pointer to char";
+      Type_array(attr, norm_ty_elt)
   | Type_struct sd ->
       Type_struct(enter_struct sd)
   | Type_union(ud, discr) ->
@@ -244,10 +265,3 @@ let normalize_file filename =
   Hashtbl.clear intfs;
   res
 
-let _ =
-  Typedef.find :=
-    (fun s ->
-      try
-        Hashtbl.find typedefs s
-      with Not_found ->
-        error("unknown type name " ^ s))

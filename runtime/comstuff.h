@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comstuff.h,v 1.10 2000-08-19 11:05:00 xleroy Exp $ */
+/* $Id: comstuff.h,v 1.11 2001-06-09 14:48:20 xleroy Exp $ */
 
 /* Load or emulate COM-related includes */
 
@@ -41,7 +41,6 @@ interface IUnknown {
 #define InterlockedIncrement(p) (++(*(p)))
 #define InterlockedDecrement(p) (--(*(p)))
 extern IID IID_IUnknown;
-#define S_OK 0
 #define S_TRUE S_OK
 #define S_FALSE 1
 #define E_NOINTERFACE 0x80004002
