@@ -18,3 +18,6 @@ int f5([in] int x, [out] int * p);
 
 void f8([in, out] int * p, [in, out] long * q);
 
+/* Many arguments */
+
+int f9(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8);

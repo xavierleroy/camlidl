@@ -68,16 +68,6 @@ let copy_values_to_block oc src dst numvals =
     iprintf oc "}\n"
   end
 
-(* Keep track of variables allocated with stat_alloc *)
+(* Record if we need deallocation *)
 
-let to_deallocate = ref ([] : string list)
-
-let add_to_deallocate v =
-  to_deallocate := v :: !to_deallocate
-
-let output_deallocates oc =
-  List.iter (fun v -> iprintf oc "stat_free(%s);\n" v) !to_deallocate;
-  to_deallocate := []
-
-let check_no_deallocates kind =
-  if !to_deallocate <> [] then error(sprintf "variable-sized array in %s" kind)
+let need_deallocation = ref false

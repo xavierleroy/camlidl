@@ -25,7 +25,7 @@ let transl_ml_to_c oc td =
   current_function := sprintf "typedef %s" td.td_name;
   let v = new_var "_v" in
   let c = new_var "_c" in
-  fprintf oc "void _camlidl_ml2c_%s_%s(value %s, %s * %s)\n"
+  fprintf oc "void camlidl_ml2c_%s_%s(value %s, %s * %s)\n"
              !module_name td.td_name v td.td_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
@@ -37,7 +37,6 @@ let transl_ml_to_c oc td =
   output_variable_declarations oc;
   end_diversion oc;
   fprintf oc "}\n\n";
-  check_no_deallocates "typedef";
   current_function := ""
 
 (* Translation function from the C type to the ML type *)
@@ -46,7 +45,7 @@ let transl_c_to_ml oc td =
   current_function := sprintf "typedef %s" td.td_name;
   let v = new_ml_variable() in
   let c = new_var "_c" in
-  fprintf oc "value _camlidl_c2ml_%s_%s(%s * %s)\n"
+  fprintf oc "value camlidl_c2ml_%s_%s(%s * %s)\n"
              !module_name td.td_name td.td_name c;
   fprintf oc "{\n";
   let pc = divert_output() in
@@ -70,13 +69,13 @@ let transl_c_to_ml oc td =
 let emit_transl oc td =
   begin match td.td_ml2c with
     Some s ->
-      fprintf oc "#define _camlidl_ml2c_%s_%s %s\n\n" !module_name td.td_name s
+      fprintf oc "#define camlidl_ml2c_%s_%s %s\n\n" !module_name td.td_name s
   | None ->
       transl_ml_to_c oc td
   end;
   begin match td.td_c2ml with
     Some s ->
-      fprintf oc "#define _camlidl_c2ml_%s_%s %s\n\n" !module_name td.td_name s
+      fprintf oc "#define camlidl_c2ml_%s_%s %s\n\n" !module_name td.td_name s
   | None ->
       transl_c_to_ml oc td
   end

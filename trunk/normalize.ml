@@ -41,14 +41,14 @@ let rec normalize_type = function
       end
   | Type_union(ud, discr) ->
       Type_union(enter_union ud, discr)
-  | Type_enum {en_consts = []; en_name = name} ->
+  | Type_enum({en_consts = []; en_name = name}, attr) ->
       begin try
-        Type_enum(Hashtbl.find enums name)
+        Type_enum(Hashtbl.find enums name, attr)
       with Not_found ->
         error (sprintf "Unknown enum %s in type" name)
       end
-  | Type_enum en ->
-      Type_enum(enter_enum en)
+  | Type_enum (en, attr) ->
+      Type_enum(enter_enum en, attr)
   | ty -> ty
 
 and normalize_field f =
@@ -144,7 +144,7 @@ let normalize_component = function
 
 let interface intf =
   let intf' = List.map normalize_component intf in
-  let alldecls = !all_type_decls in
+  let alldecls = List.rev !all_type_decls in
   Hashtbl.clear structs;
   Hashtbl.clear unions;
   Hashtbl.clear enums;

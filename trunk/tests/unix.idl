@@ -41,17 +41,17 @@ typedef fd_set * file_descr_set;
 
 |}
 
-typedef [string] char * string;
+typedef [string] char * cstring;
 
-[null_terminated] string * environment(void);
+[null_terminated] cstring * environment(void);
 
 [string] char * getenv([in,string] char * varname);
 
 void putenv([in,string] char * name_val);
 
-int execv([in,string] char * path, [in,null_terminated] string * argv);
+int execv([in,string] char * path, [in,null_terminated] cstring * argv);
 
-int execve([in,string] char * path, [in,null_terminated] string * argv, [in,null_terminated] string * env);
+int execve([in,string] char * path, [in,null_terminated] cstring * argv, [in,null_terminated] cstring * env);
 
 int fork(void);
 
@@ -79,9 +79,14 @@ int getpid(void);
 int getppid(void);
 int nice(int pid);
 
-/* open  no conversion between lists of flags and int */
-/* the best we can do is */
-int openfile([in,string] char * name, [in] int flags, [in] int perms)
+enum open_flags {
+  O_RDONLY, O_WRONLY, O_RDWR, O_CREAT,
+  O_EXCL, O_TRUNC, O_APPEND, O_NONBLOCK
+};
+
+int openfile([in,string] char * name,
+             [in,set] enum open_flags flags,
+             [in] int perms)
   {| _res = open(name, flags, perms);
   |};
 int close([in] int fd);

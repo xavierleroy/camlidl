@@ -29,7 +29,7 @@ let rec out_c_decl oc (id, ty) =
   | Type_union(ud, discr) ->
       assert (ud.ud_name <> "");
       fprintf oc "union %s %s" ud.ud_name id
-  | Type_enum en ->
+  | Type_enum (en, attr) ->
       fprintf oc "int %s" id
       (* Alternatively, one could do:
            assert (en.en_name <> "");
@@ -65,15 +65,16 @@ let rec out_ml_type oc ty =
   | Type_struct sd ->
       if sd.sd_name = ""
       then fprintf oc "struct_%d" sd.sd_stamp
-      else fprintf oc "struct_%s" sd.sd_name
+      else fprintf oc "%s" sd.sd_name
   | Type_union(ud, discr) ->
       if ud.ud_name = ""
       then fprintf oc "union_%d" ud.ud_stamp
-      else fprintf oc "union_%s" ud.ud_name
-  | Type_enum en ->
+      else fprintf oc "%s" ud.ud_name
+  | Type_enum (en, attr) ->
       if en.en_name = ""
       then fprintf oc "enum_%d" en.en_stamp
-      else fprintf oc "enum_%s" en.en_name
+      else fprintf oc "%s" en.en_name;
+      if attr.bitset then fprintf oc " list"
   | Type_pointer(kind, ty) ->
       begin match kind with
         Ref -> out_ml_type oc ty

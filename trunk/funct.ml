@@ -22,10 +22,10 @@ let is_dependent_parameter name params =
       match ty with
         Type_array(attr, ty) ->
           is_param_opt attr.size || is_param_opt attr.length
-      | Type_union(name, discr) ->
-          is_param discr
-      | Type_pointer(_, Type_union(name, discr)) ->
-          is_param discr
+      | Type_union(name, attr) ->
+          is_param attr.discriminant
+      | Type_pointer(_, Type_union(name, attr)) ->
+          is_param attr.discriminant
       | _ -> false)
     params
 
@@ -78,7 +78,10 @@ let ml_declaration oc fundecl =
   out_ml_types oc "->" ins;
   fprintf oc " -> ";
   out_ml_types oc "*" outs;
-  fprintf oc "\n\t= \"_camlidl_%s_%s\"\n\n" !module_name fundecl.fun_name
+  if List.length ins <= 5
+  then fprintf oc "\n\t= \"camlidl_%s_%s\"\n\n" !module_name fundecl.fun_name
+  else fprintf oc "\n\t= \"camlidl_%s_%s_bytecode\" \"camlidl_%s_%s\"\n\n"
+                  !module_name fundecl.fun_name !module_name fundecl.fun_name
 
 (* Print a warm fuzzy in/out comment *)
 
@@ -87,13 +90,19 @@ let out_inout oc = function
   | Out -> fprintf oc "[out]"
   | InOut -> fprintf oc "[in,out]"
 
+let output_deallocate oc =
+  if !need_deallocation then begin
+    iprintf oc "camlidl_temp_free();\n";
+    need_deallocation := false
+  end
+
 (* Generate the wrapper for calling a C function from ML *)
 
 let emit_wrapper oc fundecl =
   current_function := fundecl.fun_name;
   let (ins, outs) = ml_view fundecl in
   (* Emit function header *)
-  fprintf oc "value _camlidl_%s_%s(" !module_name fundecl.fun_name;
+  fprintf oc "value camlidl_%s_%s(" !module_name fundecl.fun_name;
   begin match ins with
     [] ->
       fprintf oc "value _unit)\n"
@@ -156,13 +165,13 @@ let emit_wrapper oc fundecl =
   (* Convert outs from C to ML *)
   begin match outs with
     [] ->
-      output_deallocates pc;
+      output_deallocate pc;
       iprintf pc "return Val_unit;\n"
   | [name, ty] ->
       c_to_ml pc "" ty name "_vres";
       output_variable_declarations oc;
       fprintf oc "  value _vres;\n\n";
-      output_deallocates pc;
+      output_deallocate pc;
       iprintf pc "return _vres;\n";
   | _ ->
       let num_outs = List.length outs in
@@ -178,7 +187,7 @@ let emit_wrapper oc fundecl =
       copy_values_to_block pc "_vres" "_vresult" num_outs;
       decrease_indent();
       iprintf pc "End_roots()\n";
-      output_deallocates pc;
+      output_deallocate pc;
       iprintf pc "return _vresult;\n";
       output_variable_declarations oc;
       fprintf oc "  value _vresult;\n";
@@ -188,6 +197,19 @@ let emit_wrapper oc fundecl =
   end;
   end_diversion oc;
   fprintf oc "}\n\n";
+  (* If more than 5 arguments, create an extra wrapper for the bytecode
+     interface *)
+  if List.length ins > 5 then begin
+    fprintf oc "value camlidl_%s_%s_bytecode(value * argv, int argn)\n"
+               !module_name fundecl.fun_name;
+    fprintf oc "{\n";
+    fprintf oc "  camlidl_%s_%s(argv[0]" !module_name fundecl.fun_name;
+    for i = 1 to List.length ins - 1 do
+      fprintf oc ", argv[%d]" i
+    done;
+    fprintf oc ");\n";
+    fprintf oc "}\n\n"
+  end;
   current_function := ""
 
 

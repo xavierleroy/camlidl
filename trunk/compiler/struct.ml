@@ -21,8 +21,8 @@ let is_dependent_field name fields =
       match ty with
         Type_array(attr, ty) ->
           is_param_opt attr.size || is_param_opt attr.length
-      | Type_union(name, discr) ->
-          is_param discr
+      | Type_union(name, attr) ->
+          is_param attr.discriminant
       | _ -> false)
     fields
 
@@ -35,46 +35,77 @@ let remove_dependent_fields fields =
        not (is_dependent_field f.field_name fields || is_ignored f.field_typ))
     fields
 
-(* Translation from an ML record [v] to a C pointer struct [c] *)
+(* Determine if all fields of a struct are floats *)
+
+let is_float_field f =
+  match f.field_typ with
+    Type_float -> true
+  | Type_double -> true
+  | _ -> false (* FIXME: what about typedef double foo? *)
+
+let all_float_fields fl =
+  List.for_all is_float_field fl
+
+(* Translation from an ML record [v] to a C struct [c] *)
 (* [sd] is the IDL declaration for the record type. *)
 
 let struct_ml_to_c ml_to_c oc sd v c =
-  let rec convert_fields pos = function
-    [] -> ()
-  | {field_typ = Type_pointer(Ignore, _); field_name = n} :: rem ->
-      iprintf oc "%s->%s = NULL;\n" c n;
-      convert_fields pos rem
-  | {field_name = n} :: rem when is_dependent_field n sd.sd_fields ->
-      convert_fields pos rem
-  | {field_typ = ty; field_name = n} :: rem ->
-      let v' = new_ml_variable() in
-      iprintf oc "%s = Field(%s, %d);\n" v' v pos;
-      ml_to_c oc (sprintf "%s." c) ty v' (sprintf "%s.%s" c n);
-      convert_fields (pos + 1) rem in
-  convert_fields 0 sd.sd_fields
+  if all_float_fields sd.sd_fields then begin
+    let rec convert_fields pos = function
+      [] -> ()
+    | f :: rem ->
+        iprintf oc "%s.%s = Double_field(%s, %d);\n" c f.field_name v pos;
+        convert_fields (pos + 1) rem in
+    convert_fields 0 sd.sd_fields
+  end else begin
+    let rec convert_fields pos = function
+      [] -> ()
+    | {field_typ = Type_pointer(Ignore, _); field_name = n} :: rem ->
+        iprintf oc "%s->%s = NULL;\n" c n;
+        convert_fields pos rem
+    | {field_name = n} :: rem when is_dependent_field n sd.sd_fields ->
+        convert_fields pos rem
+    | {field_typ = ty; field_name = n} :: rem ->
+        let v' = new_ml_variable() in
+        iprintf oc "%s = Field(%s, %d);\n" v' v pos;
+        ml_to_c oc (sprintf "%s." c) ty v' (sprintf "%s.%s" c n);
+        convert_fields (pos + 1) rem in
+    convert_fields 0 sd.sd_fields
+  end
 
 (* Translation from a C pointer struct [c] to an ML record [v].
    [sd] is the IDL declaration for the record type. *)
 
 let struct_c_to_ml c_to_ml oc sd c v =
-  let nfields = List.length(remove_dependent_fields sd.sd_fields) in
-  let v' = new_ml_variable_block nfields in
-  init_value_block oc v' nfields;
-  iprintf oc "Begin_roots_block(%s, %d)\n" v' nfields;
-  increase_indent();
-  let rec convert_fields pos = function
-    [] -> ()
-  | {field_typ = Type_pointer(Ignore, _); field_name = n} :: rem ->
-      convert_fields pos rem
-  | {field_name = n} :: rem when is_dependent_field n sd.sd_fields ->
-      convert_fields pos rem
-  | {field_typ = ty; field_name = n} :: rem ->
-      c_to_ml oc (sprintf "%s." c) ty
-                 (sprintf "%s.%s" c n) (sprintf "%s[%d]" v' pos);
-      convert_fields (pos + 1) rem in
-  convert_fields 0 sd.sd_fields;
-  iprintf oc "%s = alloc_small(%d, 0);\n" v nfields;
-  copy_values_to_block oc v' v nfields;
-  decrease_indent();
-  iprintf oc "End_roots()\n"
+  if all_float_fields sd.sd_fields then begin
+    let nfields = List.length sd.sd_fields in
+    iprintf oc "%s = alloc_small(%d * Double_wosize, Double_tag);\n" v nfields;
+    let rec convert_fields pos = function
+      [] -> ()
+    | f :: rem ->
+        iprintf oc "Store_double_val(%s, %s.%s);\n" v c f.field_name;
+        convert_fields (pos + 1) rem in
+    convert_fields 0 sd.sd_fields
+  end else begin
+    let nfields = List.length(remove_dependent_fields sd.sd_fields) in
+    let v' = new_ml_variable_block nfields in
+    init_value_block oc v' nfields;
+    iprintf oc "Begin_roots_block(%s, %d)\n" v' nfields;
+    increase_indent();
+    let rec convert_fields pos = function
+      [] -> ()
+    | {field_typ = Type_pointer(Ignore, _); field_name = n} :: rem ->
+        convert_fields pos rem
+    | {field_name = n} :: rem when is_dependent_field n sd.sd_fields ->
+        convert_fields pos rem
+    | {field_typ = ty; field_name = n} :: rem ->
+        c_to_ml oc (sprintf "%s." c) ty
+                   (sprintf "%s.%s" c n) (sprintf "%s[%d]" v' pos);
+        convert_fields (pos + 1) rem in
+    convert_fields 0 sd.sd_fields;
+    iprintf oc "%s = alloc_small(%d, 0);\n" v nfields;
+    copy_values_to_block oc v' v nfields;
+    decrease_indent();
+    iprintf oc "End_roots()\n"
+  end
 
