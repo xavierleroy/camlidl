@@ -120,7 +120,8 @@ hex: '0' \ldots '9' || 'a' \ldots 'f' || 'A' \ldots 'F';
 \subsection{Limited expressions}
 
 Limited expressions are similar to C expressions, with the omission of
-assignment operators ("=", "+=", etc).  Operators have the same
+assignment operators ("=", "+=", etc), and the addition of the
+unsigned (logical) right shift operator ">>>".  Operators have the same
 precedences and associativities as in C.  They are listed below in
 decreasing priority order.
 \begin{syntax} 
@@ -138,7 +139,7 @@ lexpr:
 | ('&'||'*'||'!'||'~'||'-'||'+') lexpr
 | lexpr ('*'||'/'||'%') lexpr
 | lexpr ('+'||'-') lexpr
-| lexpr ('<<'||'>>') lexpr
+| lexpr ('<<'||'>>'|'>>>') lexpr
 | lexpr ('=='||'!='||'>='||'<='||'>'||'<')
 | lexpr ('&'||'^'||'|') lexpr
 | lexpr ('&&'||'||') lexpr  
@@ -175,14 +176,20 @@ arguments.
        {array type}
 \entree{@"camlint"@       }
        {"int" or "long" integer type}
+\entree{@"compare"'('fun-name')'@ }
+       {"typedef" }
 \entree{@"c2ml"'('fun-name')'@ }
        {"typedef" }
 \entree{@"errorcheck"'('fun-name')'@ }
        {"typedef" }
 \entree{@"errorcode"@     }
        {"typedef" }
+\entree{@"finalize"'('fun-name')'@ }
+       {"typedef" }
 \entree{@"fortran"@       }
        {array type with "bigarray" attribute}
+\entree{@"hash"'('fun-name')'@ }
+       {"typedef" }
 \entree{@"ignore"@        }
        {any pointer type  }
 \entree{@"in"@            }
@@ -249,7 +256,7 @@ array of integers.
 \begin{syntax}
 type-spec:
   ['unsigned'||'signed']
-  ('int'||'short'||'long'||'char'||'hyper'||'long long'||'__int64')
+  ('int'||'short'||'long'||'char'||'hyper'||'long' 'long'||'__int64')
 | 'byte'
 | 'float'
 | 'double'
@@ -334,11 +341,14 @@ sequences that replaces the default sequences in the
 \subsection{Constant definitions}
 
 \begin{syntax}
-constant-decl: 'const' type-spec {'*'} ident '=' const-lexpr ';'
+constant-decl: 'const' attributes type-spec {'*'} ident '=' const-lexpr ';'
 \end{syntax}
 A constant declaration associates a name to a limited expression.
 The limited expression can refer to constant names declared earlier,
-but cannot refer to other kinds of identifiers.
+but cannot refer to other kinds of identifiers.  The optional
+attributes influence the interpretation of the type specification,
+e.g. "const int x = 3" defines "x" with Caml type "int", but
+"const [int64] long x = 5" defines "x" with Caml type "int64".
 
 \subsection{IDL files}
 
@@ -707,16 +717,36 @@ the typedef-ed type, instead of using the "camlidl"-generated
 conversion functions.  This allows user-controlled translation of data
 structures.  The prototypes of the conversion functions must be
 \begin{alltt}
-        value c2ml(\var{ty} * input, camlidl_ctx ctx);
-        void ml2c(value input, \var{ty} * output, camlidl_ctx ctx);
+        value c2ml(\var{ty} * input);
+        void ml2c(value input, \var{ty} * output);
 \end{alltt}
 where \var{ty} is the name of the type defined by "typedef".  In other
 terms, the "c2ml" function is passed a reference to a \var{ty} and
 returns the corresponding Caml value, while the "ml2c" function is
 passed a Caml value as first argument and stores the corresponding C
-value in the \var{ty} reference passed as second argument.  (The extra
-"camlidl_ctx" argument is for internal use by the generated stub code;
-just ignore it.)
+value in the \var{ty} reference passed as second argument.
+
+If the @"finalize("final-fn")"@ attribute is given in combination with the
+@"abstract"@ attribute, the function @final-fn@ is called when
+the Caml block representing a value of this typedef becomes
+unreachable from Caml and is reclaimed by the Caml garbage collector.  
+Similarly, @"compare("compare-fn")"@ and @"hash("hash-fn")"@ attach a
+comparison function and a hashing function (respectively) to Caml
+values for this typedef.  The comparison function is called when two
+Caml values of this typedef are compared using the generic comparisons
+"compare", "=", "<", etc.  The hashing function is called when
+"Hashtbl.hash" is applied to a Caml value of this typedef.
+The prototype of the finalization, comparison and hashing functions are:
+\begin{alltt}
+        value \var{final-fn}(\var{ty} * x);
+        int \var{compare-fn}(\var{ty} * x, \var{ty} * y);
+        long \var{hash-fn}(\var{ty} * x);
+\end{alltt}
+That is, their arguments are passed by reference.  The comparison
+function must return an integer that is negative, zero, or positive
+depending on whether its first argument is smaller, equal or greater
+than its second argument.  The hashing function returns a suitable
+hash value for its argument.
 
 If the @"errorcheck("fn")"@ attribute is provided for the "typedef" \var{ty},
 the error checking function @fn@ is called each time a function result
@@ -1023,7 +1053,7 @@ in the IDL file, as well as declarations for the functions and the
 interfaces.
 \item A Caml implementation file \var{f}".ml" that implements the
 \var{f}".mli" file.
-\item A C source file \var{f}".c" that contains the stub functions for
+\item A C source file \var{f}"_stubs.c" that contains the stub functions for
 converting between C and Caml data representations.
 \item If the "-header" option is given, a C header file \var{f}".h"
 containing C declarations for the types declared in the IDL file.
