@@ -1,8 +1,10 @@
 include ..\Makefile.config
 
-OCAMLC=ocamlc
+CC=cl
+CFLAGS=/nologo /Zi /MT /I$(OCAMLLIB)
 
-OBJS=idlalloc.obj comintf.obj cfactory.obj comerror.obj
+OBJS=idlalloc.obj comintf.obj cfactory.obj comerror.obj superror.obj \
+  registry.obj
 
 all: camlidlruntime.lib
 
@@ -10,15 +12,11 @@ camlidlruntime.lib: $(OBJS)
 	- rm -f $@
 	lib /nologo /debugtype:CV /out:$@ $(OBJS)
 
-.SUFFIXES: .c .obj
+.SUFFIXES: .c .cpp .obj
 
 .c.obj:
-	$(OCAMLC) -ccopt "$(CFLAGS)" $*.c
+	$(CC) $(CFLAGS) -c $*.c
+.cpp.obj:
+	$(CC) $(CFLAGS) -c $*.cpp
 
-depend:
-	gcc -I$(OCAMLLIB) -MM *.c > .depend
-
-include .depend
-
-
-
+$(OBJS): camlidlruntime.h comstuff.h registry.h

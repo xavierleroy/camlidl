@@ -205,3 +205,16 @@ value camlidl_com_uninitialize(value unit)
   return Val_unit;
 }
 
+/* Register a Caml component factory */
+
+struct camlidl_comp * camlidl_registered_components = NULL;
+
+value camlidl_register_factory(value compdata)
+{
+  struct camlidl_comp * c = stat_alloc(sizeof(struct camlidl_comp));
+  c->compdata = compdata;
+  register_global_root(&(c->compdata));
+  c->next = camlidl_registered_components;
+  camlidl_registered_components = c;
+  return Val_unit;
+}
