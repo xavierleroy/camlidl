@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comstuff.h,v 1.8 1999-03-15 15:21:40 xleroy Exp $ */
+/* $Id: comstuff.h,v 1.9 1999-03-15 16:21:17 xleroy Exp $ */
 
 /* Load or emulate COM-related includes */
 
@@ -70,7 +70,9 @@ extern int camlidl_num_components;
 
 /* Handle for module (for the DLL) */
 
+#ifdef _WIN32
 extern HMODULE camlidl_module_handle;
+#endif
 
 /* The list of all registered components */
 

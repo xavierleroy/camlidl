@@ -9,7 +9,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: comintf.c,v 1.8 1999-03-15 15:21:40 xleroy Exp $ */
+/* $Id: comintf.c,v 1.9 1999-03-15 16:21:16 xleroy Exp $ */
 
 /* Helper functions for handling COM interfaces */
 
@@ -136,8 +136,10 @@ ULONG STDMETHODCALLTYPE camlidl_Release(struct camlidl_intf * this)
     for (i = 0; i < comp->numintfs; i++) {
       struct camlidl_intf * intf = &(comp->intf[i]);
       remove_global_root(&(intf->caml_object));
-      if (intf->typeinfo != NULL)
-        intf->typeinfo->lpVtbl->Release(intf->typeinfo);
+      if (intf->typeinfo != NULL) {
+        struct IUnknown * i = (struct IUnknown *) intf->typeinfo;
+        i->lpVtbl->Release(i);
+      }
     }
     stat_free(comp);
     InterlockedDecrement(&camlidl_num_components);
