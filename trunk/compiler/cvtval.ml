@@ -105,7 +105,7 @@ let rec c_to_ml oc pref ty c v =
                       out_restr_expr attr.discriminant c
   | Type_enum(en, attr) ->
       if attr.bitset then
-        Enum.enumset_c_to_ml c_to_ml oc en v c
+        Enum.enumset_c_to_ml c_to_ml oc en c v
       else if en.en_name = "" then
         Enum.enum_c_to_ml c_to_ml oc en c v
       else

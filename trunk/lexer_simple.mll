@@ -182,11 +182,7 @@ and string = parse
 and diversion = parse
     "|}"
       { () }
-  | "\""
-      { reset string_buffer;
-        string lexbuf;
-        reset string_buffer;
-        diversion lexbuf }
+  (* TODO: skip strings correctly *)
   | eof
       { error "Unterminated {| section" }
   | _
