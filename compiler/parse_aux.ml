@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.6 1999-03-15 15:21:38 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.7 1999-03-16 15:40:53 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -165,24 +165,27 @@ let make_fun_declaration attrs ty_res name params quotes =
     fun_call = !call;
     fun_dealloc = !dealloc }
 
-let make_fields attrs tybase decls =
-  List.map
-    (fun decl ->
-      let (name, ty) = decl tybase in
-      { field_name = name; field_typ = apply_type_attributes ty attrs })
-    decls
-
 let make_field attrs tybase decl =
+  let rec mlname default = function
+    [] -> default
+  | ("mlname", [Expr_ident s]) :: rem -> mlname s rem
+  | (_, _) :: rem -> mlname default rem in
   let (name, ty) = decl tybase in
-  { field_name = name; field_typ = apply_type_attributes ty attrs }
+  { field_name = name; field_mlname = mlname name attrs;
+    field_typ = apply_type_attributes ty attrs }
+
+let make_fields attrs tybase decls =
+  List.map (make_field attrs tybase) decls
 
 let make_discriminated_union name switch_name switch_type body =
   let ty_union =
     Type_union({ud_name = ""; ud_mod = ""; ud_stamp = 0; ud_cases = body},
                {discriminant = Expr_ident switch_name}) in
   { sd_name = name; sd_mod = ""; sd_stamp = 0;
-    sd_fields = [ {field_name = switch_name; field_typ = switch_type};
-                  {field_name = "u"; field_typ = ty_union} ] }
+    sd_fields = [ {field_name = switch_name; field_mlname = switch_name;
+                   field_typ = switch_type};
+                  {field_name = "u"; field_mlname = "u";
+                   field_typ = ty_union} ] }
 
 let type_names =
   ref (List.fold_right

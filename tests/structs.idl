@@ -40,7 +40,7 @@ void foo7([out] struct s4 * s);
 struct s5;
 
 struct s6 {
-  int data;
+  int info;
   [unique] struct s5 * next;
 };
 

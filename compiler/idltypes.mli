@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: idltypes.mli,v 1.16 1999-02-19 14:33:30 xleroy Exp $ *)
+(* $Id: idltypes.mli,v 1.17 1999-03-16 15:40:52 xleroy Exp $ *)
 
 type integer_kind =
     Int | Long | Small | Short | Char
@@ -45,7 +45,7 @@ and enum_attributes =
   { bitset: bool }
 
 and field =
-  { field_name: string; field_typ: idltype }
+  { field_name: string; field_mlname: string; field_typ: idltype }
 
 and union_case =
   { case_labels: string list; case_field: field option }

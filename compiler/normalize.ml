@@ -9,7 +9,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: normalize.ml,v 1.16 1999-02-19 14:33:33 xleroy Exp $ *)
+(* $Id: normalize.ml,v 1.17 1999-03-16 15:40:53 xleroy Exp $ *)
 
 (* Normalization of IDL types after parsing *)
 
@@ -235,7 +235,8 @@ let normalize_file filename =
   List.iter (fun td -> Hashtbl.add typedefs td.td_name td) Predef.typedefs;
   List.iter (fun i -> Hashtbl.add intfs i.intf_name i) Predef.interfaces;
   module_name := make_module_name filename;
-  let res = normalize_components (Parse.read_file filename) in
+  let res =
+    normalize_components (Fixlabels.prefix_file (Parse.read_file filename)) in
   Hashtbl.clear structs;
   Hashtbl.clear unions;
   Hashtbl.clear enums;
