@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: constdecl.ml,v 1.11 2001-06-17 10:50:24 xleroy Exp $ *)
+(* $Id: constdecl.ml,v 1.12 2001-06-29 13:29:59 xleroy Exp $ *)
 
 (* Handling of constant declarations *)
 
@@ -44,7 +44,7 @@ let c_declaration oc c =
 let ml_definition oc c =
   let v = eval c.cd_value in
   let name = String.uncapitalize c.cd_name in
-  match (scrape_const c.cd_type, v) with
+  match (scrape_type c.cd_type, v) with
     (Type_int((Char | UChar | SChar), _), Cst_int n) ->
       fprintf oc "let %s = '%s'\n\n"
                  name (Char.escaped (Char.chr (n land 0xFF)))

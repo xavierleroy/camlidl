@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.mli,v 1.7 2001-06-17 10:50:25 xleroy Exp $ *)
+(* $Id: parse_aux.mli,v 1.8 2001-06-29 13:30:00 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -89,9 +89,8 @@ val make_unsigned : integer_kind -> idltype
 val make_signed : integer_kind -> idltype
     (* Build an integer type (with explicit [signed] modifier) *)
 val handle_t_type : unit -> idltype
-val hyper_type : unit -> integer_kind
 val wchar_t_type : unit -> idltype
-    (* Warn about unsupported types [handle_t] [hyper] [wchar_t] *)
+    (* Warn about unsupported types [handle_t] and [wchar_t] *)
 val make_star_attribute : string * 'a -> string * 'a
     (* Apply a [*] modifier to an attribute *)
 val make_type_const : idltype -> idltype

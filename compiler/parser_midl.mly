@@ -10,7 +10,7 @@
 /*                                                                     */
 /***********************************************************************/
 
-/* $Id: parser_midl.mly,v 1.15 2001-06-17 10:50:25 xleroy Exp $ */
+/* $Id: parser_midl.mly,v 1.16 2001-06-29 13:30:00 xleroy Exp $ */
 
 /* Parser for Microsoft IDL */
 
@@ -63,6 +63,7 @@ open Parse_aux
 %token <string> IDENT
 %token IMPORT
 %token INT
+%token INT64
 %token INTERFACE
 %token <int> INTEGER
 %token LBRACE
@@ -276,6 +277,9 @@ simple_type_spec:
   | SIGNED CHAR                                 { make_int SChar }
   | BOOLEAN                                     { make_int Boolean }
   | BYTE                                        { make_int Byte }
+  | INT64                                       { make_int Hyper }
+  | UNSIGNED INT64                              { make_int UHyper }
+  | SIGNED INT64                                { make_int Hyper }
   | VOID                                        { Type_void }
   | TYPEIDENT                                   { Type_named("", $1) }
   | WCHAR_T                                     { wchar_t_type() }
@@ -285,7 +289,8 @@ integer_size:
     LONG                                        { Long }
   | SMALL                                       { Small }
   | SHORT                                       { Short }
-  | HYPER                                       { hyper_type() }
+  | HYPER                                       { Hyper }
+  | LONG LONG                                   { Hyper }
 ;
 opt_int:
     /* nothing */                               { () }
@@ -385,7 +390,7 @@ opt_field_declarator:
 /* Enumerated types */
 
 enum_declarator:
-    ENUM opt_ident LBRACE enum_cases RBRACE
+    ENUM opt_ident LBRACE enum_cases opt_comma RBRACE
          { {en_name = $2; en_mod = ""; en_stamp = 0; en_consts = List.rev $4} }
 ;
 enum_cases:
@@ -397,6 +402,10 @@ enum_case:
       { {const_name = $1; const_val = None} }
   | ident EQUAL lexpr
       { {const_name = $1; const_val = Some $3} }
+;
+opt_comma:
+    COMMA                                               { () }
+  | /* empty */                                         { () }
 ;
 
 /* Attributes */

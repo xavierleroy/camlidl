@@ -10,7 +10,7 @@
 #*                                                                     *
 #***********************************************************************
 
-#* $Id: Makefile,v 1.4 2000-08-19 11:04:55 xleroy Exp $
+#* $Id: Makefile,v 1.5 2001-06-29 13:29:58 xleroy Exp $
 
 include ../config/Makefile
 
@@ -20,7 +20,7 @@ OBJS=config.cmo utils.cmo clflags.cmo \
   structdecl.cmo enumdecl.cmo uniondecl.cmo \
   typedef.cmo funct.cmo constdecl.cmo intf.cmo \
   file.cmo predef.cmo \
-  parse_aux.cmo parser_midl.cmo lexer_midl.cmo linenum.cmo parse.cmo \
+  linenum.cmo parse_aux.cmo parser_midl.cmo lexer_midl.cmo parse.cmo \
   fixlabels.cmo normalize.cmo \
   main.cmo
 

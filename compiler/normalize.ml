@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: normalize.ml,v 1.20 2001-06-17 10:50:25 xleroy Exp $ *)
+(* $Id: normalize.ml,v 1.21 2001-06-29 13:30:00 xleroy Exp $ *)
 
 (* Normalization of IDL types after parsing *)
 
@@ -192,6 +192,9 @@ let normalize_fundecl fd =
   in_fundecl := false;
   current_function := "";
   res
+
+let normalize_constdecl cd =
+  { cd with cd_type = normalize_type cd.cd_type }
   
 let enter_typedecl td =
   let td' =
@@ -229,7 +232,7 @@ let rec normalize_component = function
   | Comp_fundecl fd ->
       all_comps := Comp_fundecl(normalize_fundecl fd) :: !all_comps
   | Comp_constdecl cd ->
-      all_comps := Comp_constdecl cd :: !all_comps
+      all_comps := Comp_constdecl(normalize_constdecl cd) :: !all_comps
   | Comp_diversion(ty, s) ->
       all_comps := Comp_diversion(ty, s) :: !all_comps
   | Comp_interface intf -> ignore(enter_interface intf)

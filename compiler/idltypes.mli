@@ -10,11 +10,11 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: idltypes.mli,v 1.20 2001-06-17 10:50:25 xleroy Exp $ *)
+(* $Id: idltypes.mli,v 1.21 2001-06-29 13:29:59 xleroy Exp $ *)
 
 type integer_kind =
-    Int | Long | Small | Short | Char
-  | UInt | ULong | USmall | UShort | UChar
+    Int | Long | Hyper | Small | Short | Char
+  | UInt | ULong | UHyper | USmall | UShort | UChar
   | SChar | Byte | Boolean
 
 type integer_repr =

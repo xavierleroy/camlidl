@@ -10,32 +10,30 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse.ml,v 1.4 2000-08-19 11:04:57 xleroy Exp $ *)
+(* $Id: parse.ml,v 1.5 2001-06-29 13:30:00 xleroy Exp $ *)
 
 (* Source parsing *)
 
 open Printf
 open Utils
-
-let report_syntax_error filename pos msg =
-  let (sourcename, lineno, startline) = Linenum.for_position filename pos in
-  eprintf "File %s, line %d, character %d: %s\n"
-          sourcename lineno (pos - startline) msg
+open Linenum
 
 let read_source_file sourcename filename =
   let ic = open_in filename in
   let lb = Lexing.from_channel ic in
+  Linenum.current_file := filename;
+  Linenum.current_lexbuf := lb;
   try
     let res = Parser_midl.file Lexer_midl.token lb in
     close_in ic;
     res
   with Parsing.Parse_error ->
          close_in ic;
-         report_syntax_error filename (Lexing.lexeme_start lb) "syntax error";
+         eprintf "%t: syntax error\n" print_location;
          raise Error
      | Lexer_midl.Lex_error msg ->
          close_in ic;
-         report_syntax_error filename (Lexing.lexeme_start lb) msg;
+         eprintf "%t: %s\n" print_location msg;
          raise Error
 
 let read_file filename =

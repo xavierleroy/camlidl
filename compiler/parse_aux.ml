@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: parse_aux.ml,v 1.11 2001-06-17 10:50:25 xleroy Exp $ *)
+(* $Id: parse_aux.ml,v 1.12 2001-06-29 13:30:00 xleroy Exp $ *)
 
 (* Auxiliary functions for parsing *)
 
@@ -22,6 +22,7 @@ open Typedef
 open Constdecl
 open Intf
 open File
+open Linenum
 
 module StringSet = Set.Make(struct type t = string let compare = compare end)
 
@@ -66,15 +67,17 @@ let rec merge_array_attr merge_fun rexps ty =
   | (_, Type_const ty') ->
       Type_const (merge_array_attr merge_fun rexps ty')
   | (_, _) ->
-      eprintf "Warning: size_is or length_is attribute applied to \
-               type `%a', ignored.\n" out_c_type ty;
+      eprintf "%t: Warning: size_is or length_is attribute applied to \
+               type `%a', ignored.\n" print_location out_c_type ty;
       ty
 
 and merge_bigarray_dims merge_fun rexps dims =
   match (rexps, dims) with
     ([], _) -> dims
-  | (_, []) -> eprintf "Warning: too many dimensions in size_is or length_is \
-                         attribute, extra dimensions ignored\n"; []
+  | (_, []) -> eprintf "%t: Warning: too many dimensions in size_is or \
+                        length_is attribute, extra dimensions ignored\n"
+                       print_location;
+               []
   | (re::res, d::ds) ->
       merge_fun d re :: merge_bigarray_dims merge_fun res ds
 
@@ -99,8 +102,8 @@ let make_bigarray ty =
       Type_bigarray({dims = dims; fortran_layout = false; malloced = false},
                     ty_tail)
   | _ ->
-      eprintf "Warning: bigarray attribute applied to type `%a', ignored\n"
-              out_c_type ty;
+      eprintf "%t: Warning: bigarray attribute applied to type `%a', ignored\n"
+              print_location out_c_type ty;
       ty
 
 (* Apply a type-related attribute to a type *)
@@ -170,9 +173,9 @@ let rec apply_type_attribute ty attr =
       Type_const(apply_type_attribute ty' attr)
   | ((name, _), _) ->
       eprintf
-        "Warning: attribute `%s' unknown, malformed or not applicable here, \
-         ignored.\n"
-        name;
+        "%t: Warning: attribute `%s' unknown, malformed or not \
+         applicable here, ignored.\n"
+        print_location name;
       ty
 
 let apply_type_attributes = List.fold_left apply_type_attribute
@@ -216,8 +219,8 @@ let make_fun_declaration attrs ty_res name params quotes =
       "call" -> call := Some text
     | "dealloc" | "free" -> dealloc := Some text
     | _ ->
-        eprintf "Warning: quote type `%s' unknown, ignoring the quote.\n"
-                label in
+        eprintf "%t: Warning: quote type `%s' unknown, ignoring the quote.\n"
+                print_location label in
   List.iter parse_quote quotes;
   let truename = ref name in
   let rec merge_attributes ty = function
@@ -369,23 +372,23 @@ let make_interface name attrs superintf comps =
   | ("implicit_handle", _) -> () (*ignored*)
   | ("auto_handle", _) -> () (*ignored*)
   | (name, _) ->
-        eprintf "Warning: attribute `%s' unknown, malformed or not \
-                 applicable here, ignored.\n" name in
+        eprintf "%t: Warning: attribute `%s' unknown, malformed or not \
+                 applicable here, ignored.\n" print_location name in
   List.iter parse_attr attrs;
   let supername =
     match superintf with
       None ->
         if not !obj then "" else begin
-          eprintf "Warning: no super-interface for interface `%s', \
+          eprintf "%t: Warning: no super-interface for interface `%s', \
                    assuming IUnknown.\n"
-                  name;
+                  print_location name;
           "IUnknown"
         end
     | Some s ->
         if !obj then s else begin
-          eprintf "Warning: interface `%s' is not an object interface, \
+          eprintf "%t: Warning: interface `%s' is not an object interface, \
                    ignoring super-interface `%s'.\n"
-                  name s;
+                  print_location name s;
           ""
         end in
   if not !obj then
@@ -429,7 +432,8 @@ let make_diversion (id, txt) =
     | "mli" -> Div_mli
     | "mlmli" -> Div_ml_mli
     | _ ->
-      eprintf "Warning: diversion kind `%s' unknown, assuming C kind.\n" id;
+      eprintf "%t: Warning: diversion kind `%s' unknown, assuming C kind.\n"
+              print_location id;
       Div_c in
   (kind, txt)
 
@@ -439,39 +443,37 @@ let make_int kind =
   match kind with
     Int | UInt -> Type_int(kind, !int_default)
   | Long | ULong -> Type_int(kind, !long_default)
+  | Hyper | UHyper -> Type_int(kind, I64)
   | k -> Type_int(kind, Iunboxed) (* small int types always unboxed *)
 
 (* Apply an "unsigned" or "signed" modifier to an integer type *)
 
 let make_unsigned kind =
   make_int (match kind with
-             Int -> UInt | Long -> ULong | Small -> USmall
-           | Short -> UShort | Char -> UChar | SChar -> UChar
+             Int -> UInt | Long -> ULong | Hyper -> UHyper 
+           | Small -> USmall | Short -> UShort | Char -> UChar | SChar -> UChar
            | k -> k)
 
 let make_signed kind =
   make_int (match kind with
-             UInt -> Int | ULong -> Long | USmall -> Small
-           | UShort -> Short | Char -> SChar | UChar -> SChar
+             UInt -> Int | ULong -> Long | UHyper -> Hyper
+           | USmall -> Small | UShort -> Short | Char -> SChar | UChar -> SChar
            | k -> k)
 
 (* Warn about the handle_t type *)
 
 let handle_t_type() =
   eprintf
-    "Warning: type `handle_t' unsupported, treating as an opaque pointer.\n";
+    "%t: Warning: type `handle_t' unsupported, \
+     treating as an opaque pointer.\n"
+    print_location;
   Type_pointer(Ptr, Type_int(Int, Iunboxed))
-
-(* Warn about the hyper type *)
-
-let hyper_type() =
-  eprintf "Warning: type `hyper' unsupported, treating as `long'.\n";
-  Long
 
 (* Warn about the wchar_t type *)
 
 let wchar_t_type() =
-  eprintf "Warning: type `wchar_t' unsupported, treating as `char'.\n";
+  eprintf "%t: Warning: type `wchar_t' unsupported, treating as `char'.\n"
+          print_location;
   Type_int(Char, Iunboxed)
 
 (* Apply a "star" modifier to an attribute *)
@@ -483,7 +485,8 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 let make_type_const ty =
   match ty with
     Type_const _ ->
-      eprintf "Warning: multiple `const' modifiers on a type.\n";
+      eprintf "%t: Warning: multiple `const' modifiers on a type.\n" 
+              print_location;
       ty
   | _ -> Type_const ty
 
