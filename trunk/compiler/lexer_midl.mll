@@ -10,7 +10,7 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: lexer_midl.mll,v 1.12 2002-01-16 16:15:32 xleroy Exp $ *)
+(* $Id: lexer_midl.mll,v 1.13 2004-05-12 12:40:40 xleroy Exp $ *)
 
 (* Lexer for IDL interface files *)
 
@@ -100,6 +100,9 @@ rule token = parse
       { token lexbuf }
   | "#" ("line")? [' ' '\t']* ['0'-'9']+ [^ '\n' '\r'] * eol
       (* # linenum "filename" flags \n *)
+      { token lexbuf }
+  | "#" blank* "pragma" [^ '\n' '\r'] * eol
+      (* #pragma introduced by some C preprocessors *)
       { token lexbuf }
   | identstart identchar *
       { let s = Lexing.lexeme lexbuf in
