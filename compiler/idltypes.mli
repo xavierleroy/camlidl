@@ -22,10 +22,20 @@ type idltype =
   | Type_void
   | Type_pointer of pointer_kind * idltype
   | Type_array of array_attributes * idltype
-  | Type_struct of string
-  | Type_union of string * restricted_expr
-  | Type_enum of string
+  | Type_struct of struct_decl
+  | Type_union of union_decl * restricted_expr
+  | Type_enum of enum_decl
   | Type_named of string
+
+and field = { field_name: string; field_typ: idltype }
+
+and union_case = { case_label: string option; case_field: field option }
+
+and struct_decl = { sd_name: string; sd_stamp: int; sd_fields: field list }
+
+and union_decl = { ud_name: string; ud_stamp: int; ud_cases: union_case list }
+
+and enum_decl = { en_name: string; en_stamp: int; en_consts: string list }
 
 type in_out =
     In | Out | InOut
@@ -35,20 +45,10 @@ type function_decl =
     fun_res: idltype;
     fun_params: (string * in_out * idltype) list }
 
-type field = { field_name: string; field_typ: idltype }
-
-type union_case = { case_labels: string list; case_field: field option }
-
-type struct_decl = { sd_name: string; sd_fields: field list }
-
-type union_decl = { ud_name: string; ud_cases: union_case list }
-
-type enum_decl = { en_name: string; en_consts: string list }
-
 type type_decl = { td_name: string; td_type: idltype; td_abstract: bool }
 
 type interface_component =
-    Comp_typedecl of type_decl list
+    Comp_typedecl of type_decl
   | Comp_structdecl of struct_decl
   | Comp_uniondecl of union_decl
   | Comp_enumdecl of enum_decl

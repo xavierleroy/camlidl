@@ -1,7 +1,11 @@
-(* Generation of converters for enums *)
+(* Handling of enums *)
 
 open Idltypes
 
-val ml_declaration : out_channel -> enum_decl -> unit
-val declare_transl: out_channel -> enum_decl -> unit
-val emit_transl : out_channel -> enum_decl -> unit
+val enum_ml_to_c : 
+  (out_channel -> string -> idltype -> string -> string -> unit) ->
+    out_channel -> enum_decl -> string -> string -> unit
+val enum_c_to_ml : 
+  (out_channel -> string -> idltype -> string -> string -> unit) ->
+    out_channel -> enum_decl -> string -> string -> unit
+

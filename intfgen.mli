@@ -2,4 +2,4 @@
 
 open Idltypes
 
-val gen_ml_decls: out_channel -> interface -> unit
+val gen_ml_decls: out_channel -> interface -> interface -> unit

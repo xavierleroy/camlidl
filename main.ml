@@ -20,16 +20,17 @@ let process_file name =
               name (Lexing.lexeme_start lb);
       exit 2 in
   close_in ic;
+  let (nintf, all_type_decls) = Normalize.interface intf in
   let oc = open_out (pref ^ ".mli") in
   begin try
-    gen_ml_decls oc intf;
+    gen_ml_decls oc nintf all_type_decls;
     close_out oc
   with x ->
     close_out oc; Sys.remove (pref ^ ".mli"); raise x
   end;
   let oc = open_out (pref ^ ".c") in
   begin try
-    gen_c_stub oc incl intf;
+    gen_c_stub oc incl nintf;
     close_out oc
   with x ->
     close_out oc; Sys.remove (pref ^ ".c"); raise x

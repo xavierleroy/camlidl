@@ -1,7 +1,12 @@
-(* Generation of converters for structs *)
+(* Marshaling for structs *)
 
 open Idltypes
 
-val ml_declaration : out_channel -> struct_decl -> unit
-val declare_transl: out_channel -> struct_decl -> unit
-val emit_transl : out_channel -> struct_decl -> unit
+val struct_ml_to_c : 
+  (out_channel -> string -> idltype -> string -> string -> unit) ->
+    out_channel -> struct_decl -> string -> string -> unit
+val struct_c_to_ml : 
+  (out_channel -> string -> idltype -> string -> string -> unit) ->
+    out_channel -> struct_decl -> string -> string -> unit
+
+val remove_dependent_fields: field list -> field list
