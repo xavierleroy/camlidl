@@ -10,11 +10,11 @@
 (*                                                                     *)
 (***********************************************************************)
 
-(* $Id: utils.mli,v 1.10 2002-01-16 16:15:34 xleroy Exp $ *)
+(* $Id: utils.mli,v 1.11 2002-12-14 18:24:22 weis Exp $ *)
 
 (* Utility functions *)
 
-val iprintf : out_channel -> ('a, out_channel, unit) format -> 'a
+val iprintf : out_channel -> ('a, out_channel, unit, unit) format -> 'a
 val increase_indent : unit -> unit
 val decrease_indent : unit -> unit
 
