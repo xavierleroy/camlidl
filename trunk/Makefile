@@ -2,6 +2,8 @@ OCAMLC=ocamlc -g
 OCAMLDEP=ocamldep
 OCAMLYACC=ocamlyacc
 OCAMLLEX=ocamllex
+CC=gcc
+CFLAGS=-O -Wall -I/usr/local/lib/ocaml
 
 OBJS=utils.cmo cvttyp.cmo variables.cmo \
   array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
@@ -10,8 +12,19 @@ OBJS=utils.cmo cvttyp.cmo variables.cmo \
   parser_simple.cmo lexer_simple.cmo normalize.cmo \
   main.cmo
 
+COBJS=camlidlruntime.o
+
+all: camlidl libcamlidl.a
+
 camlidl: $(OBJS)
 	$(OCAMLC) -o camlidl $(OBJS)
+
+clean::
+	rm -f camlidl
+
+libcamlidl.a: $(COBJS)
+	rm -f libcamlidl.a
+	ar rc libcamlidl.a $(COBJS)
 
 parser_simple.ml parser_simple.mli: parser_simple.mly
 	$(OCAMLYACC) parser_simple.mly
@@ -42,10 +55,11 @@ beforedepend:: lexer_simple.ml
 
 # Clean up
 clean::
-	rm -f *.cm[iox]
+	rm -f *.cm[iox] *.[oa]
 
 # Dependencies
 depend: beforedepend
 	$(OCAMLDEP) $(INCLUDES) *.mli *.ml > .depend
+	$(CC) $(CFLAGS) -MM *c >> .depend
 
 include .depend
