@@ -135,17 +135,17 @@ let rec ml_to_c oc onstack pref ty v c =
   | Type_pointer(Ignore, ty_elt) ->
       iprintf oc "%s = NULL;\n" c
   | Type_array({maybe_null=false} as attr, ty_elt) ->
-      Array.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c
+      Idlarray.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c
   | Type_array({maybe_null=true} as attr, ty_elt) ->
       option_ml_to_c oc v c
         (fun v' ->
-          Array.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v' c)
+          Idlarray.array_ml_to_c ml_to_c oc onstack pref attr ty_elt v' c)
   | Type_bigarray({bigarray_maybe_null=false} as attr, ty_elt) ->
-      Array.bigarray_ml_to_c oc pref attr ty_elt v c
+      Idlarray.bigarray_ml_to_c oc pref attr ty_elt v c
   | Type_bigarray({bigarray_maybe_null=true} as attr, ty_elt) ->
       option_ml_to_c oc v c
         (fun v' ->
-          Array.bigarray_ml_to_c oc pref attr ty_elt v' c)
+          Idlarray.bigarray_ml_to_c oc pref attr ty_elt v' c)
   | Type_interface(modl, name) ->
       error (sprintf "Reference to interface %s that is not a pointer" name)
   | Type_const ty' ->
@@ -212,15 +212,15 @@ let rec c_to_ml oc pref ty c v =
   | Type_pointer(Ignore, ty_elt) ->
       ()
   | Type_array({maybe_null=false} as attr, ty_elt) ->
-      Array.array_c_to_ml c_to_ml oc pref attr ty_elt c v
+      Idlarray.array_c_to_ml c_to_ml oc pref attr ty_elt c v
   | Type_array({maybe_null=true} as attr, ty_elt) ->
       option_c_to_ml oc c v
-        (Array.array_c_to_ml c_to_ml oc pref attr ty_elt c)
+        (Idlarray.array_c_to_ml c_to_ml oc pref attr ty_elt c)
   | Type_bigarray({bigarray_maybe_null=false} as attr, ty_elt) ->
-      Array.bigarray_c_to_ml oc pref attr ty_elt c v
+      Idlarray.bigarray_c_to_ml oc pref attr ty_elt c v
   | Type_bigarray({bigarray_maybe_null=true} as attr, ty_elt) ->
       option_c_to_ml oc c v
-        (Array.bigarray_c_to_ml oc pref attr ty_elt c)
+        (Idlarray.bigarray_c_to_ml oc pref attr ty_elt c)
   | Type_interface(modl, name) ->
       error (sprintf "Reference to interface %s that is not a pointer" name)
   | Type_const ty' ->
@@ -234,9 +234,9 @@ let rec allocate_output_space oc pref c ty =
       let c' = new_c_variable ty_arg in
       iprintf oc "%s = &%s;\n" c c'
   | Type_array(attr, ty_arg) ->
-      Array.array_allocate_output_space oc pref attr ty_arg c
+      Idlarray.array_allocate_output_space oc pref attr ty_arg c
   | Type_bigarray(attr, ty_arg) ->
-      Array.bigarray_allocate_output_space oc pref attr ty_arg c
+      Idlarray.bigarray_allocate_output_space oc pref attr ty_arg c
   | Type_const ty' -> (* does this make sense? *)
       allocate_output_space oc pref c ty'
   | _ -> ()

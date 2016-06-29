@@ -16,7 +16,7 @@ include ../config/Makefile
 
 OBJS=config.cmo utils.cmo clflags.cmo \
   prefix.cmo lexpr.cmo cvttyp.cmo variables.cmo \
-  array.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
+  idlarray.cmo struct.cmo enum.cmo union.cmo cvtval.cmo \
   structdecl.cmo enumdecl.cmo uniondecl.cmo \
   typedef.cmo funct.cmo constdecl.cmo intf.cmo \
   file.cmo predef.cmo \

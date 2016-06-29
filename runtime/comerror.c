@@ -22,6 +22,7 @@
 #include <caml/callback.h>
 #include <caml/fail.h>
 #include <caml/alloc.h>
+#include <caml/printexc.h>
 #include "camlidlruntime.h"
 #include "comstuff.h"
 
@@ -49,8 +50,9 @@ static void camlidl_raise_error(HRESULT errcode, char * who, char * msg)
 
 void camlidl_error(HRESULT errcode, char * who, char * what)
 {
+#ifdef _WIN32
   char msg[1024];
-
+#endif
   if (what == NULL) {
 #ifdef _WIN32
     if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,
