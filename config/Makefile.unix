@@ -19,9 +19,9 @@ OSTYPE=unix
 
 # How to invoke the C preprocessor
 # Works on most Unix systems:
-CPP=/lib/cpp
+CPP=cpp
 # Alternatives:
-# CPP=cpp
+# CPP=/lib/cpp
 # CPP=/usr/ccs/lib/cpp
 # CPP=gcc -x c -E
 
@@ -31,7 +31,7 @@ RANLIB=ranlib
 #RANLIB=:
 
 # Location of the Objective Caml library in your installation
-OCAMLLIB=/usr/local/lib/ocaml
+OCAMLLIB=$(shell $(OCAMLC) -where)
 
 # Where to install the binaries
 BINDIR=/usr/local/bin

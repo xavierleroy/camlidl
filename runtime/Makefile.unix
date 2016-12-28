@@ -14,16 +14,21 @@
 
 OBJS=idlalloc.o comintf.o comerror.o
 
-all: libcamlidl.a
+all: dllcamlidl.so libcamlidl.a
 
-libcamlidl.a: $(OBJS)
+dllcamlidl.so libcamlidl.a: $(OBJS)
 	- rm -f $@
-	ar rc $@ $(OBJS)
-	$(RANLIB) $@
+	ocamlmklib -o camlidl  $(OBJS) 
+
+#libcamlidl.a: $(OBJS)
+#	- rm -f $@
+#	ar rc $@ $(OBJS)
+#	$(RANLIB) $@
 
 install:
 	cp camlidlruntime.h $(OCAMLLIB)/caml/camlidlruntime.h
 	cp libcamlidl.a $(OCAMLLIB)/libcamlidl.a
+	cp dllcamlidl.so $(OCAMLLIB)/stublibs/dllcamlidl.so
 	cd $(OCAMLLIB); $(RANLIB) libcamlidl.a
 
 clean:
