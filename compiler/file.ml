@@ -213,7 +213,7 @@ let gen_c_header oc intf =
   (* Output the header *)
   fprintf oc "/* File generated from %s.idl */\n\n" !module_name;
   (* TODO: emit relevant #include *)
-  let symbname = "_CAMLIDL_" ^ String.uppercase !module_name ^ "_H" in
+  let symbname = "_CAMLIDL_" ^ String.uppercase_ascii !module_name ^ "_H" in
   fprintf oc "\
     #ifndef %s\n\
     #define %s\n\n" symbname symbname;
@@ -234,4 +234,3 @@ let gen_c_header oc intf =
     #endif\n\n";
   fprintf oc "\n\
     #endif /* !%s */\n" symbname
-

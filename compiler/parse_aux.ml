@@ -97,7 +97,7 @@ let make_bigarray ty =
       (List.rev dims, ty) in
   let (dims, ty_tail) = extract_spine [] ty in
   match ty_tail with
-    Type_int(_,_) | Type_float | Type_double 
+    Type_int(_,_) | Type_float | Type_double
   | Type_const(Type_int(_,_) | Type_float | Type_double) ->
       Type_bigarray({dims = dims; fortran_layout = false; malloced = false;
                      bigarray_maybe_null = false},
@@ -164,11 +164,11 @@ let rec apply_type_attribute ty attr =
   | (("managed", _), Type_bigarray(attrs, ty_elt)) ->
       Type_bigarray({attrs with malloced = true}, ty_elt)
   | (("switch_is", [rexp]), Type_union(name, attr)) ->
-      Type_union(name, {attr with discriminant = rexp})
+      Type_union(name, {discriminant = rexp})
   | (("switch_is", [rexp]), Type_pointer(attr, Type_union(name, attr'))) ->
-      Type_pointer(attr, Type_union(name, {attr' with discriminant = rexp}))
+      Type_pointer(attr, Type_union(name, {discriminant = rexp}))
   | (("set", _), Type_enum(name, attr)) ->
-      Type_enum(name, {attr with bitset = true})
+      Type_enum(name, {bitset = true})
   | ((("context_handle" | "switch_type"), _), _) ->
       ty (*ignored*)
   | ((name, rexps), Type_pointer(attr, ty_elt)) when is_star_attribute name ->
@@ -227,7 +227,7 @@ let make_fun_declaration attrs ty_res name params quotes =
   and dealloc = ref None
   and blocking = ref false in
   let parse_quote (label, text) =
-    match String.lowercase label with
+    match String.lowercase_ascii label with
       "call" -> call := Some text
     | "dealloc" | "free" -> dealloc := Some text
     | _ ->
@@ -456,7 +456,7 @@ let make_forward_interface name =
 
 let make_diversion (id, txt) =
   let kind =
-    match String.lowercase id with
+    match String.lowercase_ascii id with
       "" | "c" -> Div_c
     | "h" -> Div_h
     | "ml" -> Div_ml
@@ -481,7 +481,7 @@ let make_int kind =
 
 let make_unsigned kind =
   make_int (match kind with
-             Int -> UInt | Long -> ULong | Hyper -> UHyper 
+             Int -> UInt | Long -> ULong | Hyper -> UHyper
            | Small -> USmall | Short -> UShort | Char -> UChar | SChar -> UChar
            | k -> k)
 
@@ -516,7 +516,7 @@ let make_star_attribute (name, args) = ("*" ^ name, args)
 let make_type_const ty =
   match ty with
     Type_const _ ->
-      eprintf "%t: Warning: multiple `const' modifiers on a type.\n" 
+      eprintf "%t: Warning: multiple `const' modifiers on a type.\n"
               print_location;
       ty
   | _ -> Type_const ty

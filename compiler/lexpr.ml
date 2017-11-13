@@ -85,7 +85,7 @@ let string_val = function
 let expand_typedef = ref ((fun _ -> assert false) : string -> idltype)
 
 let rec cast_value ty v =
-  match ty with  
+  match ty with
     Type_int(kind, _) ->
       begin match kind with
         Int | UInt -> Cst_int(int32_val v)
@@ -265,7 +265,7 @@ let rec tstype trail = function
   | Type_pointer(attr, ty) ->
       tstype (sprintf "*%s" trail) ty
   | Type_array(attr, ty) ->
-      let trail' =
+      let _trail' =
         match attr.bound with
           Some n -> sprintf "%s[]" trail
         | None -> sprintf "*%s" trail in
@@ -466,4 +466,3 @@ let rec is_dependent v ty =
   | Type_const ty ->
       is_dependent v ty
   | _ -> false
-

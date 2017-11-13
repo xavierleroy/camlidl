@@ -31,9 +31,9 @@ let record c =
 (* Declare the constant in ML *)
 
 let ml_declaration oc c =
-  fprintf oc "val %s : " (String.uncapitalize c.cd_name);
+  fprintf oc "val %s : " (String.uncapitalize_ascii c.cd_name);
   match scrape_type c.cd_type with
-    Type_int(_, _) as ty ->
+    Type_int(_, _) as _ty ->
       fprintf oc "%a\n" out_ml_type c.cd_type
   | Type_pointer(_, Type_int((Char | UChar | SChar), _)) |
     Type_array({is_string = true}, _) ->
@@ -51,7 +51,7 @@ let c_declaration oc c =
 
 let ml_definition oc c =
   let v = eval c.cd_value in
-  let name = String.uncapitalize c.cd_name in
+  let name = String.uncapitalize_ascii c.cd_name in
   match scrape_type c.cd_type with
     Type_int((Char | UChar | SChar), _) ->
       fprintf oc "let %s = '%s'\n\n"

@@ -27,9 +27,9 @@ open Enum
 let ml_declaration oc en =
   if en.en_name = ""
   then fprintf oc "enum_%d =\n" en.en_stamp
-  else fprintf oc "%s =\n" (String.uncapitalize en.en_name);
+  else fprintf oc "%s =\n" (String.uncapitalize_ascii en.en_name);
   List.iter
-    (fun c -> fprintf oc "  | %s\n" (String.capitalize c.const_name))
+    (fun c -> fprintf oc "  | %s\n" (String.capitalize_ascii c.const_name))
     en.en_consts
 
 (* Convert an IDL enum declaration to a C enum declaration *)
@@ -99,4 +99,3 @@ let emit_transl oc en =
   emit_transl_table oc en;
   transl_ml_to_c oc en;
   transl_c_to_ml oc en
-

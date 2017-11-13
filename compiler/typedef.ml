@@ -45,12 +45,12 @@ let find =
 let ml_declaration oc td =
   match td with
     {td_mltype = Some s} ->
-      fprintf oc "%s = %s\n" (String.uncapitalize td.td_name) s
+      fprintf oc "%s = %s\n" (String.uncapitalize_ascii td.td_name) s
   | {td_abstract = true} ->
-      fprintf oc "%s\n" (String.uncapitalize td.td_name)
+      fprintf oc "%s\n" (String.uncapitalize_ascii td.td_name)
   | _ ->
       fprintf oc "%s = %a\n"
-              (String.uncapitalize td.td_name) out_ml_type td.td_type
+              (String.uncapitalize_ascii td.td_name) out_ml_type td.td_type
 
 (* Generate the C typedef corresponding to the typedef *)
 
@@ -235,5 +235,3 @@ let emit_transl oc td =
   | None ->
       transl_c_to_ml oc td
   end
-
-
