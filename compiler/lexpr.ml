@@ -265,11 +265,11 @@ let rec tstype trail = function
   | Type_pointer(attr, ty) ->
       tstype (sprintf "*%s" trail) ty
   | Type_array(attr, ty) ->
-      let _trail' =
+      let trail' =
         match attr.bound with
           Some n -> sprintf "%s[]" trail
         | None -> sprintf "*%s" trail in
-      tstype trail ty
+      tstype trail' ty
   | Type_bigarray(attr, ty) ->
       tstype (sprintf "*%s" trail) ty
   | Type_interface(modl, intf_name) ->

@@ -309,7 +309,6 @@ let emit_callback_wrapper oc intf meth =
 (* Declare external callback wrapper *)
 
 let declare_callback_wrapper oc intf meth =
-  let (_ins, _outs) = ml_view meth in
   (* Emit function header *)
   let fun_name =
     sprintf "camlidl_%s_%s_%s_callback"

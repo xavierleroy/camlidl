@@ -164,11 +164,11 @@ let rec apply_type_attribute ty attr =
   | (("managed", _), Type_bigarray(attrs, ty_elt)) ->
       Type_bigarray({attrs with malloced = true}, ty_elt)
   | (("switch_is", [rexp]), Type_union(name, attr)) ->
-      Type_union(name, {discriminant = rexp})
+      Type_union(name, {attr with discriminant = rexp})
   | (("switch_is", [rexp]), Type_pointer(attr, Type_union(name, attr'))) ->
-      Type_pointer(attr, Type_union(name, {discriminant = rexp}))
+      Type_pointer(attr, Type_union(name, {attr' with discriminant = rexp}))
   | (("set", _), Type_enum(name, attr)) ->
-      Type_enum(name, {bitset = true})
+      Type_enum(name, {attr with bitset = true})
   | ((("context_handle" | "switch_type"), _), _) ->
       ty (*ignored*)
   | ((name, rexps), Type_pointer(attr, ty_elt)) when is_star_attribute name ->

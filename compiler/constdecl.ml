@@ -33,7 +33,7 @@ let record c =
 let ml_declaration oc c =
   fprintf oc "val %s : " (String.uncapitalize_ascii c.cd_name);
   match scrape_type c.cd_type with
-    Type_int(_, _) as _ty ->
+    Type_int(_, _) ->
       fprintf oc "%a\n" out_ml_type c.cd_type
   | Type_pointer(_, Type_int((Char | UChar | SChar), _)) |
     Type_array({is_string = true}, _) ->
