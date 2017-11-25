@@ -24,7 +24,7 @@ applies to this distribution.
 
 REQUIREMENTS:
 
-Camlidl requires Objective Caml 3.08 or later.
+Camlidl requires Objective Caml 4.03 or later.
 
 Under MS Windows, you must use the MSVC port of Objective Caml.
 
