@@ -112,7 +112,7 @@ let make_bigarray ty =
 let is_star_attribute name = String.length name >= 1 && name.[0] = '*'
 let star_attribute name = String.sub name 1 (String.length name - 1)
 
-let rec apply_type_attribute ty attr =
+let [@ocaml.warning "-23"] rec apply_type_attribute ty attr =
   match (attr, ty) with
   | (("nativeint", _), Type_int((Int|UInt|Long|ULong as kind), _)) ->
       Type_int(kind, Inative)
