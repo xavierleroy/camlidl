@@ -15,16 +15,16 @@ quote (C, "
 
   union process_status { int code; };
 
-  enum { WEXITED, WSIGNALED, WSTOPPED };
+  enum { WEXITED_, WSIGNALED_, WSTOPPED_ };
 
   static void decode_status(int status, int * kind, union process_status * p)
   {
     if (WIFEXITED(status)) {
-      *kind = WEXITED; p->code = WEXITSTATUS(status);
+      *kind = WEXITED_; p->code = WEXITSTATUS(status);
     } else if (WIFSIGNALED(status)) {
-      *kind = WSIGNALED; p->code = WTERMSIG(status);
+      *kind = WSIGNALED_; p->code = WTERMSIG(status);
     } else {
-      *kind = WSTOPPED; p->code = WSTOPSIG(status);
+      *kind = WSTOPPED_; p->code = WSTOPSIG(status);
     }
   }
 
@@ -59,9 +59,9 @@ int execve([in,string] char * path,
 int fork(void);
 
 union process_status {
-  case WEXITED: int code;
-  case WSIGNALED: int code;
-  case WSTOPPED: int code;
+  case WEXITED_: int code;
+  case WSIGNALED_: int code;
+  case WSTOPPED_: int code;
 };
 
 int wait([out] int * kind,
