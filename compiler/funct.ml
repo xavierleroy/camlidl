@@ -67,7 +67,7 @@ let rec split_in_out = function
           match ty with
             Type_array({is_string = true}, _) | Type_bigarray(_, _) ->
               ((name, ty) :: ins, outs)
-          | _ -> 
+          | _ ->
               ((name, ty) :: ins, (name, ty) :: outs)
 
 (* Determine if a typedef represents an error code *)
@@ -101,12 +101,12 @@ let mlname fundecl =
 
 let ml_declaration oc fundecl =
   let (ins, outs) = ml_view fundecl in
-  fprintf oc "external %s : " (String.uncapitalize (mlname fundecl));
+  fprintf oc "external %s : " (String.uncapitalize_ascii (mlname fundecl));
   out_ml_types oc "->" ins;
   fprintf oc " -> ";
   out_ml_types oc "*" outs;
   if List.length ins <= 5
-  then fprintf oc "\n\t= \"camlidl_%s_%s\"\n\n" 
+  then fprintf oc "\n\t= \"camlidl_%s_%s\"\n\n"
                   fundecl.fun_mod fundecl.fun_name
   else fprintf oc "\n\t= \"camlidl_%s_%s_bytecode\" \"camlidl_%s_%s\"\n\n"
                   fundecl.fun_mod fundecl.fun_name
@@ -348,4 +348,3 @@ let emit_method_wrapper oc intf_name meth =
   emit_function oc fundecl ins outs locals
                    (emit_method_call intf_name meth.fun_name);
   current_function := ""
-

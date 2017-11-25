@@ -27,7 +27,7 @@ open Struct
 let ml_declaration oc sd =
   if sd.sd_name = ""
   then fprintf oc "struct_%d = " sd.sd_stamp
-  else fprintf oc "%s = " (String.uncapitalize sd.sd_name);
+  else fprintf oc "%s = " (String.uncapitalize_ascii sd.sd_name);
   match remove_dependent_fields sd.sd_fields with
     [f] ->
       fprintf oc "%a\n" out_ml_type f.field_typ
@@ -36,7 +36,7 @@ let ml_declaration oc sd =
       List.iter
         (fun f ->
           fprintf oc "  %s: %a;\n"
-                  (String.uncapitalize f.field_mlname)
+                  (String.uncapitalize_ascii f.field_mlname)
                   out_ml_type f.field_typ)
         fields;
       fprintf oc "}\n"
@@ -98,4 +98,3 @@ let transl_c_to_ml oc sd =
 let emit_transl oc sd =
   transl_ml_to_c oc sd;
   transl_c_to_ml oc sd
-

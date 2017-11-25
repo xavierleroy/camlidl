@@ -43,13 +43,13 @@ let out_method_type oc meth =
 (* Print the ML abstract type identifying the interface *)
 
 let ml_declaration oc intf =
-  fprintf oc "%s\n" (String.uncapitalize intf.intf_name)
+  fprintf oc "%s\n" (String.uncapitalize_ascii intf.intf_name)
 
 (* Declare the class *)
 
 let ml_class_declaration oc intf =
-  let mlintf = String.uncapitalize intf.intf_name in
-  let mlsuper = String.uncapitalize intf.intf_super.intf_name in
+  let mlintf = String.uncapitalize_ascii intf.intf_name in
+  let mlsuper = String.uncapitalize_ascii intf.intf_super.intf_name in
   fprintf oc "class %s_class :\n" mlintf;
   fprintf oc "  %s Com.interface ->\n" mlintf;
   fprintf oc "    object\n";
@@ -59,7 +59,7 @@ let ml_class_declaration oc intf =
   List.iter
     (fun meth ->
       fprintf oc "      method %s: %a\n"
-                 (String.uncapitalize meth.fun_name) out_method_type meth)
+                 (String.uncapitalize_ascii meth.fun_name) out_method_type meth)
     intf.intf_methods;
   fprintf oc "    end\n\n";
   (* Declare the IID *)
@@ -159,8 +159,8 @@ let c_declaration oc intf =
 (* Define the wrapper classes *)
 
 let ml_class_definition oc intf =
-  let intfname = String.uncapitalize intf.intf_name in
-  let supername = String.uncapitalize intf.intf_super.intf_name in
+  let intfname = String.uncapitalize_ascii intf.intf_name in
+  let supername = String.uncapitalize_ascii intf.intf_super.intf_name in
   (* Define the IID *)
   if intf.intf_uid <> "" then
     fprintf oc "let iid_%s = Com._parse_iid \"%s\"\n"
@@ -196,7 +196,7 @@ let ml_class_definition oc intf =
                supername supername intfname;
   List.iter
     (fun meth ->
-      let methname = String.uncapitalize meth.fun_name in
+      let methname = String.uncapitalize_ascii meth.fun_name in
       fprintf oc "    method %s = %s_%s intf\n"
               methname intfname meth.fun_name)
     intf.intf_methods;
@@ -240,7 +240,7 @@ let emit_callback_wrapper oc intf meth =
   for i = 0 to num_ins do fprintf oc "0, " done;
   fprintf oc "};\n";
   fprintf oc "  value _vres;\n";
-  if meth.fun_res <> Type_void then 
+  if meth.fun_res <> Type_void then
     fprintf oc "  %a;\n" out_c_decl ("_res", meth.fun_res);
   (* Convert inputs from C to Caml *)
   let pc = divert_output() in
@@ -257,7 +257,7 @@ let emit_callback_wrapper oc intf meth =
   (* The method label *)
   let label =
     (Obj.magic
-      (Oo.public_method_label (String.uncapitalize meth.fun_name)) : int) in
+      (Oo.public_method_label (String.uncapitalize_ascii meth.fun_name)) : int) in
   (* Do the callback *)
   iprintf pc "_vres = callbackN_exn(caml_get_public_method(_varg[0], Val_int(%d)), %d, _varg);\n"
              label (num_ins + 1);
@@ -309,7 +309,6 @@ let emit_callback_wrapper oc intf meth =
 (* Declare external callback wrapper *)
 
 let declare_callback_wrapper oc intf meth =
-  let (ins, outs) = ml_view meth in
   (* Emit function header *)
   let fun_name =
     sprintf "camlidl_%s_%s_%s_callback"

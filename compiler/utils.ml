@@ -48,7 +48,7 @@ let divert_output() =
 let end_diversion oc =
   close_out !temp_out;
   let ic = open_in !temp_file in
-  let buffer = String.create 256 in
+  let buffer = Bytes.create 256 in
   let rec copy() =
     let n = input ic buffer 0 256 in
     if n > 0 then (output oc buffer 0 n; copy()) in
@@ -109,4 +109,3 @@ let find_in_path path name =
 (* Discard result *)
 
 (*external ignore: 'a -> unit = "%identity" (* not quite *)*)
-

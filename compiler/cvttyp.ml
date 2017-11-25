@@ -123,16 +123,16 @@ let out_c_type oc ty = out_c_decl oc ("", ty)
 (* Print an ML type name, qualified if necessary *)
 
 let out_mltype_name oc (modl, name) =
-  if modl <> !module_name then fprintf oc "%s." (String.capitalize modl);
-  output_string oc (String.uncapitalize name)
+  if modl <> !module_name then fprintf oc "%s." (String.capitalize_ascii modl);
+  output_string oc (String.uncapitalize_ascii name)
 
 (* Same, but use stamp if no name is provided *)
 
 let out_mltype_stamp oc kind modl name stamp =
-  if modl <> !module_name then fprintf oc "%s." (String.capitalize modl);
+  if modl <> !module_name then fprintf oc "%s." (String.capitalize_ascii modl);
   if name = ""
   then fprintf oc "%s_%d" kind stamp
-  else output_string oc (String.uncapitalize name)  
+  else output_string oc (String.uncapitalize_ascii name)
 
 (* Convert an IDL type to an ML bigarray element type *)
 
@@ -200,7 +200,7 @@ let rec out_ml_type oc ty =
       if attr.bigarray_maybe_null
       then fprintf oc " option"
   | Type_interface(modl, name) ->
-      fprintf oc "%a Com.interface" out_mltype_name (modl, name)      
+      fprintf oc "%a Com.interface" out_mltype_name (modl, name)
   | Type_const ty' ->
       out_ml_type oc ty'
 
