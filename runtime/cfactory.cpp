@@ -21,6 +21,7 @@ extern "C" {
 #include <caml/alloc.h>
 #include <caml/fail.h>
 #include <caml/callback.h>
+#include <caml/version.h>
 #include "camlidlruntime.h"
 }
 #include "comstuff.h"
@@ -178,14 +179,25 @@ STDAPI DllCanUnloadNow()
 
 /* DLL entry point */
 
+#if OCAML_VERSION_MAJOR > 4 || (OCAML_VERSION_MAJOR == 4 && OCAML_VERSION_MINOR >= 6)
+#define USE_WIDE_CHARS
+#else
+typedef char char_os;
+#undef USE_WIDE_CHARS
+#endif
+
 BOOL APIENTRY DllMain(HANDLE module, DWORD reason, void *reserved)
 {
-  char * argv[2];
-  char dll_path[_MAX_PATH];
+  char_os * argv[2];
+  char_os dll_path[_MAX_PATH];
 
   switch(reason) {
   case DLL_PROCESS_ATTACH:
-    GetModuleFileName( (HMODULE) module, dll_path, _MAX_PATH );
+#ifdef USE_WIDE_CHARS
+    GetModuleFileNameW( (HMODULE) module, dll_path, _MAX_PATH );
+#else
+    GetModuleFileNameA( (HMODULE) module, dll_path, _MAX_PATH );
+#endif
     argv[0] = dll_path;
     argv[1] = NULL;
     camlidl_module_handle = (HMODULE) module;
