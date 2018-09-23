@@ -154,7 +154,7 @@ value camlidl_com_queryInterface(value vintf, value viid)
 /* Combine the interfaces of two Caml components */
 
 #define is_a_caml_interface(i) \
-  ((void *) (((interface IUnknown *) i1)->lpVtbl->QueryInterface) == \
+  ((void *) (((interface IUnknown *) i)->lpVtbl->QueryInterface) == \
    (void *) camlidl_QueryInterface)
 
 value camlidl_com_combine(value vintf1, value vintf2)
