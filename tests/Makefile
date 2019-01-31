@@ -3,7 +3,7 @@ include ../config/Makefile
 CAMLIDL=../compiler/camlidl
 CAMLC=ocamlc -I ../lib
 INCLUDES=-I.. -I$(OCAMLLIB)
-CCPP=$(CC)
+CCPP?=$(CC)
 CPPFLAGS=$(CFLAGS)
 
 TESTS=basics.idl arrays.idl structs.idl unions.idl typedefs.idl $(TESTS_$(OSTYPE))
