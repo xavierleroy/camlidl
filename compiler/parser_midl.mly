@@ -398,10 +398,14 @@ union_declarator:
         { {ud_name = $2; ud_mod = ""; ud_stamp = 0; ud_cases = List.rev $4} }
 ;
 union_body:
-    union_case                                          { [$1] }
-  | union_body union_case                               { $2 :: $1 }
+    union_encaps_body                                   { $1 }
+  | union_noncaps_body                                  { $1 }
 ;
-union_case:
+union_encaps_body:
+    union_encaps_case                                   { [$1] }
+  | union_encaps_body union_encaps_case                 { $2 :: $1 }
+;
+union_encaps_case:
     case_list opt_field_declarator SEMI
         { {case_labels = List.rev $1; case_field = $2} }
   | DEFAULT COLON opt_field_declarator SEMI
@@ -413,6 +417,16 @@ case_list:
 ;
 case_label:
     CASE ident COLON                                    { $2 }
+;
+union_noncaps_body:
+    union_noncaps_case                                  { [$1] }
+  | union_noncaps_body union_noncaps_case               { $2 :: $1 }
+;
+union_noncaps_case:
+    LBRACKET CASE LPAREN attr_vars RPAREN RBRACKET opt_field_declarator SEMI
+        { make_noncaps_labels $4 $7 }
+  | LBRACKET DEFAULT RBRACKET opt_field_declarator SEMI
+        { {case_labels = []; case_field = $4} }
 ;
 opt_field_declarator:
     /* empty */

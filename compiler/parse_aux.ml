@@ -521,6 +521,17 @@ let make_type_const ty =
       ty
   | _ -> Type_const ty
 
+let make_noncaps_labels lbls fld =
+  let lbls' =
+    List.fold_right
+      (fun lbl acc ->
+         match lbl with
+           Expr_ident s -> s :: acc
+         | i ->
+           Utils.error "Numeric union case not implemented.\n")
+      lbls [] in
+  {case_labels = lbls'; case_field = fld}
+
 (* Forward declaration for Parse.read_file *)
 
 let read_file = ref ((fun _ -> assert false) : string -> File.components)
