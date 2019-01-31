@@ -64,7 +64,11 @@ open Parse_aux
 %token <string> IDENT
 %token IMPORT
 %token INT
+%token INT8
+%token INT16
+%token INT32
 %token INT64
+%token INT64_COMPAT
 %token INTERFACE
 %token <int64> INTEGER
 %token LBRACE
@@ -97,6 +101,10 @@ open Parse_aux
 %token TRUE
 %token TYPEDEF
 %token <string> TYPEIDENT
+%token UINT8
+%token UINT16
+%token UINT32
+%token UINT64
 %token UNION
 %token UNSIGNED
 %token <string> UUID
@@ -286,14 +294,16 @@ simple_type_spec:
   | SIGNED CHAR                                 { make_int SChar }
   | BOOLEAN                                     { make_int Boolean }
   | BYTE                                        { make_int Byte }
-  | INT64                                       { make_int Hyper }
-  | UNSIGNED INT64                              { make_int UHyper }
-  | SIGNED INT64                                { make_int Hyper }
+  | INT64_COMPAT                                { make_int Hyper }
+  | UNSIGNED INT64_COMPAT                       { make_int UHyper }
+  | SIGNED INT64_COMPAT                         { make_int Hyper }
   | VOID                                        { Type_void }
   | TYPEIDENT                                   { Type_named("", $1) }
   | WCHAR_T                                     { wchar_t_type() }
   | HANDLE_T                                    { handle_t_type() }
+  | integer_fixed                               { make_int $1 }
 ;
+
 integer_size:
     LONG                                        { Long }
   | SMALL                                       { Small }
@@ -301,6 +311,18 @@ integer_size:
   | HYPER                                       { Hyper }
   | LONG LONG                                   { Hyper }
 ;
+
+integer_fixed:
+    INT8                                        { Small }
+  | INT16                                       { Short }
+  | INT32                                       { Long }
+  | INT64                                       { Hyper }
+  | UINT8                                       { USmall }
+  | UINT16                                      { UShort }
+  | UINT32                                      { ULong }
+  | UINT64                                      { UHyper }
+;
+
 opt_int:
     /* nothing */                               { () }
   | INT                                         { () }
@@ -441,6 +463,8 @@ attribute_list:
 attribute:
     ident
         { ($1, []) }
+  | compat_int32_64
+        { ($1, []) }
   | ident LPAREN attr_vars RPAREN
         { ($1, List.rev $3) }
   | STAR attribute
@@ -467,6 +491,8 @@ attr_var:
 
 lexpr:
     IDENT
+        { Expr_ident $1 }
+  | compat_int32_64
         { Expr_ident $1 }
   | INTEGER
         { Expr_int $1 }
@@ -600,6 +626,12 @@ ident:
         { $1 }
   | TYPEIDENT
         { $1 }
+;
+compat_int32_64:
+  | INT32
+        { "int32" }
+  | INT64
+        { "int64" }
 ;
 
 /* An ident that becomes a type name */

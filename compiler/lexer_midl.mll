@@ -39,7 +39,11 @@ let _ =
       "hyper", HYPER;
       "import", IMPORT;
       "int", INT;
-      "__int64", INT64;
+      "__int64", INT64_COMPAT;
+      "int8", INT8;
+      "int16", INT16;
+      "int32", INT32;
+      "int64", INT64;
       "interface", INTERFACE;
       "long", LONG;
       "NULL", NULL;
@@ -54,6 +58,10 @@ let _ =
       "typedef", TYPEDEF;
       "union", UNION;
       "unsigned", UNSIGNED;
+      "uint8", UINT8;
+      "uint16", UINT16;
+      "uint32", UINT32;
+      "uint64", UINT64;
       "void", VOID;
       "wchar_t", WCHAR_T ]
 
