@@ -529,10 +529,15 @@ let read_file = ref ((fun _ -> assert false) : string -> File.components)
 
 let imports = ref StringSet.empty
 
-let read_import name =
-  if StringSet.mem name !imports then
+let read_imports names =
+  List.fold_right
+    (fun name acc ->
+       if StringSet.mem name !imports then
+         acc
+       else begin
+         imports := StringSet.add name !imports;
+         Comp_import(name, !read_file name) :: acc
+       end)
+    names
     []
-  else begin
-    imports := StringSet.add name !imports;
-    [Comp_import(name, !read_file name)]
-  end
+

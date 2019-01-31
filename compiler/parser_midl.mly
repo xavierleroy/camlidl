@@ -174,11 +174,19 @@ component:
   | interface_attributes INTERFACE tydef_ident SEMI
         { let i = [make_forward_interface $3] in
           restore_defaults(); i }
-  | IMPORT STRING SEMI
-        { read_import $2 }
+  | IMPORT imports SEMI
+        { read_imports $2 }
   | quote opt_semi
         { let (kind, txt) = make_diversion $1 in [Comp_diversion(kind, txt)] }
 ;
+
+/* Import directive */
+
+imports:
+    STRING
+        { [$1] }
+  | imports COMMA STRING
+        { $3 :: $1 }
 
 /* Constant declaration */
 

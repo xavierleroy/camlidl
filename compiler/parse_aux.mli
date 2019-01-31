@@ -105,5 +105,5 @@ val make_type_const : idltype -> idltype
     (* Add a "const" modifier to a type *)
 val read_file : (string -> components) ref
     (* Forward declaration of [Parse.read_file] *)
-val read_import : string -> components
-    (* Read an import file *)
+val read_imports : string list -> components
+    (* Read import files *)

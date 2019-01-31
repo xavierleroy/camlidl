@@ -1,0 +1,3 @@
+import "structs.idl", "typedefs.idl";
+
+interface test { const char *SOME_CONSTANT = "this is a test"; }
