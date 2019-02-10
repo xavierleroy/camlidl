@@ -106,8 +106,12 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
     iprintf oc "}\n";
     (* Null-terminate the array if requested *)
     if attr.null_terminated then iprintf oc "%s[%s] = 0;\n" c size;
-    (* Update dependent size variable *)
+    (* Update dependent size variables *)
     begin match attr.size with
+      None -> ()
+    | Some re -> iprintf oc "%a = %s;\n" Lexpr.output (pref, re) size
+    end;
+    begin match attr.length with
       None -> ()
     | Some re -> iprintf oc "%a = %s;\n" Lexpr.output (pref, re) size
     end
