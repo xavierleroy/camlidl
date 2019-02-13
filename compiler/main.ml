@@ -30,7 +30,7 @@ let process_file name =
     gen_mli_file oc intf;
     close_out oc
   with x ->
-    close_out oc; remove_file (pref ^ ".ml"); raise x
+    close_out oc; remove_file (pref ^ ".mli"); raise x
   end;
   let oc = open_out (pref ^ ".ml") in
   begin try
