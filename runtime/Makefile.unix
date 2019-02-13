@@ -14,9 +14,15 @@
 
 OBJS=idlalloc.o comintf.o comerror.o
 
-all: dllcamlidl.so libcamlidl.a
+ifeq ($(OS),Windows_NT)
+SO:=dll
+else
+SO:=so
+endif
 
-dllcamlidl.so libcamlidl.a: $(OBJS)
+all: dllcamlidl.$(SO) libcamlidl.a
+
+dllcamlidl.$(SO) libcamlidl.a: $(OBJS)
 	- rm -f $@
 	ocamlmklib -o camlidl  $(OBJS) 
 
@@ -28,7 +34,7 @@ dllcamlidl.so libcamlidl.a: $(OBJS)
 install:
 	cp camlidlruntime.h $(OCAMLLIB)/caml/camlidlruntime.h
 	cp libcamlidl.a $(OCAMLLIB)/libcamlidl.a
-	cp dllcamlidl.so $(OCAMLLIB)/stublibs/dllcamlidl.so
+	cp dllcamlidl.$(SO) $(OCAMLLIB)/stublibs/dllcamlidl.$(SO)
 	cd $(OCAMLLIB); $(RANLIB) libcamlidl.a
 
 clean:
