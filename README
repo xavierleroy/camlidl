@@ -35,8 +35,8 @@ INSTALLATION:
   Under Windows, copy config/Makefile.win32 to config/Makefile.
 
 - Edit config/Makefile to set configuration options, following the
-  comments in that file.  You must set the OCAMLLIB and BINDIR variables
-  to reflect the location of your OCaml installation.  Other variables
+  comments in that file.  You must set the BINDIR variable
+  to say where to install the camlidl executable.  Other variables
   have reasonable defaults.
 
 - Do "make all".
@@ -46,7 +46,7 @@ INSTALLATION:
 
 DOCUMENTATION:
 
-- The doc/ subdirectory contains the user's manual in HTML and in Postscript.
+- The doc/ subdirectory contains the user's manual in HTML and in PDF.
 
 - Several examples are provided in the directories tests/ and tests/comp/.
 
