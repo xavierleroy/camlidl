@@ -29,7 +29,7 @@ OBJEXT=obj
 RANLIB=echo
 
 # Location of the Objective Caml library in your installation
-OCAMLLIB=C:/ocaml/lib
+OCAMLLIB=$(shell $(OCAMLC) -where)
 
 # Where to install the binaries
 BINDIR=C:/ocaml/bin
