@@ -15,7 +15,9 @@
 all: camlidldll
 
 camlidldll: camlidldll.tpl ../config/Makefile
-	sed -e 's|%%CAMLLIB%%|$(OCAMLLIB)|' -e '/^camllib=/s|/|\\|g' camlidldll.tpl > camlidldll
+	$(file >camlidldll.tmp,camllib='$(OCAMLLIB)')
+	sed -e '/%%CAMLLIB%%/r camlidldll.tmp' camlidldll.tpl > camlidldll
+	rm camlidldll.tmp
 
 install:
 	cp camlidldll $(BINDIR)

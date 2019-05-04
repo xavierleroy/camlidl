@@ -17,7 +17,7 @@
 
 # Automates the creation of a DLL for a Caml component
 
-camllib='%%CAMLLIB%%'
+# camllib=%%CAMLLIB%%
 output=caml.dll
 linkopts=''
 camlopts=''
