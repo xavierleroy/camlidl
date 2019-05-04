@@ -1,4 +1,7 @@
-* Update to OCaml 4.06 and up (issue #6)
+CamlIDL 1.07:
+-------------
+
+* Update to OCaml 4.06 and up (issues #6 and #11).
 
 CamlIDL 1.06:
 -------------
