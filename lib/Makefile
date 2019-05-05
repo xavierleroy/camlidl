@@ -23,10 +23,10 @@ INTERFACES=$(BYTEOBJS:.cmo=.cmi)
 all: $(BYTELIB) $(NATIVELIB)
 
 $(BYTELIB): $(BYTEOBJS)
-	$(OCAMLC) -a -o $(BYTELIB) $(BYTEOBJS)
+	$(OCAMLC) -a -o $(BYTELIB) -dllib -lcamlidl -cclib -lcamlidl $(BYTEOBJS)
 
 $(NATIVELIB): $(NATIVEOBJS)
-	$(OCAMLOPT) -a -o $(NATIVELIB) $(NATIVEOBJS)
+	$(OCAMLOPT) -a -o $(NATIVELIB) -cclib -lcamlidl $(NATIVEOBJS)
 
 install:
 	cp $(INTERFACES) $(BYTELIB) $(NATIVELIB) $(NATIVELIB:.cmxa=.$(LIBEXT)) $(OCAMLLIB)

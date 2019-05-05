@@ -2,6 +2,7 @@ CamlIDL 1.07:
 -------------
 
 * Update to OCaml 4.06 and up (issues #6 and #11).
+* Auto-link the C runtime library from com.cma and com.cmxa (issue #8).
 
 CamlIDL 1.06:
 -------------
