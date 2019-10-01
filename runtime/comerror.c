@@ -28,7 +28,7 @@
 
 static void camlidl_raise_error(HRESULT errcode, char * who, char * msg)
 {
-  static value * com_error_exn = NULL;
+  static const value * com_error_exn = NULL;
   value bucket, vwho = Val_unit, vmsg = Val_unit;
 
   if (com_error_exn == NULL) {
