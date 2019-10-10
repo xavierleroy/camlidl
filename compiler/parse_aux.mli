@@ -103,7 +103,9 @@ val make_star_attribute : string * 'a -> string * 'a
     (* Apply a [*] modifier to an attribute *)
 val make_type_const : idltype -> idltype
     (* Add a "const" modifier to a type *)
+val make_noncaps_labels : lexpr list -> field option -> union_case
+    (* Represent labels of nonencapsulated unions *)
 val read_file : (string -> components) ref
     (* Forward declaration of [Parse.read_file] *)
-val read_import : string -> components
-    (* Read an import file *)
+val read_imports : string list -> components
+    (* Read import files *)

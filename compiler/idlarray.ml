@@ -38,6 +38,16 @@ let rec no_allocation_type = function
   | Type_const ty -> no_allocation_type ty
   | _ -> false  
 
+(* Update dependent size variables *)
+
+let update_size_variable svar oc pref size =
+  match svar with
+    None -> ()
+  | Some re when Lexpr.is_identifier re ->
+    iprintf oc "%a = %s;\n" Lexpr.output (pref, re) size
+  | Some re ->
+    error "Array size expression too complex for ML -> C conversion"
+
 (* Translation from an ML array [v] to a C array [c] *)
 
 let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
@@ -106,11 +116,8 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
     iprintf oc "}\n";
     (* Null-terminate the array if requested *)
     if attr.null_terminated then iprintf oc "%s[%s] = 0;\n" c size;
-    (* Update dependent size variable *)
-    begin match attr.size with
-      None -> ()
-    | Some re -> iprintf oc "%a = %s;\n" Lexpr.output (pref, re) size
-    end
+    update_size_variable attr.size oc pref size;
+    update_size_variable attr.length oc pref size
   end
 
 (* Translation from a C array [c] to an ML array [v] *)

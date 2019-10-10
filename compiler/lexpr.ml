@@ -239,6 +239,10 @@ and eval_shift op32 opnative op64 e1 e2 =
 
 let eval_int e = int_val(eval e)
 
+(* Test if this expression is just an identifier *)
+
+let is_identifier = function Expr_ident _ -> true | _ -> false
+
 (* Pretty-print a limited expression *)
 
 open Buffer

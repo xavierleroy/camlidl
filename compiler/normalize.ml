@@ -56,11 +56,14 @@ let error_if_fundecl kind =
 let make_module_name filename =
   Filename.chop_extension (Filename.basename filename)
 
-let rec is_char_type = function
-    Type_int((Char | UChar | Byte), _) -> true
-  | Type_named(modname, tyname) -> is_char_type (expand_typedef tyname)
-  | Type_const ty -> is_char_type ty
-  | _ -> false
+type char_class = Narrow | Wide
+
+let rec classify_char = function
+    Type_int((Char | UChar | Byte), _) -> Some Narrow
+  | Type_int(UShort, _) -> Some Wide
+  | Type_named(modname, tyname) -> classify_char (expand_typedef tyname)
+  | Type_const ty -> classify_char ty
+  | _ -> None
 
 (* Generic function to handle declarations and definitions of struct,
    unions, enums and interfaces *)
@@ -108,12 +111,17 @@ let process_declarator kind tbl name sourcedecl
 let rec normalize_type = function
     Type_pointer(kind, ty_elt) ->
       Type_pointer(kind, normalize_type ty_elt)
-  | Type_array(attr, ty_elt) ->
+  | Type_array(attr, ty_elt) -> begin
       let norm_ty_elt = normalize_type ty_elt in
-      if attr.is_string && not (is_char_type norm_ty_elt) then
-        error "[string] argument applies only to \
-               char array or pointer to char";
-      Type_array(attr, norm_ty_elt)
+      if not attr.is_string then Type_array(attr, norm_ty_elt) else
+      match classify_char norm_ty_elt with
+      | None -> error "[string] argument applies only to \
+                       char array or pointer to char"
+      | Some Narrow -> Type_array(attr, norm_ty_elt)
+      | Some Wide ->
+        let attr' = {attr with is_string = false; null_terminated = true} in
+        Type_array(attr', norm_ty_elt)
+    end
   | Type_struct sd ->
       Type_struct(enter_struct sd)
   | Type_union(ud, discr) ->

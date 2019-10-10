@@ -1,0 +1,19 @@
+interface foo {
+    struct bar {
+        int8  small_ish;    /* <signed_tiny_int> */
+        uint8 usmall_ish;   /* <unsigned_tiny_int> */
+
+        int16  short_ish;   /* <signed_short_int> */
+        uint16 ushort_ish;  /* <unsigned_short_int> */
+
+        int32  long_ish;    /* <signed_long_int> */
+        uint32 ulong_ish;   /* <unsigned_long_int> */
+
+        int64  llong_ish;   /* <signed_longlong_int> */
+        uint64 ullong_ish;  /* <unsigned_longlong_int> */
+
+        __int64          llong_compat;  /* non-standard */
+        signed   __int64 llong2_compat; /* non-standard */
+        unsigned __int64 ullong_compat; /* non-standard */
+    };
+}
