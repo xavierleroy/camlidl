@@ -1,0 +1,6 @@
+!comcomp.h
+!component.h
+*.h
+*_stubs.c
+*.ml
+*.mli
