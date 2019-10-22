@@ -36,7 +36,7 @@ val cast_value: idltype -> constant_value -> constant_value
 val eval_int: lexpr -> int
 val eval: lexpr -> constant_value
 
-val is_identifier: lexpr -> bool
+val is_identifier_deref: lexpr -> bool
 
 val tostring: Prefix.t -> lexpr -> string
 val output: out_channel -> Prefix.t * lexpr -> unit

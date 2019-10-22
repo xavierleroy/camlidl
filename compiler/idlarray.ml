@@ -43,7 +43,7 @@ let rec no_allocation_type = function
 let update_size_variable svar oc pref size =
   match svar with
     None -> ()
-  | Some re when Lexpr.is_identifier re ->
+  | Some re when Lexpr.is_identifier_deref re ->
     iprintf oc "%a = %s;\n" Lexpr.output (pref, re) size
   | Some re ->
     error "Array size expression too complex for ML -> C conversion"
