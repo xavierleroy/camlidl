@@ -34,7 +34,7 @@ let enum_c_to_ml c_to_ml oc en c v =
       (fun i c ->
         iprintf oc "case %s: %s = Val_int(%d); break;\n" c.const_name v i)
       0 en.en_consts;
-    iprintf oc "default: invalid_argument(\"%s: bad enum %s value\");\n"
+    iprintf oc "default: caml_invalid_argument(\"%s: bad enum %s value\");\n"
                !current_function en.en_name;
     iprintf oc "}\n"
   end else begin
@@ -48,7 +48,7 @@ let enum_c_to_ml c_to_ml oc en c v =
 let enumset_ml_to_c ml_to_c oc en v c =
   if en.en_name = "" then
     error "[set] attribute does not apply to anonymous enum";
-  iprintf oc "%s = convert_flag_list(%s, camlidl_transl_table_%s_enum_%d);\n"
+  iprintf oc "%s = caml_convert_flag_list(%s, camlidl_transl_table_%s_enum_%d);\n"
              c v en.en_mod en.en_stamp
 
 (* Translate a C enumset [c] to an ML list [v] *)

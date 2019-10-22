@@ -259,7 +259,7 @@ let emit_callback_wrapper oc intf meth =
     (Obj.magic
       (Oo.public_method_label (String.uncapitalize_ascii meth.fun_name)) : int) in
   (* Do the callback *)
-  iprintf pc "_vres = callbackN_exn(caml_get_public_method(_varg[0], Val_int(%d)), %d, _varg);\n"
+  iprintf pc "_vres = caml_callbackN_exn(caml_get_public_method(_varg[0], Val_int(%d)), %d, _varg);\n"
              label (num_ins + 1);
   (* Check if exception occurred *)
   begin match meth.fun_res with

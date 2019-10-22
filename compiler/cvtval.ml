@@ -165,12 +165,12 @@ let rec c_to_ml oc pref ty c v =
         match repr with
           Iunboxed ->
             if kind = Long || kind = ULong then "Val_long" else "Val_int"
-        | Inative -> "copy_nativeint"
-        | I32 -> "copy_int32"
-        | I64 -> "copy_int64" in
+        | Inative -> "caml_copy_nativeint"
+        | I32 -> "caml_copy_int32"
+        | I64 -> "caml_copy_int64" in
       iprintf oc "%s = %s(%s);\n" v conv c
   | Type_float | Type_double ->
-      iprintf oc "%s = copy_double(%s);\n" v c
+      iprintf oc "%s = caml_copy_double(%s);\n" v c
   | Type_void ->
       ()
   | Type_struct sd ->

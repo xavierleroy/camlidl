@@ -62,13 +62,13 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
         end
     | Some n ->
         iprintf oc
-            "if (string_length(%s) >= %d) invalid_argument(\"%s\");\n"
+            "if (caml_string_length(%s) >= %d) caml_invalid_argument(\"%s\");\n"
             v (Lexpr.eval_int n) !current_function;
         iprintf oc "strcpy(%s, String_val(%s));\n" c v
     end;
     begin match attr.size with
       None -> ()
-    | Some re -> iprintf oc "%a = string_length(%s);\n" 
+    | Some re -> iprintf oc "%a = caml_string_length(%s);\n" 
                          Lexpr.output (pref, re) v
     end
   end else begin
@@ -88,7 +88,7 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
         need_context := true;
     | Some n ->
         (* Check compatibility of actual size w.r.t. expected size *)
-        iprintf oc "if (%s %s %d) invalid_argument(\"%s\");\n"
+        iprintf oc "if (%s %s %d) caml_invalid_argument(\"%s\");\n"
                 (if attr.null_terminated then size ^ " + 1" else size)
                 (if attr.size = None && not attr.null_terminated
                  then "!=" else ">")
@@ -124,7 +124,7 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
 
 let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
   if attr.is_string then
-    iprintf oc "%s = copy_string(%s);\n" v c
+    iprintf oc "%s = caml_copy_string(%s);\n" v c
   else begin
     (* Determine size of ML array *)
     let (nsize, size) =
@@ -166,7 +166,7 @@ let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
     else begin
       let v' = new_ml_variable() in
       c_to_ml oc pref ty_elt (sprintf "%s[%s]" c idx) v';
-      iprintf oc "modify(&Field(%s, %s), %s);\n" v idx v'
+      iprintf oc "caml_modify(&Field(%s, %s), %s);\n" v idx v'
     end;
     decrease_indent();
     iprintf oc "}\n";
@@ -199,13 +199,13 @@ let array_allocate_output_space oc pref attr ty_elt c =
 (* Translation from an ML bigarray [v] to a C array [c] *)
 
 let bigarray_ml_to_c oc pref attr ty_elt v c =
-  iprintf oc "%s = Bigarray_val(%s)->data;\n" c v;
+  iprintf oc "%s = Caml_ba_data_val(%s);\n" c v;
   (* Update dependent size variables, if any *)
   iter_index
     (fun i attr ->
       match attr.size with
         None -> ()
-      | Some re -> iprintf oc "%a = Bigarray_val(%s)->dim[%d];\n" 
+      | Some re -> iprintf oc "%a = Caml_ba_array_val(%s)->dim[%d];\n" 
                            Lexpr.output (pref, re) v i)
     0 attr.dims
 
@@ -213,32 +213,32 @@ let bigarray_ml_to_c oc pref attr ty_elt v c =
    big array attributes *)
 
 let bigarray_alloc_kind = function
-    Type_int((Char | UChar | Byte), _) -> "BIGARRAY_UINT8"
-  | Type_int((SChar | Small), _) -> "BIGARRAY_SINT8"
-  | Type_int(Short, _) -> "BIGARRAY_SINT16"
-  | Type_int(UShort, _) -> "BIGARRAY_UINT16"
-  | Type_int((Int | UInt), _) -> "BIGARRAY_INT32"
-  | Type_int((Long | ULong), I64) -> "BIGARRAY_INT64"
-  | Type_int((Long | ULong), _) -> "BIGARRAY_NATIVE_INT"
-  | Type_int((Hyper | UHyper), _) -> "BIGARRAY_INT64"
-  | Type_float -> "BIGARRAY_FLOAT32"
-  | Type_double -> "BIGARRAY_FLOAT64"
+    Type_int((Char | UChar | Byte), _) -> "CAML_BA_UINT8"
+  | Type_int((SChar | Small), _) -> "CAML_BA_SINT8"
+  | Type_int(Short, _) -> "CAML_BA_SINT16"
+  | Type_int(UShort, _) -> "CAML_BA_UINT16"
+  | Type_int((Int | UInt), _) -> "CAML_BA_INT32"
+  | Type_int((Long | ULong), I64) -> "CAML_BA_INT64"
+  | Type_int((Long | ULong), _) -> "CAML_BA_NATIVE_INT"
+  | Type_int((Hyper | UHyper), _) -> "CAML_BA_INT64"
+  | Type_float -> "CAML_BA_FLOAT32"
+  | Type_double -> "CAML_BA_FLOAT64"
   | _ -> assert false
 
 let bigarray_alloc_layout attr =
   if attr.fortran_layout
-  then "BIGARRAY_FORTRAN_LAYOUT"
-  else "BIGARRAY_C_LAYOUT"
+  then "CAML_BA_FORTRAN_LAYOUT"
+  else "CAML_BA_C_LAYOUT"
 
 let bigarray_alloc_managed attr =
   if attr.malloced
-  then "BIGARRAY_MANAGED"
-  else "BIGARRAY_EXTERNAL"
+  then "CAML_BA_MANAGED"
+  else "CAML_BA_EXTERNAL"
 
 (* Translation from a C array [c] to an ML bigarray [v] *)
 
 let bigarray_c_to_ml oc pref attr ty_elt c v =
-  iprintf oc "%s = alloc_bigarray_dims(\n" v;
+  iprintf oc "%s = caml_ba_alloc_dims(\n" v;
   iprintf oc "        %s | %s | %s,\n"
              (bigarray_alloc_kind ty_elt)
              (bigarray_alloc_layout attr)
@@ -259,7 +259,7 @@ let bigarray_allocate_output_space oc pref attr ty_elt c =
      (instead of transient space using camlidl_alloc),
      and we set the "malloced" attribute to true so that the
      ML bigarray will be managed by the Caml GC *)
-  iprintf oc "%s = stat_alloc(" c;
+  iprintf oc "%s = caml_stat_alloc(" c;
   List.iter
     (fun a -> fprintf oc "%a * " Lexpr.output (pref, array_output_size a))
     attr.dims;

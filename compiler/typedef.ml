@@ -198,7 +198,7 @@ static long camlidl_hash_%s_%s(value v)
   increase_indent();
   if td.td_abstract then
     if is_custom_block td then begin
-      iprintf pc "%s = alloc_custom(&camlidl_cops_%s_%s, sizeof(%s), 0, 1);\n"
+      iprintf pc "%s = caml_alloc_custom(&camlidl_cops_%s_%s, sizeof(%s), 0, 1);\n"
               v td.td_mod td.td_name td.td_name;
       iprintf pc "*((%s *) Data_custom_val(%s)) = *%s;\n"
               td.td_name v c

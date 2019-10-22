@@ -156,7 +156,7 @@ let union_c_to_ml c_to_ml oc pref ud c v discr =
   List.iter emit_case ud.ud_cases;
   if not !have_default then begin
     iprintf oc "default:\n";
-    iprintf oc "  invalid_argument(\"%s: bad discriminant for union %s\");\n" 
+    iprintf oc "  caml_invalid_argument(\"%s: bad discriminant for union %s\");\n" 
                !current_function ud.ud_name
   end;
   iprintf oc "}\n"
