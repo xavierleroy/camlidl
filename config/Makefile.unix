@@ -19,7 +19,7 @@ OSTYPE=unix
 
 # How to invoke the C preprocessor
 # Works on most Unix systems:
-CPP=cpp
+CPP=cpp -traditional
 # Alternatives:
 # CPP=/lib/cpp
 # CPP=/usr/ccs/lib/cpp
