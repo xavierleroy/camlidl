@@ -2,7 +2,7 @@ include ../config/Makefile
 
 CAMLIDL=../compiler/camlidl
 CAMLC=ocamlc -I ../lib
-INCLUDES=-I.. -I$(OCAMLLIB)
+INCLUDES=-DCAML_NAME_SPACE -I.. -I$(OCAMLLIB)
 CCPP?=$(CC)
 CPPFLAGS=$(CFLAGS)
 

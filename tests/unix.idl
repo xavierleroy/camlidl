@@ -102,7 +102,7 @@ void read2([in] int fd, [in] int len, [out] int *rd,
           [out,string,size_is(len),length_is(*rd)] char * buf)
   quote(call,
     " *rd = read(fd, buf, len);
-      if (*rd == -1) failwith(\"read2\"); ");
+      if (*rd == -1) caml_failwith(\"read2\"); ");
 
 /* write */
 int write([in] int fd, [in,string,size_is(len)] char * buf, [in] int len);
@@ -149,7 +149,7 @@ typedef [abstract,ptr] void * dir_handle;
 dir_handle opendir([string] char * filename)
   quote(call,
     " _res = opendir(filename);
-      if (_res == NULL) failwith(\"opendir\"); ");
+      if (_res == NULL) caml_failwith(\"opendir\"); ");
 
 typedef struct {
   [string] char d_name[256];   // NAME_MAX in fact
