@@ -1,0 +1,12 @@
+(library
+ (public_name camlidl)
+ (modules com)
+ (wrapped false)
+ (c_names idlalloc)
+ (synopsis "Stub code generator for OCaml"))
+
+(install
+ (section lib_root)
+ (package camlidl)
+ (files
+  (camlidlruntime.h as caml/camlidlruntime.h)))

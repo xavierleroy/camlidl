@@ -1,0 +1,24 @@
+(executable
+ (public_name camlidl)
+ (package camlidl)
+ (name main)
+ (modules clflags config constdecl cvttyp cvtval enum enumdecl file fixlabels
+   funct idlarray idltypes intf lexer_midl lexpr linenum main normalize parse
+   parse_aux parser_midl predef prefix struct structdecl typedef union
+   uniondecl utils variables)
+ (flags -w -9-27-33)
+ (modules_without_implementation idltypes))
+
+(ocamllex
+ (modules lexer_midl linenum))
+
+(ocamlyacc
+ (modules parser_midl))
+
+(rule
+ (target config.ml)
+ (deps config.mlp)
+ (action
+  (with-stdout-to
+   %{target}
+   (run %{bin:sed} -e "s@%%CPP%%@cpp@" %{deps}))))
