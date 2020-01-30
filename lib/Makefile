@@ -43,7 +43,7 @@ install:
 
 # Clean up
 clean::
-	rm -f *.cm[ioax] $.cmxa *~
+	rm -f *.cm[ioax] *.cmxa *.[ao] *.lib *~
 
 # Dependencies
 depend:
