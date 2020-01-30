@@ -91,12 +91,12 @@ camlidl_QueryInterface(struct camlidl_intf * this, REFIID iid,
       return S_OK;
     }
   }
+#ifdef _WIN32
   if (IsEqualIID(iid, &IID_IUnknown)) {
     *object = (void *) this;
     InterlockedIncrement(&(comp->refcount));
     return S_OK;
   }
-#ifdef _WIN32
   if (this->typeinfo != NULL && IsEqualIID(iid, &IID_IDispatch)) {
     *object = (void *) this;
     InterlockedIncrement(&(comp->refcount));
