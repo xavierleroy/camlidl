@@ -40,7 +40,6 @@ interface IUnknown {
 #define IsEqualIID(a,b) (memcmp(a, b, sizeof(IID)) == 0)
 #define InterlockedIncrement(p) (++(*(p)))
 #define InterlockedDecrement(p) (--(*(p)))
-extern IID IID_IUnknown;
 #define S_TRUE S_OK
 #define S_FALSE 1
 #define E_NOINTERFACE 0x80004002

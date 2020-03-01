@@ -32,7 +32,7 @@ install:
 	cd $(OCAMLLIB); $(RANLIB) libcamlidl.a
 
 clean:
-	rm -f *.a *.o
+	rm -f *.a *.o *.so
 
 .SUFFIXES: .c .o
 
