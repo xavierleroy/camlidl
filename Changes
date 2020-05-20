@@ -1,3 +1,14 @@
+CamlIDL 1.08:
+-------------
+
+* Update to OCaml 4.09 and up
+* Support more IDL features: import lists, fixed-width integer types
+  (int8, int32, etc), MIDL-stlye nonencapsulatedu unions
+  (pull request #13, Philipp Gesang)
+* Generate C code that respects CAML_NAME_SPACE
+* The runtime library referenced a IID_IUnknown symbol that could
+  not be resolved under Unix (pull request #15, Github user ygrek)
+
 CamlIDL 1.07:
 -------------
 
