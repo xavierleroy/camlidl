@@ -1,3 +1,9 @@
+CamlIDL 1.09:
+-------------
+
+* Revert a problematic change of default configuration
+  (cpp -traditional instead of cpp)
+
 CamlIDL 1.08:
 -------------
 
