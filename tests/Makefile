@@ -11,7 +11,11 @@ TESTS_unix=unix.idl
 COMLIBS=$(COMLIBS_$(OSTYPE))
 COMLIBS_win32=advapi32.lib ole32.lib oleaut32.lib
 
-all: ../caml/camlidlruntime.h $(TESTS:.idl=.$(OBJEXT)) testcomp
+all:: ../caml/camlidlruntime.h
+all:: $(TESTS:.idl=.$(OBJEXT))
+ifeq ($(OSTYPE),win32)
+all:: testcomp
+endif
 
 $(TESTS:.idl=.$(OBJEXT)) component.$(OBJEXT): $(CAMLIDL) ../runtime/camlidlruntime.h
 

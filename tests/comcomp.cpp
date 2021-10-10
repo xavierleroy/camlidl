@@ -50,7 +50,7 @@ interface IY : public IUnknown {
  public:
   virtual int STDMETHODCALLTYPE G(int x) = 0;
   virtual int STDMETHODCALLTYPE H() = 0;
-  virtual int STDMETHODCALLTYPE K(char ** str) = 0;
+  virtual int STDMETHODCALLTYPE K(const char ** str) = 0;
 };
 
 static int CA_ident = 0;
@@ -112,7 +112,7 @@ public:
     return 0;
   }
 
-  virtual int STDMETHODCALLTYPE K(char ** str) {
+  virtual int STDMETHODCALLTYPE K(const char ** str) {
     printf("%d: K() called, returning 0 and `foobar'.\n", ident);
     *str = "foobar";
     return 0;
@@ -141,7 +141,7 @@ void test_component(interface IUnknown * c)
   interface IX * cix;
   interface IY * ciy;
   int res;
-  char * stringres;
+  const char * stringres;
 
   // Test IX interface
   if (c->QueryInterface(IID_IX, (void **) &cix) == S_OK) {
