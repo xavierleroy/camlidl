@@ -55,7 +55,10 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
     begin match attr.bound with
       None ->
         if onstack then
-          iprintf oc "%s = String_val(%s);\n" c v
+          iprintf oc "%s = (%a) String_val(%s);\n"
+                  c
+                  out_c_type (Type_pointer(Ptr, ty_elt))
+                  v
         else begin
           iprintf oc "%s = camlidl_malloc_string(%s, _ctx);\n" c v;
           need_context := true
