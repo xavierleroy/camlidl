@@ -93,7 +93,7 @@ void * camlidl_malloc(size_t sz, camlidl_ctx ctx)
   camlidl_register_allocation(camlidl_task_mem_free, res, ctx);
 #else
   void * res = stat_alloc(sz);
-  camlidl_register_allocation(stat_free, res, ctx);
+  camlidl_register_allocation(caml_stat_free, res, ctx);
 #endif
   return res;
 }
@@ -105,7 +105,7 @@ void camlidl_free(camlidl_ctx ctx)
     arena->free_fn(arena->block);
     tmp = arena;
     arena = arena->next;
-    stat_free(tmp);
+    caml_stat_free(tmp);
   }
 }
 
