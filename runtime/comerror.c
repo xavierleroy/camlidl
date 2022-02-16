@@ -14,6 +14,8 @@
 
 /* Error handling */
 
+#define CAML_NAME_SPACE
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -34,18 +36,18 @@ static void camlidl_raise_error(HRESULT errcode, char * who, char * msg)
   if (com_error_exn == NULL) {
     com_error_exn = caml_named_value("Com.Error");
     if (com_error_exn == NULL)
-      invalid_argument("Exception Com.Error not initialized");
+      caml_invalid_argument("Exception Com.Error not initialized");
   }
   Begin_roots2(vwho,vmsg)
-    vwho = copy_string(who);
-    vmsg = copy_string(msg);
-    bucket = alloc_small(4, 0);
+    vwho = caml_copy_string(who);
+    vmsg = caml_copy_string(msg);
+    bucket = caml_alloc_small(4, 0);
     Field(bucket, 0) = *com_error_exn;
     Field(bucket, 1) = Val_long(errcode);
     Field(bucket, 2) = vwho;
     Field(bucket, 3) = vmsg;
   End_roots();
-  mlraise(bucket);
+  caml_raise(bucket);
 }
 
 void camlidl_error(HRESULT errcode, char * who, char * what)
@@ -170,7 +172,7 @@ HRESULT camlidl_result_exception(char * methname, value exn_bucket)
 
 void camlidl_uncaught_exception(char * methname, value exn_bucket)
 {
-  char * msg = format_caml_exception(exn_bucket);
+  char * msg = caml_format_exception(exn_bucket);
   fprintf(stderr, "Uncaught exception in COM method %s: %s\n",
           methname, msg);
   free(msg);

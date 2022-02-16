@@ -14,6 +14,8 @@
 
 /* Helper functions for handling COM interfaces */
 
+#define CAML_NAME_SPACE
+
 #include <string.h>
 #include <stdio.h>
 #include <caml/mlvalues.h>
@@ -34,7 +36,7 @@ static void camlidl_finalize_interface(value intf)
 
 value camlidl_pack_interface(void * intf, camlidl_ctx ctx)
 {
-  value res = alloc_final(2, camlidl_finalize_interface, 0, 1);
+  value res = caml_alloc_final(2, camlidl_finalize_interface, 0, 1);
   Field(res, 1) = (value) intf;
   if (ctx != NULL && (ctx->flags & CAMLIDL_ADDREF)) {
     struct IUnknown * i = (struct IUnknown *) intf;
@@ -56,7 +58,7 @@ value camlidl_make_interface(void * vtbl, value caml_object, IID * iid,
                              int has_dispatch)
 {
   struct camlidl_component * comp =
-    (struct camlidl_component *) stat_alloc(sizeof(struct camlidl_component));
+    (struct camlidl_component *) caml_stat_alloc(sizeof(struct camlidl_component));
   comp->numintfs = 1;
   comp->refcount = 1;
   comp->intf[0].vtbl = vtbl;
@@ -70,7 +72,7 @@ value camlidl_make_interface(void * vtbl, value caml_object, IID * iid,
     camlidl_error(0, "Com.make_xxx", "Dispatch interfaces not supported");
   comp->intf[0].typeinfo = NULL;
 #endif
-  register_global_root(&(comp->intf[0].caml_object));
+  caml_register_global_root(&(comp->intf[0].caml_object));
   InterlockedIncrement(&camlidl_num_components);
   return camlidl_pack_interface(&(comp->intf[0]), NULL);
 }
@@ -125,13 +127,13 @@ ULONG STDMETHODCALLTYPE camlidl_Release(struct camlidl_intf * this)
   if (newrefcount == 0) {
     for (i = 0; i < comp->numintfs; i++) {
       struct camlidl_intf * intf = &(comp->intf[i]);
-      remove_global_root(&(intf->caml_object));
+      caml_remove_global_root(&(intf->caml_object));
       if (intf->typeinfo != NULL) {
         struct IUnknown * i = (struct IUnknown *) intf->typeinfo;
         i->lpVtbl->Release(i);
       }
     }
-    stat_free(comp);
+    caml_stat_free(comp);
     InterlockedDecrement(&camlidl_num_components);
   }
   return newrefcount;
@@ -172,8 +174,8 @@ value camlidl_com_combine(value vintf1, value vintf2)
   c2 = i2->comp;
   n = c1->numintfs + c2->numintfs;
   c = (struct camlidl_component *)
-        stat_alloc(sizeof(struct camlidl_component) +
-                   sizeof(struct camlidl_intf) * (n - 1));
+        caml_stat_alloc(sizeof(struct camlidl_component) +
+                        sizeof(struct camlidl_intf) * (n - 1));
   InterlockedIncrement(&camlidl_num_components);
   c->numintfs = n;
   c->refcount = 1;
@@ -182,7 +184,7 @@ value camlidl_com_combine(value vintf1, value vintf2)
   for (i = 0; i < c2->numintfs; i++)
     c->intf[c1->numintfs + i] = c2->intf[i];
   for (i = 0; i < n; i++) {
-    register_global_root(&(c->intf[i].caml_object));
+    caml_register_global_root(&(c->intf[i].caml_object));
     c->intf[i].comp = c;
   }
   return camlidl_pack_interface(c->intf + (i1 - c1->intf), NULL);
@@ -204,7 +206,7 @@ value camlidl_com_create_instance(value clsid, value iid)
   if (FAILED(res)) camlidl_error(res, "Com.create_instance", NULL);
   return camlidl_pack_interface(instance, NULL);
 #else
-  invalid_argument("Com.create_instance not implemented");
+  caml_invalid_argument("Com.create_instance not implemented");
 #endif
 }
 
@@ -232,9 +234,9 @@ struct camlidl_comp * camlidl_registered_components = NULL;
 
 value camlidl_com_register_factory(value compdata)
 {
-  struct camlidl_comp * c = stat_alloc(sizeof(struct camlidl_comp));
+  struct camlidl_comp * c = caml_stat_alloc(sizeof(struct camlidl_comp));
   c->compdata = compdata;
-  register_global_root(&(c->compdata));
+  caml_register_global_root(&(c->compdata));
   c->next = camlidl_registered_components;
   camlidl_registered_components = c;
   return Val_unit;
@@ -247,13 +249,13 @@ value camlidl_com_parse_uid(value str)
   value res;
   int u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11;
 
-  if (string_length(str) != 36 ||
+  if (caml_string_length(str) != 36 ||
       sscanf(String_val(str),
              "%8x-%4x-%4x-%2x%2x-%2x%2x%2x%2x%2x%2x",
              &u1, &u2, &u3, &u4, &u5, &u6, &u7, &u8, &u9, &u10, &u11) != 11)
     camlidl_error(CO_E_IIDSTRING, "Com.clsid", "Badly formed GUID");
-  res = alloc_small((sizeof(GUID) + sizeof(value) - 1) / sizeof(value),
-                    Abstract_tag);
+  res = caml_alloc_small((sizeof(GUID) + sizeof(value) - 1) / sizeof(value),
+                         Abstract_tag);
   GUID_val(res).Data1 = u1;
   GUID_val(res).Data2 = u2;
   GUID_val(res).Data3 = u3;
