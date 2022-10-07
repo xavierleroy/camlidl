@@ -200,7 +200,7 @@ let emit_function oc fundecl ins outs locals emit_call =
   (* Initialize dependent parameters that are pointers so that they
      point to suitable storage *)
   List.iter
-    (function (name, (In|InOut),
+    (function (name, _,
                (Type_pointer(_, ty_arg) | Type_const(Type_pointer(_, ty_arg))))
               when is_dependent_parameter name In fundecl.fun_params ->
                   let c = new_c_variable ty_arg in
