@@ -222,6 +222,7 @@ let rec scrape_type = function
 (* Remove leading "const" from a type *)
 let rec scrape_const = function
     Type_const ty -> scrape_const ty
+  | Type_array(attr, ty) -> Type_array(attr, scrape_const ty)
   | ty -> ty
 
 (* Determine if a type is an ignored pointer *)
