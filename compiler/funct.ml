@@ -65,7 +65,7 @@ let rec split_in_out = function
       | Out -> (ins, (name, ty) :: outs)
       | InOut ->
           match ty with
-            Type_array({is_string = true}, _) | Type_bigarray(_, _) ->
+            Type_array({is_bytes = true}, _) | Type_bigarray(_, _) ->
               ((name, ty) :: ins, outs)
           | _ ->
               ((name, ty) :: ins, (name, ty) :: outs)

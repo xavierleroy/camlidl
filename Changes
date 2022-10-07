@@ -1,3 +1,7 @@
+* Add [bytes] attribute for char arrays and pointers, mapped to OCaml's bytes
+  type.
+* Always use modern, caml_-prefixed names for FFI functions (#22).
+
 CamlIDL 1.09:
 -------------
 
@@ -9,7 +13,7 @@ CamlIDL 1.08:
 
 * Update to OCaml 4.09 and up
 * Support more IDL features: import lists, fixed-width integer types
-  (int8, int32, etc), MIDL-stlye nonencapsulatedu unions
+  (int8, int32, etc), MIDL-stlye nonencapsulated unions
   (pull request #13, Philipp Gesang)
 * Generate C code that respects CAML_NAME_SPACE
 * The runtime library referenced a IID_IUnknown symbol that could

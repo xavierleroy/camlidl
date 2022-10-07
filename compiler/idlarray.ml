@@ -51,9 +51,9 @@ let update_size_variable svar oc pref size =
 (* Translation from an ML array [v] to a C array [c] *)
 
 let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
-  if attr.is_string then begin
-    begin match attr.bound with
-      None ->
+  if attr.is_string || attr.is_bytes then begin
+    match attr.bound with
+    | None ->
         if onstack then
           iprintf oc "%s = (%a) String_val(%s);\n"
                   c
@@ -62,18 +62,24 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
         else begin
           iprintf oc "%s = camlidl_malloc_string(%s, _ctx);\n" c v;
           need_context := true
+        end;
+        begin match attr.size with
+          None -> ()
+        | Some re -> iprintf oc "%a = caml_string_length(%s);\n" 
+                             Lexpr.output (pref, re) v
         end
     | Some n ->
+        let size = new_c_variable (Type_named("", "mlsize_t")) in
+        iprintf oc "%s = caml_string_length(%s);\n" size v;    
         iprintf oc
-            "if (caml_string_length(%s) >= %d) caml_invalid_argument(\"%s\");\n"
-            v (Lexpr.eval_int n) !current_function;
-        iprintf oc "strcpy(%s, String_val(%s));\n" c v
-    end;
-    begin match attr.size with
-      None -> ()
-    | Some re -> iprintf oc "%a = caml_string_length(%s);\n" 
-                         Lexpr.output (pref, re) v
-    end
+            "if (%s >= %d) caml_invalid_argument(\"%s\");\n"
+            size (Lexpr.eval_int n) !current_function;
+        iprintf oc "memcpy(%s, String_val(%s), %s + 1);\n" c v size;
+        begin match attr.size with
+          None -> ()
+        | Some re -> iprintf oc "%a = %s;\n" 
+                             Lexpr.output (pref, re) size
+        end
   end else begin
     (* Determine actual size of ML array *)
     let size = new_c_variable (Type_named("", "mlsize_t")) in
@@ -126,7 +132,7 @@ let array_ml_to_c ml_to_c oc onstack pref attr ty_elt v c =
 (* Translation from a C array [c] to an ML array [v] *)
 
 let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
-  if attr.is_string then
+  if attr.is_string || attr.is_bytes then
     iprintf oc "%s = caml_copy_string(%s);\n" v c
   else begin
     (* Determine size of ML array *)

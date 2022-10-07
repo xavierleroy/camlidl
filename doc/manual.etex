@@ -492,6 +492,9 @@ Caml string values are translated to standard null-terminated C strings.
 Be careful about embedded null characters in the Caml string, which
 will be recognized as end of string by C functions.
 
+IDL arrays of characters that carry the "[byte]" attribute are mapped
+to the Caml "bytes" type of byte arrays.
+
 IDL arrays carrying the "[bigarray]" attribute are translated to Caml
 ``big arrays'', as described in the next section.
 
@@ -773,9 +776,9 @@ Caml function outputs.  Parameters with the "[in]" attribute are added
 to the inputs of the function.  Parameters with the "[out]"
 attribute are added to the outputs of the function.  Parameters with
 the "[in,out]" attribute are added both to the inputs and to the
-outputs of the function, unless they are of type string or big array,
+outputs of the function, unless they are of type "bytes" or big array,
 in which case they are added to the inputs of the function only.
-(The reason for this exception is that strings and big arrays are
+(The reason for this exception is that byte arrays and big arrays are
 shared between Caml and C, thus allowing true "in,out" behavior on the
 Caml function parameter, while other data types are copied during
 Caml/C conversion, thus turning a C "in,out" parameter into a Caml

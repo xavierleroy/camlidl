@@ -42,6 +42,7 @@ and array_attributes =
     size: lexpr option;
     length: lexpr option;
     is_string: bool;
+    is_bytes: bool;
     maybe_null: bool;
     null_terminated: bool }
 

@@ -30,7 +30,8 @@ let null_attr_var = Expr_string ""
 
 let no_bounds =
   { bound = None; size = None; length = None;
-    is_string = false; maybe_null = false; null_terminated = false }
+    is_string = false; is_bytes =false;
+    maybe_null = false; null_terminated = false }
 
 let one_bound n = { no_bounds with bound = Some n }
 
@@ -107,6 +108,30 @@ let make_bigarray ty =
               print_location out_c_type ty;
       ty
 
+(* Apply a "string" or "bytes" attribute to an array or pointer type *)
+
+let is_char_type = function
+  | Type_int ((Char | UChar | SChar | Byte), _) -> true
+  | _ -> false
+
+let make_string ty_elt attr ty =
+  if is_char_type ty_elt then
+    Type_array({attr with is_string = true}, ty_elt)
+  else begin
+    eprintf "%t: Warning: `string' attribute applies only \
+                 to arrays of characters, ignored\n"  print_location;
+    ty
+  end
+
+let make_bytes ty_elt attr ty =
+  if is_char_type ty_elt then
+    Type_array({attr with is_bytes = true}, ty_elt)
+  else begin
+    eprintf "%t: Warning: `bytes' attribute applies only \
+                 to arrays of characters, ignored\n"  print_location;
+    ty
+  end
+
 (* Apply a type-related attribute to a type *)
 
 let is_star_attribute name = String.length name >= 1 && name.[0] = '*'
@@ -142,9 +167,13 @@ let [@ocaml.warning "-23"] rec apply_type_attribute ty attr =
   | (("ignore", _), Type_pointer(attr, ty_elt)) ->
       Type_pointer(Ignore, ty_elt)
   | (("string", _), Type_array(attr, ty_elt)) ->
-      Type_array({attr with is_string = true}, ty_elt)
+      make_string ty_elt attr ty
   | (("string", _), Type_pointer(attr, ty_elt)) ->
-      Type_array({no_bounds with is_string = true}, ty_elt)
+      make_string ty_elt no_bounds ty
+  | (("bytes", _), Type_array(attr, ty_elt)) ->
+      make_bytes ty_elt attr ty
+  | (("bytes", _), Type_pointer(attr, ty_elt)) ->
+      make_bytes ty_elt no_bounds ty
   | (("null_terminated", _), Type_array(attr, ty_elt))->
       Type_array({attr with null_terminated = true}, ty_elt)
   | (("null_terminated", _), Type_pointer(attr, ty_elt)) ->

@@ -1,7 +1,16 @@
 [pointer_default(ref)] interface Arrays {
+
 /* Strings */
 
 [string] char * str1([in,string] unsigned char * s);
+
+/* Bytes */
+
+[bytes] char * byte1([in,bytes] unsigned char * s);
+
+[bytes] char * byte2([in] int len, [in,bytes,size_is(len)] byte x[100]);
+
+void byte3([in,out,bytes] byte x[]);
 
 /* Arrays */
 

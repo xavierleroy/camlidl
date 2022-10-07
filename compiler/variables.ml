@@ -41,7 +41,8 @@ let new_ml_variable_block n =
   let ty =
     Type_array({bound = Some(Expr_int(Int64.of_int n));
                 size=None; length=None;
-                is_string=false; maybe_null=false; null_terminated=false},
+                is_string=false; is_bytes=false;
+                maybe_null=false; null_terminated=false},
                Type_named("", "value")) in
   temp_variables := (name, ty) :: !temp_variables;
   name
