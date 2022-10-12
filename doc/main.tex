@@ -1,23 +1,24 @@
 \documentclass[11pt]{article}
 
-\usepackage{isolatin1}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
 \usepackage{alltt}
 \usepackage{fullpage}
 \usepackage{syntaxdef}
 \usepackage{hevea}
 
-\newif\ifpdf\pdffalse
-\newif\ifplaintext\plaintextfalse
 \ifhevea
 \input{macros.hva}
 \else
-\input{macros.tex}
+\input{macros.sty}
 \fi
 \renewcommand{\index}[1]{}
 
-\title{Camlidl user's manual \\ Version 1.04}
+\emergencystretch=3cm
+
+\title{Camlidl user's manual}
 \author{Xavier Leroy \\
-        INRIA Rocquencourt}
+        Collège de France and Inria}
 
 \begin{document}
 

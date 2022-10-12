@@ -1,29 +1,19 @@
-CAMLDOC=$${HOME}/csldoc
-TEXINPUTS=.:$(CAMLDOC)/styles:$(CAMLDOC)/manual:/usr/local/lib/hevea:
-HEVEAINPUTS=-I $(CAMLDOC)/manual -I ..
-TRANSF=$(CAMLDOC)/tools/transf
-TEXQUOTE=texquote3
-HTMLGEN=$(CAMLDOC)/tools/htmlgen
-HTMLCUT=$(CAMLDOC)/tools/htmlcut
-HTMLTHREAD=$(CAMLDOC)/tools/htmlthread
-TEXEXPAND=$(CAMLDOC)/tools/texexpand
-FORMATINTF=$(CAMLDOC)/tools/format-intf
+TEXINPUTS=./styles:
+TRANSF=tools/transf
+TEXQUOTE=tools/texquote2
 
-all: main.dvi main.pdf htmlman/index.html
+all: $(TRANSF) $(TEXQUOTE) main.pdf htmlman/index.html
 
-main.dvi: main.tex manual.tex com.tex
-	TEXINPUTS=$(TEXINPUTS) latex main.tex
+main.pdf: main.tex manual.tex
+	TEXINPUTS=$(TEXINPUTS) latexmk -pdf main.tex
 
-main.pdf: main.tex manual.tex com.tex
-	TEXINPUTS=$(TEXINPUTS) pdflatex main.tex
-
-htmlman/index.html: main.tex manual.tex com.tex
+htmlman/index.html: main.tex manual.tex
 	cd htmlman; \
-        hevea $(HEVEAINPUTS) -fix ../main.tex && \
+        hevea -I ../styles -I .. -fix ../main.tex && \
 	hacha main.html
 
 manual.tex: manual.etex
 	$(TRANSF) < manual.etex | $(TEXQUOTE) > manual.tex
 
-com.tex: ../lib/com.mli
-	$(FORMATINTF) ../lib/com.mli > com.tex
+$(TRANSF) $(TEXQUOTE):
+	make -C tools

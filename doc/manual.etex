@@ -1144,8 +1144,6 @@ given on the command line.
 Use "regsvr32 /s "\var{file}".dll" to record the components in the
 system registry once it is compiled to a DLL.
 
-\input{com.tex}
-
 \section{Hints on writing IDL files}
 
 \subsection{Writing an IDL file for a C library}
