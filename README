@@ -24,7 +24,7 @@ applies to this distribution.
 
 REQUIREMENTS:
 
-Camlidl requires Objective Caml 4.03 or later.
+Camlidl requires Objective Caml 4.05 or later.
 
 Under MS Windows, you must use the MSVC port of Objective Caml.
 
@@ -46,7 +46,8 @@ INSTALLATION:
 
 DOCUMENTATION:
 
-- The doc/ subdirectory contains the user's manual in HTML and in PDF.
+- The user's manual can be found at https://xavierleroy.org/camlidl/
+  and in the docs/ subdirectory of the release.
 
 - Several examples are provided in the directories tests/ and tests/comp/.
 
@@ -54,5 +55,5 @@ DOCUMENTATION:
 SUPPORT:
 
 - Please use the Github bug tracker and pull request manager at 
-  http://www.github.com/xavierleroy/camlidl
+  https://www.github.com/xavierleroy/camlidl
 

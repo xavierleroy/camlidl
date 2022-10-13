@@ -1,6 +1,13 @@
-* Add [bytes] attribute for char arrays and pointers, mapped to OCaml's bytes
-  type.
-* Always use modern, caml_-prefixed names for FFI functions (#22).
+CamlIDL 1.10:
+-------------
+
+* Add [bytes] attribute for char arrays and pointers,
+  mapped to OCaml's bytes type.
+* Fix C type error with string parameters of unsigned char type.
+* Fix C type error with in parameters of const array type (#9).
+* Install HTML documentation in docs/ and serve it from
+  https://xavierleroy.org/camlidl/ (#20)
+* Always use modern, caml_-prefixed names for FFI functions (#21, #22).
 
 CamlIDL 1.09:
 -------------
