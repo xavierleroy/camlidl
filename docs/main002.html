@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="hevea 2.35">
+<link rel="stylesheet" type="text/css" href="main.css">
+<title>IDL syntax</title>
+</head>
+<body >
+<a href="main001.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main003.html"><img src="next_motif.svg" alt="Next"></a>
+<hr>
+<h2 id="sec4" class="section">2 IDL syntax</h2>
+<p>This section describes the syntax of IDL files. IDL syntax is very
+close to that of C declarations, with extra attributes between
+brackets adding information to the C types. The following example
+should give the flavor of the syntax:
+</p><pre>        int f([in,string] char * msg);
+</pre><p>This reads: “<span class=machine><span class=font-tt>f</span></span> is a function taking a character string as input and
+returning an <span class=machine><span class=font-tt>int</span></span>”.</p>
+<h3 id="sec5" class="subsection">2.1 Lexical conventions</h3>
+<h4 id="sec6" class="paragraph">Blanks.</h4>
+<p> Space, newline, horizontal tabulation, carriage
+return, line feed and form feed are considered as blanks. Blanks are
+ignored, but they separate adjacent tokens.</p>
+<h4 id="sec7" class="paragraph">Comments.</h4>
+<p> Both C-style comments <span class=machine><span class=font-tt>/* ... */</span></span> and
+Java-style comments <span class=machine><span class=font-tt>// ...</span></span> are supported. C-style comments are
+introduced by <span class=machine><span class=font-tt>/*</span></span> and terminated by <span class=machine><span class=font-tt>*/</span></span>. Java-style comments are
+introduced by <span class=machine><span class=font-tt>//</span></span> and extend to the end of the line. Comments are
+treated as blank characters. Comments do not occur inside string or
+character literals. Nested C-style comments are not supported.</p>
+<h4 id="sec8" class="paragraph">Identifiers.</h4>
+<p> Identifiers have the same syntax as in C.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="ident" class="syntax"><span class=nonterminal>ident</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > (<span class=syntax-token>A</span> … <span class=syntax-token>Z</span> ∣ <span class=syntax-token>a</span> … <span class=syntax-token>z</span> ∣ <span class=syntax-token>_</span>)
+{<span class=syntax-token>A</span> … <span class=syntax-token>Z</span> ∣ <span class=syntax-token>a</span> … <span class=syntax-token>z</span> ∣ <span class=syntax-token>0</span> … <span class=syntax-token>9</span> ∣ <span class=syntax-token>_</span>}</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div>
+<h4 id="sec9" class="paragraph">Literals.</h4>
+<p> Integer literals, character literals and string
+literals have the same syntax as in C.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="integer" class="syntax"><span class=nonterminal>integer</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > [<span class=syntax-token>-</span>] {<span class=syntax-token>0</span> … <span class=syntax-token>9</span>}
+[<span class=syntax-token>-</span>] <span class=syntax-token>0x</span> {<span class=syntax-token>0</span> … <span class=syntax-token>9</span> ∣ <span class=syntax-token>a</span> … <span class=syntax-token>f</span> ∣ <span class=syntax-token>A</span> … <span class=syntax-token>F</span>}
+[<span class=syntax-token>-</span>] <span class=syntax-token>0</span> {<span class=syntax-token>0</span> … <span class=syntax-token>7</span>}</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="character" class="syntax"><span class=nonterminal>character</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >  (<span class=nonterminal>regular-char</span> ∣ <a href="#escape-char" class="syntax"><span class=nonterminal>escape-char</span></a>) </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="string" class="syntax"><span class=nonterminal>string</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>"</span> {<span class=nonterminal>regular-char</span> ∣ <a href="#escape-char" class="syntax"><span class=nonterminal>escape-char</span></a>} <span class=syntax-token>"</span></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="escape-char" class="syntax"><span class=nonterminal>escape-char</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>\</span> (<span class=syntax-token>b</span>∣<span class=syntax-token>n</span>∣<span class=syntax-token>r</span>∣<span class=syntax-token>t</span>) 
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>\</span> (<span class=syntax-token>0</span>…<span class=syntax-token>7</span>) [<span class=syntax-token>0</span>…<span class=syntax-token>7</span>] [<span class=syntax-token>0</span>…<span class=syntax-token>7</span>]</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div>
+<h4 id="sec10" class="paragraph">UUID.</h4>
+<p> Unique identifiers are composed of 16 hexadecimal
+digits, in groups of 8, 4, 4, 4 and 12, separated by dashes.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="uuid" class="syntax"><span class=nonterminal>uuid</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>8</sup> <span class=syntax-token>-</span> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <span class=syntax-token>-</span> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <span class=syntax-token>-</span> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <span class=syntax-token>-</span> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="hex" class="syntax"><span class=nonterminal>hex</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>0</span> … <span class=syntax-token>9</span> ∣ <span class=syntax-token>a</span> … <span class=syntax-token>f</span> ∣ <span class=syntax-token>A</span> … <span class=syntax-token>F</span></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div>
+<h3 id="sec11" class="subsection">2.2 Limited expressions</h3>
+<p>Limited expressions are similar to C expressions, with the omission of
+assignment operators (<span class=machine><span class=font-tt>=</span></span>, <span class=machine><span class=font-tt>+=</span></span>, etc), and the addition of the
+unsigned (logical) right shift operator <span class=machine><span class=font-tt>&gt;&gt;&gt;</span></span>. Operators have the same
+precedences and associativities as in C. They are listed below in
+decreasing priority order.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="lexpr" class="syntax"><span class=nonterminal>lexpr</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#integer" class="syntax"><span class=nonterminal>integer</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#character" class="syntax"><span class=nonterminal>character</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>true</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>false</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#string" class="syntax"><span class=nonterminal>string</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=nonterminal>sizeof</span> <span class=syntax-token>(</span> <span class=nonterminal>type-expr</span> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>(</span> <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>.</span> ∣ <span class=syntax-token>-&gt;</span>) <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>(</span> <span class=nonterminal>type-expr</span> <span class=syntax-token>)</span> <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > (<span class=syntax-token>&amp;</span>∣<span class=syntax-token>*</span>∣<span class=syntax-token>!</span>∣<span class=syntax-token>~</span>∣<span class=syntax-token>-</span>∣<span class=syntax-token>+</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>*</span>∣<span class=syntax-token>/</span>∣<span class=syntax-token>%</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>+</span>∣<span class=syntax-token>-</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>&lt;&lt;</span>∣<span class=syntax-token>&gt;&gt;</span></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" ><span class=syntax-token>&gt;&gt;&gt;</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>==</span>∣<span class=syntax-token>!=</span>∣<span class=syntax-token>&gt;=</span>∣<span class=syntax-token>&lt;=</span>∣<span class=syntax-token>&gt;</span>∣<span class=syntax-token>&lt;</span>)
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>&amp;</span>∣<span class=syntax-token>^</span>∣<span class=syntax-token>|</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>&amp;&amp;</span>∣<span class=syntax-token>||</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>  
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> <span class=syntax-token>?</span> <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> <span class=syntax-token>:</span> <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>
+Constant limited expressions, written <span class=nonterminal>const-lexpr</span> below, can only
+reference identifiers that are bound by the IDL <span class=machine><span class=font-tt>const</span></span> declaration.</p>
+<h3 id="sec12" class="subsection">2.3 Attributes</h3>
+<div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="attributes" class="syntax"><span class=nonterminal>attributes</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<span class=syntax-token>[</span> <a href="#attribute" class="syntax"><span class=nonterminal>attribute</span></a> { <span class=syntax-token>,</span> <a href="#attribute" class="syntax"><span class=nonterminal>attribute</span></a> } <span class=syntax-token>]</span> </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="attribute" class="syntax"><span class=nonterminal>attribute</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>(</span> [<a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>] { <span class=syntax-token>,</span> [<a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>] } <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>(</span> <a href="#uuid" class="syntax"><span class=nonterminal>uuid</span></a> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#attribute" class="syntax"><span class=nonterminal>attribute</span></a> <span class=syntax-token>*</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>*</span> <a href="#attribute" class="syntax"><span class=nonterminal>attribute</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>
+Attribute lists are written in brackets <span class=machine><span class=font-tt>[...]</span></span>, and are always
+optional. Each attribute is identified by a name, and may carry
+optional arguments. Starred attributes apply to the element type of a
+pointer or array type, rather than to the pointer or array type itself.
+The following table summarizes the recognized attributes and their
+arguments.</p><div class="tableau">
+<div class="center"><table border=1  style="border-spacing:0;width:80%" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>Attribute</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>Context where it can appear</span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >
+<span class=syntax-token>abstract</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>bigarray</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>blocking</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>camlint</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> integer type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>compare</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>c2ml</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>errorcheck</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>errorcode</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>finalize</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>fortran</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type with <span class=machine><span class=font-tt>bigarray</span></span> attribute </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>hash</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>ignore</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >any pointer type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>in</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function parameter  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>int_default</span><span class=syntax-token>(</span> <span class=syntax-token>camlint</span>∣<span class=syntax-token>nativeint</span>∣<span class=syntax-token>int32</span>∣<span class=syntax-token>int64</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>int32</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> integer type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>int64</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> integer type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>length_is</span><span class=syntax-token>(</span><span class=nonterminal>le</span><sub>1</sub><span class=syntax-token>,</span><span class=nonterminal>le</span><sub>2</sub><span class=syntax-token>,</span>…<span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>long_default</span><span class=syntax-token>(</span> <span class=syntax-token>camlint</span>∣<span class=syntax-token>nativeint</span>∣<span class=syntax-token>int32</span>∣<span class=syntax-token>int64</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>managed</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type with <span class=machine><span class=font-tt>bigarray</span></span> attribute </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>ml2c</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>mlname(</span> <span class=nonterminal>fun-or-field-name</span> <span class=syntax-token>)</span>  </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration, <span class=machine><span class=font-tt>struct</span></span> field  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>mltype("</span> <span class=nonterminal>caml-type-expr</span> <span class=syntax-token>")</span>  </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>nativeint</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> integer type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>null_terminated</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array of pointers  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>object</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>out</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function parameter  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>pointer_default</span><span class=syntax-token>(</span> <span class=syntax-token>ref</span>∣<span class=syntax-token>unique</span>∣<span class=syntax-token>ptr</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>propget</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>propput</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>propputref</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>ptr</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >any pointer type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>ref</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >any pointer type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>set</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >enum type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>size_is</span><span class=syntax-token>(</span><span class=nonterminal>le</span><sub>1</sub><span class=syntax-token>,</span><span class=nonterminal>le</span><sub>2</sub><span class=syntax-token>,</span>…<span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>string</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >character array or pointer  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>switch_is</span><span class=syntax-token>(</span><span class=nonterminal>le</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >union type or pointer to union  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>switch_type</span><span class=syntax-token>(</span><span class=nonterminal>ty</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >union or pointer to union  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>unique</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >any pointer, array, or bigarray type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>uuid</span><span class=syntax-token>(</span> <a href="#uuid" class="syntax"><span class=nonterminal>uuid</span></a> <span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface  </td></tr>
+</table></div></div>
+<h3 id="sec13" class="subsection">2.4 Types and declarators</h3>
+<p>The declaration of an identifier along with its type is as in C:
+a type specification comes first, followed by the identifier possibly
+decorated with <span class=machine><span class=font-tt>*</span></span> and <span class=machine><span class=font-tt>[...]</span></span> to denote pointers and array types.
+For instance, <span class=machine><span class=font-tt>int x</span></span> declares an identifier <span class=machine><span class=font-tt>x</span></span> of type <span class=machine><span class=font-tt>int</span></span>,
+while <span class=machine><span class=font-tt>int (*x)[]</span></span> declares an identifier <span class=machine><span class=font-tt>x</span></span> that is a pointer to an
+array of integers.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="type-spec" class="syntax"><span class=nonterminal>type-spec</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+[<span class=syntax-token>unsigned</span>∣<span class=syntax-token>signed</span>]
+(<span class=syntax-token>int</span>∣<span class=syntax-token>short</span>∣<span class=syntax-token>long</span>∣<span class=syntax-token>char</span>∣<span class=syntax-token>hyper</span>∣<span class=syntax-token>long</span> <span class=syntax-token>long</span>∣<span class=syntax-token>__int64</span>)
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>byte</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>float</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>double</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>boolean</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>void</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>wchar_t</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>handle_t</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>struct</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>union</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>enum</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#struct-decl" class="syntax"><span class=nonterminal>struct-decl</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#union-decl" class="syntax"><span class=nonterminal>union-decl</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#enum-decl" class="syntax"><span class=nonterminal>enum-decl</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="declarator" class="syntax"><span class=nonterminal>declarator</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+{<span class=syntax-token>*</span>} <a href="#direct-declarator" class="syntax"><span class=nonterminal>direct-declarator</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="direct-declarator" class="syntax"><span class=nonterminal>direct-declarator</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>(</span> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#direct-declarator" class="syntax"><span class=nonterminal>direct-declarator</span></a> <span class=syntax-token>[</span> [<span class=nonterminal>const-lexpr</span>] <span class=syntax-token>]</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div>
+<h3 id="sec14" class="subsection">2.5 Structures, unions and enumerations</h3>
+<div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="struct-decl" class="syntax"><span class=nonterminal>struct-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<span class=syntax-token>struct</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>] <span class=syntax-token>{</span> {<a href="#field-decl" class="syntax"><span class=nonterminal>field-decl</span></a>} <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="field-decl" class="syntax"><span class=nonterminal>field-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> { <span class=syntax-token>,</span> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> } <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="union-decl" class="syntax"><span class=nonterminal>union-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<span class=syntax-token>union</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>] <span class=syntax-token>{</span> {<a href="#union-case" class="syntax"><span class=nonterminal>union-case</span></a>} <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>union</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>] <span class=syntax-token>switch</span> <span class=syntax-token>(</span> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>)</span> <span class=syntax-token>{</span> {<a href="#union-case" class="syntax"><span class=nonterminal>union-case</span></a>} <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="union-case" class="syntax"><span class=nonterminal>union-case</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+{<span class=syntax-token>case</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>:</span>}<sup>+</sup> [<a href="#field-decl" class="syntax"><span class=nonterminal>field-decl</span></a>] <span class=syntax-token>;</span>
+<span class=syntax-token>default</span> <span class=syntax-token>:</span> [<a href="#field-decl" class="syntax"><span class=nonterminal>field-decl</span></a>] <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="enum-decl" class="syntax"><span class=nonterminal>enum-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<span class=syntax-token>enum</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>] <span class=syntax-token>{</span> <a href="#enum-case" class="syntax"><span class=nonterminal>enum-case</span></a> {<span class=syntax-token>,</span> <a href="#enum-case" class="syntax"><span class=nonterminal>enum-case</span></a>} [<span class=syntax-token>,</span>] <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="enum-case" class="syntax"><span class=nonterminal>enum-case</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> [<span class=syntax-token>=</span> <span class=nonterminal>const-lexpr</span>]
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>IDL <span class=machine><span class=font-tt>struct</span></span> declarations are like those of C, with the addition of
+optional attributes on each field. <span class=machine><span class=font-tt>union</span></span> declarations are also as
+in C, except that each case of an union must be labeled by one or
+several <span class=syntax-token>case</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>:</span>. The first form of union declaration
+assumes that the discriminant of the union is provided separately
+via a <span class=machine><span class=font-tt>switch</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> annotation on the union type, while the second form
+encapsulates the discriminant along with the union itself
+(like in Pascal’s <span class=machine><span class=font-tt>record case of</span></span> construct).</p>
+<h3 id="sec15" class="subsection">2.6 Function declarations</h3>
+<div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="function-decl" class="syntax"><span class=nonterminal>function-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> {<span class=syntax-token>*</span>} <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>(</span> <a href="#params" class="syntax"><span class=nonterminal>params</span></a> <span class=syntax-token>)</span> {<span class=syntax-token>quote</span><span class=syntax-token>(</span><a href="#ident" class="syntax"><span class=nonterminal>ident</span></a><span class=syntax-token>,</span><a href="#string" class="syntax"><span class=nonterminal>string</span></a><span class=syntax-token>)</span>}
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="params" class="syntax"><span class=nonterminal>params</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+є
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>void</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#param" class="syntax"><span class=nonterminal>param</span></a> { <span class=syntax-token>,</span> <a href="#param" class="syntax"><span class=nonterminal>param</span></a> }
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="param" class="syntax"><span class=nonterminal>param</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>
+Function declarations are like in ANSI C, with the addition of
+attributes on each parameter and on the function itself.
+Parameters must be named. The optional <span class=nonterminal>quote</span> statements following the
+declaration are user-provided calling sequences and deallocation
+sequences that replaces the default sequences in the
+<span class=machine><span class=font-tt>camlidl</span></span>-generated stub code for the function.</p>
+<h3 id="sec16" class="subsection">2.7 Constant definitions</h3>
+<div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="constant-decl" class="syntax"><span class=nonterminal>constant-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>const</span> <a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> {<span class=syntax-token>*</span>} <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>=</span> <span class=nonterminal>const-lexpr</span> <span class=syntax-token>;</span>
+</td></tr>
+</table></td></tr>
+</table></div><p>
+A constant declaration associates a name to a limited expression.
+The limited expression can refer to constant names declared earlier,
+but cannot refer to other kinds of identifiers. The optional
+attributes influence the interpretation of the type specification,
+e.g. <span class=machine><span class=font-tt>const int x = 3</span></span> defines <span class=machine><span class=font-tt>x</span></span> with Caml type <span class=machine><span class=font-tt>int</span></span>, but
+<span class=machine><span class=font-tt>const [int64] long x = 5</span></span> defines <span class=machine><span class=font-tt>x</span></span> with Caml type <span class=machine><span class=font-tt>int64</span></span>.</p>
+<h3 id="sec17" class="subsection">2.8 IDL files</h3>
+<div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="file" class="syntax"><span class=nonterminal>file</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > {<a href="#decl" class="syntax"><span class=nonterminal>decl</span></a>} </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="decl" class="syntax"><span class=nonterminal>decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#function-decl" class="syntax"><span class=nonterminal>function-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#constant-decl" class="syntax"><span class=nonterminal>constant-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#struct-decl" class="syntax"><span class=nonterminal>struct-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#union-decl" class="syntax"><span class=nonterminal>union-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#enum-decl" class="syntax"><span class=nonterminal>enum-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>typedef</span> <a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> { <span class=syntax-token>,</span> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> } <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <span class=syntax-token>interface</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> [ <span class=syntax-token>:</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> ] <span class=syntax-token>{</span> {<a href="#decl" class="syntax"><span class=nonterminal>decl</span></a>} <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>struct</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>union</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>union</span> <span class=syntax-token>switch</span> <span class=syntax-token>(</span> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>)</span> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <span class=syntax-token>interface</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>import</span> <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>quote</span> <span class=syntax-token>(</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>,</span>] <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>cpp_quote</span> <span class=syntax-token>(</span> <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span>
+</td></tr>
+</table></td></tr>
+</table></div><p>
+An IDL file is a sequence of IDL declarations. Declarations include
+function declarations, constant declarations, type declarations
+(structs, unions, enums, as well as a C-style <span class=machine><span class=font-tt>typedef</span></span> declaration to
+name a type expression), and interfaces.</p><p>An interface declaration gives a name and attributes to a collection
+of declarations. For interfaces with the <span class=machine><span class=font-tt>object</span></span> attribute,
+an optional super-interface can be provided, as in
+<span class=syntax-token>interface</span> <span class=nonterminal>intf</span> <span class=syntax-token>:</span> <span class=nonterminal>super-intf</span>. The name of the interface can be
+used as a type name in the remainder of the file.</p><p>Forward declarations of structs, unions and interfaces are supported
+in the usual C manner, by just giving the name of the struct, union or
+interface, but not its actual contents.</p><p>The <span class=machine><span class=font-tt>import</span></span> statement reads another IDL file and makes available its
+type and constant declarations in the remainder of the file.
+No code is generated for the functions and interfaces declared in the
+imported file. The same file can be imported several times, but is
+read in only the first time.</p><p>The <span class=syntax-token>quote</span> <span class=syntax-token>(</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>,</span> <span class=nonterminal>str</span> <span class=syntax-token>)</span> diversion copies the string <span class=nonterminal>str</span>
+verbatim to one of the files generated by the <span class=machine><span class=font-tt>camlidl</span></span> compiler.
+The <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> determines the file where <span class=nonterminal>str</span> is copied:
+it can be <span class=machine><span class=font-tt>ml</span></span> for the Caml implementation file (<span class=machine><span class=font-tt>.ml</span></span>),
+<span class=machine><span class=font-tt>mli</span></span> for the Caml interface file (<span class=machine><span class=font-tt>.mli</span></span>),
+<span class=machine><span class=font-tt>mlmli</span></span> for both Caml files,
+<span class=machine><span class=font-tt>h</span></span> for the C header file (<span class=machine><span class=font-tt>.h</span></span>),
+and <span class=machine><span class=font-tt>c</span></span> for the C source file containing the generated stub code (<span class=machine><span class=font-tt>.c</span></span>
+file). For backward compatibility, <span class=syntax-token>cpp_quote</span> <span class=syntax-token>(</span> <span class=nonterminal>str</span> <span class=syntax-token>)</span> is
+recognized as synonymous for <span class=syntax-token>quote</span> <span class=syntax-token>(</span> <span class=syntax-token>h</span> <span class=syntax-token>,</span> <span class=nonterminal>str</span> <span class=syntax-token>)</span>.</p>
+<hr>
+<a href="main001.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main003.html"><img src="next_motif.svg" alt="Next"></a>
+</body>
+</html>

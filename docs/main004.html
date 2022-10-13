@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="hevea 2.35">
+<link rel="stylesheet" type="text/css" href="main.css">
+<title>Using camlidl</title>
+</head>
+<body >
+<a href="main003.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main005.html"><img src="next_motif.svg" alt="Next"></a>
+<hr>
+<h2 id="sec33" class="section">4 Using <span class=machine><span class=font-tt>camlidl</span></span></h2>
+<h3 id="sec34" class="subsection">4.1 Overview</h3>
+<p>The <span class=machine><span class=font-tt>camlidl</span></span> stub generator is invoked as follows:
+</p><pre>
+        camlidl <span class=font-it>options</span> <span class=font-it>file1</span>.idl <span class=font-it>file2</span>.idl ...
+</pre><p>
+For each file <span class=font-it>f</span><span class=machine><span class=font-tt>.idl</span></span> given on the command line, <span class=machine><span class=font-tt>camlidl</span></span>
+generates the following files:
+</p><ul class="itemize"><li class="li-itemize">
+A Caml interface file <span class=font-it>f</span><span class=machine><span class=font-tt>.mli</span></span> that defines the Caml view
+of the IDL file. It contains Caml definitions for the types declared
+in the IDL file, as well as declarations for the functions and the
+interfaces.
+</li><li class="li-itemize">A Caml implementation file <span class=font-it>f</span><span class=machine><span class=font-tt>.ml</span></span> that implements the
+<span class=font-it>f</span><span class=machine><span class=font-tt>.mli</span></span> file.
+</li><li class="li-itemize">A C source file <span class=font-it>f</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>stubs.c</span></span> that contains the stub functions for
+converting between C and Caml data representations.
+</li><li class="li-itemize">If the <span class=machine><span class=font-tt>-header</span></span> option is given, a C header file <span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span>
+containing C declarations for the types declared in the IDL file.
+</li></ul><p>
+The generated <span class=machine><span class=font-tt>.ml</span></span> and <span class=machine><span class=font-tt>.c</span></span> files must be compiled and linked with
+the remainder of the Caml program.</p>
+<h3 id="sec35" class="subsection">4.2 Options</h3>
+<p>The following command-line options are recognized by <span class=machine><span class=font-tt>camlidl</span></span>.</p><dl class="description"><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-cpp</span></span></span></dt><dd class="dd-description">
+Pre-process the source IDL files with the C preprocessor. This option
+is set by default.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-D </span></span></span><span class=font-bold> </span><span class=font-bold><span class=font-it>symbol</span></span><span class=font-bold><span class=machine><span class=font-tt>=</span></span></span><span class=font-bold><span class=font-it>value</span></span></dt><dd class="dd-description">
+Define a preprocessor symbol. The option <span class=machine><span class=font-tt>-D</span></span><span class=font-it>symbol</span><span class=machine><span class=font-tt>=</span></span><span class=font-it>value</span>
+is passed to the C preprocessor. The <span class=font-it>value</span> can be omitted,
+as in <span class=machine><span class=font-tt>-D</span></span> <span class=font-it>symbol</span>, and defaults to <span class=machine><span class=font-tt>1</span></span>.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-header</span></span></span></dt><dd class="dd-description">
+Generate a C header file <span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span> containing C declarations for the
+types and functions declared in the IDL file <span class=font-it>f</span><span class=machine><span class=font-tt>.c</span></span>.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-I </span></span></span><span class=font-bold> </span><span class=font-bold><span class=font-it>dir</span></span></dt><dd class="dd-description">
+Add the directory <span class=font-it>dir</span> to the list of directories searched for
+<span class=machine><span class=font-tt>.idl</span></span> files, as given on the command line or recursively loaded
+by <span class=syntax-token>import</span> statements.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-keep-labels</span></span></span></dt><dd class="dd-description">
+Keep the Caml names of record labels as specified in the IDL file.
+Do not prefix them with the name of the enclosing struct, even if they
+appear in several struct definitions.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-nocpp</span></span></span></dt><dd class="dd-description">
+Suppresses the pre-processing of source IDL files.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-no-include</span></span></span></dt><dd class="dd-description">
+By default, <span class=machine><span class=font-tt>camlidl</span></span> emits a <span class=machine><span class=font-tt>#include "</span></span><span class=font-it>f</span><span class=machine><span class=font-tt>.h"</span></span> statement in
+the file <span class=font-it>f</span><span class=machine><span class=font-tt>.c</span></span> containing the generated C code.
+The <span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span> header file being included is
+either the one generated by <span class=machine><span class=font-tt>camlidl -header</span></span>, or generated by another
+tool (such as Microsoft’s <span class=machine><span class=font-tt>midl</span></span> compiler) from the IDL file, or
+hand-written. The <span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span> file is assumed to provide all C type
+declarations needed for compiling the stub code.<p>The <span class=machine><span class=font-tt>-no-include</span></span> option suppresses the automatic inclusion of the
+<span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span> file. The IDL file should then include the right header
+files and provide the right type declarations via <span class=syntax-token>quote</span> statements.</p></dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-prefix-all-labels</span></span></span></dt><dd class="dd-description">
+Prefix all Caml names of record labels with the name of the enclosing
+struct. The default is to prefix only those labels that could cause
+ambiguity because they appear in several struct definitions.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-prepro</span></span></span><span class=font-bold> </span><span class=font-bold><span class=font-it>preprocessing-command</span></span></dt><dd class="dd-description">
+Set the command that is executed to pre-process the source IDL files.
+The default is the C preprocessor.</dd></dl>
+<h3 id="sec36" class="subsection">4.3 The <span class=machine><span class=font-tt>camlidldll</span></span> script</h3>
+<p>Under Windows, a <span class=machine><span class=font-tt>bash</span></span> script called <span class=machine><span class=font-tt>camlidldll</span></span> is provided to
+automate the construction of a DLL containing a COM component written
+in Caml.</p><p>The script <span class=machine><span class=font-tt>camlidldll</span></span> accepts essentially the same command-line
+arguments and options as the <span class=machine><span class=font-tt>ocamlc</span></span> compiler. (It also accepts
+<span class=machine><span class=font-tt>.tlb</span></span> type library files on the command-line; see
+section ‍<a href="main005.html#s-dispatch">5.3</a>, “Dispatch interfaces”, for more
+information on type libraries.)
+It produces a DLL file that encapsulates the Caml and C object files
+given on the command line.</p><p>Use <span class=machine><span class=font-tt>regsvr32 /s </span></span><span class=font-it>file</span><span class=machine><span class=font-tt>.dll</span></span> to record the components in the
+system registry once it is compiled to a DLL.</p>
+<hr>
+<a href="main003.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main005.html"><img src="next_motif.svg" alt="Next"></a>
+</body>
+</html>

@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="hevea 2.35">
+<style type="text/css">
+.equationcontainer{position:relative;}
+.equationnumber{float:right;left:auto;position:absolute;right:0}
+.equationnumber-valign{float:right;left:auto;position:absolute;right:0;margin-top:-0.5em;}
+.floatrule{background-color: black; border: none; height: 1px; width: 80%}
+.phantom{display: inline-block; visibility: hidden}
+.hphantom{display: inline-block; height: 0; visibility: hidden}
+.vphantom{display: inline-block; visibility: hidden; width: 0}
+.smash{display: inline-block; height: 0; line-height: 0}
+.li-itemize{margin:1ex 0ex;}
+.li-enumerate{margin:1ex 0ex;}
+.dd-description{margin:0ex 0ex 1ex 4ex;}
+.dt-description{margin:0ex;}
+.toc{list-style:none;}
+.footnotetext{margin:0ex; padding:0ex;}
+div.footnotetext P{margin:0px; text-indent:1em;}
+.thefootnotes{text-align:left;margin:0ex;}
+.dt-thefootnotes{margin:0em;}
+.dd-thefootnotes{margin:0em 0em 0em 2em;}
+.footnoterule{background-color: black; border: none; height: 1px; margin: 1em auto 1em 0px; width: 40%}
+.caption{padding-left:2ex; padding-right:2ex; margin-left:auto; margin-right:auto}
+.title{margin:2ex auto;text-align:center}
+.titlemain{margin:1ex 2ex 2ex 1ex;}
+.titlerest{margin:0ex 2ex;}
+.center{text-align:center;margin-left:auto;margin-right:auto;}
+.flushleft{text-align:left;margin-left:0ex;margin-right:auto;}
+.flushright{text-align:right;margin-left:auto;margin-right:0ex;}
+div table{margin-left:inherit;margin-right:inherit;margin-bottom:2px;margin-top:2px}
+td table{margin:auto;}
+table{border-collapse:collapse;}
+td{padding:0;}
+.cellpadding0 tr td{padding:0;}
+.cellpadding1 tr td{padding:1px;}
+pre{text-align:left;margin-left:0ex;margin-right:auto;}
+blockquote{margin-left:4ex;margin-right:4ex;text-align:left;}
+td p{margin:0px;}
+.quote{margin-left:3em;margin-right:3em;text-align:inherit;text-indent:0pt}
+.quotation{margin-left:3em;margin-right:3em;text-align:inherit;text-indent:1.5em}
+.verse{margin-left:3em;margin-right:3em;text-indent:1.5em hanging each-line}
+.parbox{box-sizing: border-box;
+display: inline-block;
+text-indent: 0;
+}
+.rule-rect{fill: black;}
+.lrbox{box-sizing:border-box;display:inline-block;overflow:visible;white-space:nowrap;}
+.center-lrbox{display:inline-block;margin-left:50%;transform:translateX(-50%);}
+.makebox{}
+.framebox{border:1px solid black;padding:0.25em;}
+.vertical-rule{border:none;width:2px;background-color:black;}
+.horizontal-rule{border:none;background-color:black;}
+.hrule{border:none;height:2px;width:100%;background-color:black;}
+.hfill{border:none;height:1px;width:200%;background-color:black;}
+.vdisplay{border-collapse:separate;border-spacing:2px;line-height:1.1;width:auto; empty-cells:show; border:2px solid red;}
+.vdcell{white-space:nowrap;padding:0px; border:2px solid green;}
+.display{border-collapse:separate;border-spacing:2px;line-height:1.1;width:auto; border:none;}
+.dcell{white-space:nowrap;padding:0px; border:none;}
+.dcenter{margin:0ex auto;}
+.vdcenter{border:solid #FF8000 2px; margin:0ex auto;}
+.minipage{text-align:left; margin-left:0em; margin-right:auto;}
+.marginpar{border:solid thin black; margin-bottom:1ex; width:20%; text-align:left;}
+.marginparleft{float:left; clear:left; margin-left:0ex; margin-right:1ex;}
+.marginparright{float:right; clear:right; margin-left:1ex; margin-right:0ex;}
+.theorem{text-align:left;margin:1ex auto 1ex 0ex;}
+.part{margin:2ex auto;text-align:center}
+.syntax-token{color:blue;font-family:monospace}
+a.syntax:link{color:maroon;text-decoration:underline}
+a.syntax:visited{color:maroon;text-decoration:underline}
+a.syntax:hover{color:black;text-decoration:none;background-color:#FF6060}
+.nonterminal{color:maroon;font-style:oblique}
+a.section-anchor::after{content:"🔗";
+font-size:smaller;
+margin-left:-1.5em;
+padding-right:0.5em;
+}
+a.section-anchor{visibility:hidden;
+color:grey !important;
+text-decoration:none !important;
+}
+*:hover>a.section-anchor{visibility:visible;
+}
+a:link{color:#4286f4;text-decoration:underline;}
+a:visited{color:#0d46a3;text-decoration:underline;}
+a:hover{color:black;text-decoration:underline;}
+@media all{@font-face {
+/* fira-sans-regular - latin */
+font-family: 'Fira Sans';
+font-style: normal;
+font-weight: 400;
+src: url('fonts/fira-sans-v8-latin-regular.eot'); /* IE9 Compat Modes */
+src: local('Fira Sans Regular'), local('FiraSans-Regular'),
+url('fonts/fira-sans-v8-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+url('fonts/fira-sans-v8-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+url('fonts/fira-sans-v8-latin-regular.woff') format('woff'), /* Modern Browsers */
+url('fonts/fira-sans-v8-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+url('fonts/fira-sans-v8-latin-regular.svg#FiraSans') format('svg'); /* Legacy iOS */
+}}
+body{max-width:750px;
+width: 85%;
+margin: auto;
+background: #f7f7f7;
+margin-top: 80px;
+font-size: 1rem;
+}
+.maintitle{font-family: "Fira Sans", sans-serif;
+text-align: center;
+}
+h1, h2, h3{font-family: "Fira Sans", sans-serif;
+font-weight: normal;
+border-bottom: 1px solid black;
+}
+div.ocaml{margin:2ex 0px;
+font-size: 1rem;
+background: beige;
+border: 1px solid grey;
+padding: 10px;
+overflow-y:auto;
+display:flex;
+flex-direction: column;
+flex-wrap: nowrap;
+}
+div.ocaml .pre{white-space: pre;
+font-family: monospace;
+}
+.ocamlkeyword{font-weight:bold;
+}
+.ocamlhighlight{font-weight:bold;
+text-decoration:underline;
+}
+.ocamlerror{font-weight:bold;
+color:red;
+}
+.ocamlwarning{font-weight:bold;
+color:purple;
+}
+.ocamlcomment{color:grey;
+}
+.ocamlstring{opacity:0.75;
+}
+#cc_license_logo{float:left;
+margin-right: 1em;
+}
+p,ul{line-height:1.3em}
+.cellpadding1 tr td{padding:1px 4px}
+div.caml-output{color:maroon;}
+div.caml-example.toplevel div.caml-input{color:#006000;}
+.ocamlprompt{color:black;}
+.osvariant{font-family:sans-serif}
+.tableau, .syntax, .syntaxleft{/* same width as body */
+max-width: 750px;
+overflow-y: auto;
+}
+.th{font-size:small;}
+.li-links{margin:0ex 0ex;}
+.font-tt{font-family:monospace;}
+.font-it{font-style:italic;}
+.font-bold{font-weight:bold;}
+.font-sl{font-style:oblique;}
+</style>
+<title>Camlidl user's manual
+</title>
+</head>
+<body >
+<!--HEVEA command line is: hevea -I ../doc/styles -I ../doc -fix ../doc/main.tex -->
+<!--CUT STYLE article--><!--CUT DEF section 1 --><table class="title"><tr><td style="padding:1ex"><h1 class="titlemain">Camlidl user’s manual</h1><h3 class="titlerest">Xavier Leroy <br>
+ Collège de France and Inria</h3></td></tr>
+</table>
+<!--TOC section id="sec1" Overview-->
+<h2 id="sec1" class="section">1 Overview</h2><!--SEC END --><p>Camlidl generates stub code for interfacing Caml with C
+(as described in chapter “Interfacing with C” of the
+<a href="http://caml.inria.fr/ocaml/htmlman/index.html">Objective Caml
+reference manual</a>) from an IDL description of the C functions to be
+made available in Caml.
+Thus, Camlidl automates the most tedious task in interfacing C
+libraries with Caml programs. It can also be used to interface Caml
+programs with other languages, as long as those languages have a
+well-defined C interface.</p><p>In addition, Camlidl provides basic support for COM interfaces and
+components. It supports both using COM components (usually written in
+C++ or C) from Caml programs, and packaging Caml objects as
+COM components that can then be used from C++ or C.</p>
+<!--TOC subsection id="sec2" What is IDL?-->
+<h3 id="sec2" class="subsection">1.1 What is IDL?</h3><!--SEC END --><p>IDL stands for Interface Description Language. This is a generic term
+for a family of small languages that have been developed to provide
+type specifications for libraries written in C and C++. Those
+languages resembles C declarations (as found in C header files), with
+extra annotations to provide more precise types for the arguments and
+results of the functions.</p><p>The particular IDL used by Camlidl is inspired by Microsoft’s IDL,
+which itself is an extension of the IDL found in DCE (The Open Group’s
+Distributed Common Environment). The initial motivation for those IDLs
+was to automate the generation of stub code for remote procedure calls
+and network objects, where the arguments to the function are marshaled
+at the calling site, then sent across the network or through
+interprocess communications to a server process, which unmarshals the
+arguments, compute the function application, marshal the results,
+sends them back to the calling site, where they are unmarshaled and
+returned to the caller. IDLs were also found to be very useful for
+inter-language communications, since the same type information that
+guides the generation of marshaling stubs can be used to generate
+stubs to convert between the data representations of several
+languages.</p>
+<!--TOC subsection id="sec3" What is COM?-->
+<h3 id="sec3" class="subsection">1.2 What is COM?</h3><!--SEC END --><p>COM is Microsoft’s Common Object Model. It provides a set of
+programming conventions as well as system support for packaging
+C++ objects as executable components that can be used in other
+programs, either by dynamic linking of the component inside the
+program, or through interprocess or internetwork communications
+between the program and a remote server. COM components implement one
+or several interfaces, (similar to Caml object types or Java
+interfaces) identified by unique 128-bit interface identifiers (IIDs).
+COM specifies a standard protocol for reference counting of
+components, and for asking a component which interfaces it
+implements.</p><p>While the full range of COM services and third-party components is
+available only on Microsoft’s Windows operating systems, the basic COM
+conventions can also be used on Unix and other operating systems
+to exchange objects between Caml and C or C++. Of particular
+interest is the encapsulation of Caml objects as COM components, which
+can then be used inside larger C or C++ applications; those
+applications do not need to know anything about Caml: they just call
+the component methods as if they were C++ methods or C
+functions, without knowing that they are actually implemented in Caml.</p><p>For more information about COM, see for instance <em>Inside COM</em>
+by Dale Rogerson (Microsoft Press), or the 
+<a href="http://msdn.microsoft.com">Microsoft developer Web site</a>.</p>
+<!--TOC section id="sec4" IDL syntax-->
+<h2 id="sec4" class="section">2 IDL syntax</h2><!--SEC END --><p>This section describes the syntax of IDL files. IDL syntax is very
+close to that of C declarations, with extra attributes between
+brackets adding information to the C types. The following example
+should give the flavor of the syntax:
+</p><pre>        int f([in,string] char * msg);
+</pre><p>This reads: “<span class=machine><span class=font-tt>f</span></span> is a function taking a character string as input and
+returning an <span class=machine><span class=font-tt>int</span></span>”.</p>
+<!--TOC subsection id="sec5" Lexical conventions-->
+<h3 id="sec5" class="subsection">2.1 Lexical conventions</h3><!--SEC END -->
+<!--TOC paragraph id="sec6" Blanks.-->
+<h4 id="sec6" class="paragraph">Blanks.</h4><!--SEC END --><p> Space, newline, horizontal tabulation, carriage
+return, line feed and form feed are considered as blanks. Blanks are
+ignored, but they separate adjacent tokens.</p>
+<!--TOC paragraph id="sec7" Comments.-->
+<h4 id="sec7" class="paragraph">Comments.</h4><!--SEC END --><p> Both C-style comments <span class=machine><span class=font-tt>/* ... */</span></span> and
+Java-style comments <span class=machine><span class=font-tt>// ...</span></span> are supported. C-style comments are
+introduced by <span class=machine><span class=font-tt>/*</span></span> and terminated by <span class=machine><span class=font-tt>*/</span></span>. Java-style comments are
+introduced by <span class=machine><span class=font-tt>//</span></span> and extend to the end of the line. Comments are
+treated as blank characters. Comments do not occur inside string or
+character literals. Nested C-style comments are not supported.</p>
+<!--TOC paragraph id="sec8" Identifiers.-->
+<h4 id="sec8" class="paragraph">Identifiers.</h4><!--SEC END --><p> Identifiers have the same syntax as in C.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="ident" class="syntax"><span class=nonterminal>ident</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > (<span class=syntax-token>A</span> … <span class=syntax-token>Z</span> ∣ <span class=syntax-token>a</span> … <span class=syntax-token>z</span> ∣ <span class=syntax-token>_</span>)
+{<span class=syntax-token>A</span> … <span class=syntax-token>Z</span> ∣ <span class=syntax-token>a</span> … <span class=syntax-token>z</span> ∣ <span class=syntax-token>0</span> … <span class=syntax-token>9</span> ∣ <span class=syntax-token>_</span>}</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div>
+<!--TOC paragraph id="sec9" Literals.-->
+<h4 id="sec9" class="paragraph">Literals.</h4><!--SEC END --><p> Integer literals, character literals and string
+literals have the same syntax as in C.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="integer" class="syntax"><span class=nonterminal>integer</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > [<span class=syntax-token>-</span>] {<span class=syntax-token>0</span> … <span class=syntax-token>9</span>}
+[<span class=syntax-token>-</span>] <span class=syntax-token>0x</span> {<span class=syntax-token>0</span> … <span class=syntax-token>9</span> ∣ <span class=syntax-token>a</span> … <span class=syntax-token>f</span> ∣ <span class=syntax-token>A</span> … <span class=syntax-token>F</span>}
+[<span class=syntax-token>-</span>] <span class=syntax-token>0</span> {<span class=syntax-token>0</span> … <span class=syntax-token>7</span>}</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="character" class="syntax"><span class=nonterminal>character</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >  (<span class=nonterminal>regular-char</span> ∣ <a href="#escape-char" class="syntax"><span class=nonterminal>escape-char</span></a>) </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="string" class="syntax"><span class=nonterminal>string</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>"</span> {<span class=nonterminal>regular-char</span> ∣ <a href="#escape-char" class="syntax"><span class=nonterminal>escape-char</span></a>} <span class=syntax-token>"</span></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="escape-char" class="syntax"><span class=nonterminal>escape-char</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>\</span> (<span class=syntax-token>b</span>∣<span class=syntax-token>n</span>∣<span class=syntax-token>r</span>∣<span class=syntax-token>t</span>) 
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>\</span> (<span class=syntax-token>0</span>…<span class=syntax-token>7</span>) [<span class=syntax-token>0</span>…<span class=syntax-token>7</span>] [<span class=syntax-token>0</span>…<span class=syntax-token>7</span>]</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div>
+<!--TOC paragraph id="sec10" UUID.-->
+<h4 id="sec10" class="paragraph">UUID.</h4><!--SEC END --><p> Unique identifiers are composed of 16 hexadecimal
+digits, in groups of 8, 4, 4, 4 and 12, separated by dashes.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="uuid" class="syntax"><span class=nonterminal>uuid</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>8</sup> <span class=syntax-token>-</span> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <span class=syntax-token>-</span> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <span class=syntax-token>-</span> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <span class=syntax-token>-</span> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup> <a href="#hex" class="syntax"><span class=nonterminal>hex</span></a><sup>4</sup></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="hex" class="syntax"><span class=nonterminal>hex</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>0</span> … <span class=syntax-token>9</span> ∣ <span class=syntax-token>a</span> … <span class=syntax-token>f</span> ∣ <span class=syntax-token>A</span> … <span class=syntax-token>F</span></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div>
+<!--TOC subsection id="sec11" Limited expressions-->
+<h3 id="sec11" class="subsection">2.2 Limited expressions</h3><!--SEC END --><p>Limited expressions are similar to C expressions, with the omission of
+assignment operators (<span class=machine><span class=font-tt>=</span></span>, <span class=machine><span class=font-tt>+=</span></span>, etc), and the addition of the
+unsigned (logical) right shift operator <span class=machine><span class=font-tt>&gt;&gt;&gt;</span></span>. Operators have the same
+precedences and associativities as in C. They are listed below in
+decreasing priority order.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="lexpr" class="syntax"><span class=nonterminal>lexpr</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#integer" class="syntax"><span class=nonterminal>integer</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#character" class="syntax"><span class=nonterminal>character</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>true</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>false</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#string" class="syntax"><span class=nonterminal>string</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=nonterminal>sizeof</span> <span class=syntax-token>(</span> <span class=nonterminal>type-expr</span> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>(</span> <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>.</span> ∣ <span class=syntax-token>-&gt;</span>) <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>(</span> <span class=nonterminal>type-expr</span> <span class=syntax-token>)</span> <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > (<span class=syntax-token>&amp;</span>∣<span class=syntax-token>*</span>∣<span class=syntax-token>!</span>∣<span class=syntax-token>~</span>∣<span class=syntax-token>-</span>∣<span class=syntax-token>+</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>*</span>∣<span class=syntax-token>/</span>∣<span class=syntax-token>%</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>+</span>∣<span class=syntax-token>-</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>&lt;&lt;</span>∣<span class=syntax-token>&gt;&gt;</span></td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" ><span class=syntax-token>&gt;&gt;&gt;</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>==</span>∣<span class=syntax-token>!=</span>∣<span class=syntax-token>&gt;=</span>∣<span class=syntax-token>&lt;=</span>∣<span class=syntax-token>&gt;</span>∣<span class=syntax-token>&lt;</span>)
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>&amp;</span>∣<span class=syntax-token>^</span>∣<span class=syntax-token>|</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> (<span class=syntax-token>&amp;&amp;</span>∣<span class=syntax-token>||</span>) <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>  
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> <span class=syntax-token>?</span> <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a> <span class=syntax-token>:</span> <a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>
+Constant limited expressions, written <span class=nonterminal>const-lexpr</span> below, can only
+reference identifiers that are bound by the IDL <span class=machine><span class=font-tt>const</span></span> declaration.</p>
+<!--TOC subsection id="sec12" Attributes-->
+<h3 id="sec12" class="subsection">2.3 Attributes</h3><!--SEC END --><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="attributes" class="syntax"><span class=nonterminal>attributes</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<span class=syntax-token>[</span> <a href="#attribute" class="syntax"><span class=nonterminal>attribute</span></a> { <span class=syntax-token>,</span> <a href="#attribute" class="syntax"><span class=nonterminal>attribute</span></a> } <span class=syntax-token>]</span> </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="attribute" class="syntax"><span class=nonterminal>attribute</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>(</span> [<a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>] { <span class=syntax-token>,</span> [<a href="#lexpr" class="syntax"><span class=nonterminal>lexpr</span></a>] } <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>(</span> <a href="#uuid" class="syntax"><span class=nonterminal>uuid</span></a> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#attribute" class="syntax"><span class=nonterminal>attribute</span></a> <span class=syntax-token>*</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>*</span> <a href="#attribute" class="syntax"><span class=nonterminal>attribute</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>
+Attribute lists are written in brackets <span class=machine><span class=font-tt>[...]</span></span>, and are always
+optional. Each attribute is identified by a name, and may carry
+optional arguments. Starred attributes apply to the element type of a
+pointer or array type, rather than to the pointer or array type itself.
+The following table summarizes the recognized attributes and their
+arguments.</p><div class="tableau">
+<div class="center"><table border=1  style="border-spacing:0;width:80%" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>Attribute</span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>Context where it can appear</span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >
+<span class=syntax-token>abstract</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>bigarray</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>blocking</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>camlint</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> integer type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>compare</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>c2ml</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>errorcheck</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>errorcode</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>finalize</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>fortran</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type with <span class=machine><span class=font-tt>bigarray</span></span> attribute </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>hash</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>ignore</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >any pointer type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>in</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function parameter  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>int_default</span><span class=syntax-token>(</span> <span class=syntax-token>camlint</span>∣<span class=syntax-token>nativeint</span>∣<span class=syntax-token>int32</span>∣<span class=syntax-token>int64</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>int32</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> integer type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>int64</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> integer type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>length_is</span><span class=syntax-token>(</span><span class=nonterminal>le</span><sub>1</sub><span class=syntax-token>,</span><span class=nonterminal>le</span><sub>2</sub><span class=syntax-token>,</span>…<span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>long_default</span><span class=syntax-token>(</span> <span class=syntax-token>camlint</span>∣<span class=syntax-token>nativeint</span>∣<span class=syntax-token>int32</span>∣<span class=syntax-token>int64</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>managed</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type with <span class=machine><span class=font-tt>bigarray</span></span> attribute </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>ml2c</span><span class=syntax-token>(</span><span class=nonterminal>fun-name</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>mlname(</span> <span class=nonterminal>fun-or-field-name</span> <span class=syntax-token>)</span>  </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration, <span class=machine><span class=font-tt>struct</span></span> field  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>mltype("</span> <span class=nonterminal>caml-type-expr</span> <span class=syntax-token>")</span>  </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>typedef</span></span>  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>nativeint</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> integer type </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>null_terminated</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array of pointers  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>object</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>out</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function parameter  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>pointer_default</span><span class=syntax-token>(</span> <span class=syntax-token>ref</span>∣<span class=syntax-token>unique</span>∣<span class=syntax-token>ptr</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>propget</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>propput</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>propputref</span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" >function declaration </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>ptr</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >any pointer type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>ref</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >any pointer type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>set</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >enum type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>size_is</span><span class=syntax-token>(</span><span class=nonterminal>le</span><sub>1</sub><span class=syntax-token>,</span><span class=nonterminal>le</span><sub>2</sub><span class=syntax-token>,</span>…<span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >array type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>string</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >character array or pointer  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>switch_is</span><span class=syntax-token>(</span><span class=nonterminal>le</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >union type or pointer to union  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>switch_type</span><span class=syntax-token>(</span><span class=nonterminal>ty</span><span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >union or pointer to union  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>unique</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >any pointer, array, or bigarray type  </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=syntax-token>uuid</span><span class=syntax-token>(</span> <a href="#uuid" class="syntax"><span class=nonterminal>uuid</span></a> <span class=syntax-token>)</span> </td><td style="text-align:left;border:solid 1px;white-space:nowrap" >interface  </td></tr>
+</table></div></div>
+<!--TOC subsection id="sec13" Types and declarators-->
+<h3 id="sec13" class="subsection">2.4 Types and declarators</h3><!--SEC END --><p>The declaration of an identifier along with its type is as in C:
+a type specification comes first, followed by the identifier possibly
+decorated with <span class=machine><span class=font-tt>*</span></span> and <span class=machine><span class=font-tt>[...]</span></span> to denote pointers and array types.
+For instance, <span class=machine><span class=font-tt>int x</span></span> declares an identifier <span class=machine><span class=font-tt>x</span></span> of type <span class=machine><span class=font-tt>int</span></span>,
+while <span class=machine><span class=font-tt>int (*x)[]</span></span> declares an identifier <span class=machine><span class=font-tt>x</span></span> that is a pointer to an
+array of integers.
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="type-spec" class="syntax"><span class=nonterminal>type-spec</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+[<span class=syntax-token>unsigned</span>∣<span class=syntax-token>signed</span>]
+(<span class=syntax-token>int</span>∣<span class=syntax-token>short</span>∣<span class=syntax-token>long</span>∣<span class=syntax-token>char</span>∣<span class=syntax-token>hyper</span>∣<span class=syntax-token>long</span> <span class=syntax-token>long</span>∣<span class=syntax-token>__int64</span>)
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>byte</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>float</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>double</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>boolean</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>void</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>wchar_t</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>handle_t</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>struct</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>union</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>enum</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#struct-decl" class="syntax"><span class=nonterminal>struct-decl</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#union-decl" class="syntax"><span class=nonterminal>union-decl</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#enum-decl" class="syntax"><span class=nonterminal>enum-decl</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="declarator" class="syntax"><span class=nonterminal>declarator</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+{<span class=syntax-token>*</span>} <a href="#direct-declarator" class="syntax"><span class=nonterminal>direct-declarator</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="direct-declarator" class="syntax"><span class=nonterminal>direct-declarator</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>(</span> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#direct-declarator" class="syntax"><span class=nonterminal>direct-declarator</span></a> <span class=syntax-token>[</span> [<span class=nonterminal>const-lexpr</span>] <span class=syntax-token>]</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div>
+<!--TOC subsection id="sec14" Structures, unions and enumerations-->
+<h3 id="sec14" class="subsection">2.5 Structures, unions and enumerations</h3><!--SEC END --><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="struct-decl" class="syntax"><span class=nonterminal>struct-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<span class=syntax-token>struct</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>] <span class=syntax-token>{</span> {<a href="#field-decl" class="syntax"><span class=nonterminal>field-decl</span></a>} <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="field-decl" class="syntax"><span class=nonterminal>field-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> { <span class=syntax-token>,</span> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> } <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="union-decl" class="syntax"><span class=nonterminal>union-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<span class=syntax-token>union</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>] <span class=syntax-token>{</span> {<a href="#union-case" class="syntax"><span class=nonterminal>union-case</span></a>} <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>union</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>] <span class=syntax-token>switch</span> <span class=syntax-token>(</span> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>)</span> <span class=syntax-token>{</span> {<a href="#union-case" class="syntax"><span class=nonterminal>union-case</span></a>} <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="union-case" class="syntax"><span class=nonterminal>union-case</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+{<span class=syntax-token>case</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>:</span>}<sup>+</sup> [<a href="#field-decl" class="syntax"><span class=nonterminal>field-decl</span></a>] <span class=syntax-token>;</span>
+<span class=syntax-token>default</span> <span class=syntax-token>:</span> [<a href="#field-decl" class="syntax"><span class=nonterminal>field-decl</span></a>] <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="enum-decl" class="syntax"><span class=nonterminal>enum-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<span class=syntax-token>enum</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a>] <span class=syntax-token>{</span> <a href="#enum-case" class="syntax"><span class=nonterminal>enum-case</span></a> {<span class=syntax-token>,</span> <a href="#enum-case" class="syntax"><span class=nonterminal>enum-case</span></a>} [<span class=syntax-token>,</span>] <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="enum-case" class="syntax"><span class=nonterminal>enum-case</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> [<span class=syntax-token>=</span> <span class=nonterminal>const-lexpr</span>]
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>IDL <span class=machine><span class=font-tt>struct</span></span> declarations are like those of C, with the addition of
+optional attributes on each field. <span class=machine><span class=font-tt>union</span></span> declarations are also as
+in C, except that each case of an union must be labeled by one or
+several <span class=syntax-token>case</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>:</span>. The first form of union declaration
+assumes that the discriminant of the union is provided separately
+via a <span class=machine><span class=font-tt>switch</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> annotation on the union type, while the second form
+encapsulates the discriminant along with the union itself
+(like in Pascal’s <span class=machine><span class=font-tt>record case of</span></span> construct).</p>
+<!--TOC subsection id="sec15" Function declarations-->
+<h3 id="sec15" class="subsection">2.6 Function declarations</h3><!--SEC END --><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="function-decl" class="syntax"><span class=nonterminal>function-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> {<span class=syntax-token>*</span>} <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>(</span> <a href="#params" class="syntax"><span class=nonterminal>params</span></a> <span class=syntax-token>)</span> {<span class=syntax-token>quote</span><span class=syntax-token>(</span><a href="#ident" class="syntax"><span class=nonterminal>ident</span></a><span class=syntax-token>,</span><a href="#string" class="syntax"><span class=nonterminal>string</span></a><span class=syntax-token>)</span>}
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="params" class="syntax"><span class=nonterminal>params</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+є
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>void</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#param" class="syntax"><span class=nonterminal>param</span></a> { <span class=syntax-token>,</span> <a href="#param" class="syntax"><span class=nonterminal>param</span></a> }
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="param" class="syntax"><span class=nonterminal>param</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>
+Function declarations are like in ANSI C, with the addition of
+attributes on each parameter and on the function itself.
+Parameters must be named. The optional <span class=nonterminal>quote</span> statements following the
+declaration are user-provided calling sequences and deallocation
+sequences that replaces the default sequences in the
+<span class=machine><span class=font-tt>camlidl</span></span>-generated stub code for the function.</p>
+<!--TOC subsection id="sec16" Constant definitions-->
+<h3 id="sec16" class="subsection">2.7 Constant definitions</h3><!--SEC END --><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="constant-decl" class="syntax"><span class=nonterminal>constant-decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>const</span> <a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> {<span class=syntax-token>*</span>} <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>=</span> <span class=nonterminal>const-lexpr</span> <span class=syntax-token>;</span>
+</td></tr>
+</table></td></tr>
+</table></div><p>
+A constant declaration associates a name to a limited expression.
+The limited expression can refer to constant names declared earlier,
+but cannot refer to other kinds of identifiers. The optional
+attributes influence the interpretation of the type specification,
+e.g. <span class=machine><span class=font-tt>const int x = 3</span></span> defines <span class=machine><span class=font-tt>x</span></span> with Caml type <span class=machine><span class=font-tt>int</span></span>, but
+<span class=machine><span class=font-tt>const [int64] long x = 5</span></span> defines <span class=machine><span class=font-tt>x</span></span> with Caml type <span class=machine><span class=font-tt>int64</span></span>.</p>
+<!--TOC subsection id="sec17" IDL files-->
+<h3 id="sec17" class="subsection">2.8 IDL files</h3><!--SEC END --><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><a id="file" class="syntax"><span class=nonterminal>file</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" > {<a href="#decl" class="syntax"><span class=nonterminal>decl</span></a>} </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >
+<a id="decl" class="syntax"><span class=nonterminal>decl</span></a></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#function-decl" class="syntax"><span class=nonterminal>function-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#constant-decl" class="syntax"><span class=nonterminal>constant-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#struct-decl" class="syntax"><span class=nonterminal>struct-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#union-decl" class="syntax"><span class=nonterminal>union-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#enum-decl" class="syntax"><span class=nonterminal>enum-decl</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>typedef</span> <a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> { <span class=syntax-token>,</span> <a href="#declarator" class="syntax"><span class=nonterminal>declarator</span></a> } <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <span class=syntax-token>interface</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> [ <span class=syntax-token>:</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> ] <span class=syntax-token>{</span> {<a href="#decl" class="syntax"><span class=nonterminal>decl</span></a>} <span class=syntax-token>}</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>struct</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>union</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>union</span> <span class=syntax-token>switch</span> <span class=syntax-token>(</span> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>)</span> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <span class=syntax-token>interface</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>import</span> <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>;</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>quote</span> <span class=syntax-token>(</span> [<a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>,</span>] <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span>
+</td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td><td style="text-align:center;white-space:nowrap" >∣</td><td style="text-align:left;white-space:nowrap" > <span class=syntax-token>cpp_quote</span> <span class=syntax-token>(</span> <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span>
+</td></tr>
+</table></td></tr>
+</table></div><p>
+An IDL file is a sequence of IDL declarations. Declarations include
+function declarations, constant declarations, type declarations
+(structs, unions, enums, as well as a C-style <span class=machine><span class=font-tt>typedef</span></span> declaration to
+name a type expression), and interfaces.</p><p>An interface declaration gives a name and attributes to a collection
+of declarations. For interfaces with the <span class=machine><span class=font-tt>object</span></span> attribute,
+an optional super-interface can be provided, as in
+<span class=syntax-token>interface</span> <span class=nonterminal>intf</span> <span class=syntax-token>:</span> <span class=nonterminal>super-intf</span>. The name of the interface can be
+used as a type name in the remainder of the file.</p><p>Forward declarations of structs, unions and interfaces are supported
+in the usual C manner, by just giving the name of the struct, union or
+interface, but not its actual contents.</p><p>The <span class=machine><span class=font-tt>import</span></span> statement reads another IDL file and makes available its
+type and constant declarations in the remainder of the file.
+No code is generated for the functions and interfaces declared in the
+imported file. The same file can be imported several times, but is
+read in only the first time.</p><p>The <span class=syntax-token>quote</span> <span class=syntax-token>(</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>,</span> <span class=nonterminal>str</span> <span class=syntax-token>)</span> diversion copies the string <span class=nonterminal>str</span>
+verbatim to one of the files generated by the <span class=machine><span class=font-tt>camlidl</span></span> compiler.
+The <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> determines the file where <span class=nonterminal>str</span> is copied:
+it can be <span class=machine><span class=font-tt>ml</span></span> for the Caml implementation file (<span class=machine><span class=font-tt>.ml</span></span>),
+<span class=machine><span class=font-tt>mli</span></span> for the Caml interface file (<span class=machine><span class=font-tt>.mli</span></span>),
+<span class=machine><span class=font-tt>mlmli</span></span> for both Caml files,
+<span class=machine><span class=font-tt>h</span></span> for the C header file (<span class=machine><span class=font-tt>.h</span></span>),
+and <span class=machine><span class=font-tt>c</span></span> for the C source file containing the generated stub code (<span class=machine><span class=font-tt>.c</span></span>
+file). For backward compatibility, <span class=syntax-token>cpp_quote</span> <span class=syntax-token>(</span> <span class=nonterminal>str</span> <span class=syntax-token>)</span> is
+recognized as synonymous for <span class=syntax-token>quote</span> <span class=syntax-token>(</span> <span class=syntax-token>h</span> <span class=syntax-token>,</span> <span class=nonterminal>str</span> <span class=syntax-token>)</span>.</p>
+<!--TOC section id="sec18" The Caml-IDL mapping-->
+<h2 id="sec18" class="section">3 The Caml-IDL mapping</h2><!--SEC END --><p>This section describes how IDL types, function declarations, and
+interfaces are mapped to Caml types, functions and classes.</p>
+<!--TOC subsection id="sec19" Base types-->
+<h3 id="sec19" class="subsection">3.1 Base types</h3><!--SEC END --><div class="tableau">
+<div class="center"><table border=1  style="border-spacing:0;width:80%" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>IDL type </span><span class=font-bold><span class=font-it>ty</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>Caml type </span>[[<span class=font-it>ty</span>]] </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >
+<span class=machine><span class=font-tt>byte</span></span>, <span class=machine><span class=font-tt>short</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>long</span></span> with <span class=machine><span class=font-tt>[camlint]</span></span> attribute</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>long</span></span> with <span class=machine><span class=font-tt>[nativeint]</span></span> attribute</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>nativeint</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>long</span></span> with <span class=machine><span class=font-tt>[int32]</span></span> attribute</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int32</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>long</span></span> with <span class=machine><span class=font-tt>[int64]</span></span> attribute</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int64</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>hyper</span></span>, <span class=machine><span class=font-tt>long long</span></span>, <span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>int64</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int64</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>char</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>char</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>float</span></span>, <span class=machine><span class=font-tt>double</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>float</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>boolean</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>bool</span></span> </td></tr>
+</table></div></div><p>
+(For integer types, <span class=machine><span class=font-tt>signed</span></span> and <span class=machine><span class=font-tt>unsigned</span></span> variants of the same IDL
+integer type translate to the same Caml type.)</p><p>Depending on the attributes, the <span class=machine><span class=font-tt>int</span></span> and <span class=machine><span class=font-tt>long</span></span> integer types are
+converted to one of the Caml integer types <span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>nativeint</span></span>,
+<span class=machine><span class=font-tt>int32</span></span>, or <span class=machine><span class=font-tt>int64</span></span>. Values of Caml type <span class=machine><span class=font-tt>int32</span></span> are exactly 32-bit wide
+and values of type <span class=machine><span class=font-tt>int64</span></span> are exactly 64-bit wide on all platforms.
+Values of type <span class=machine><span class=font-tt>nativeint</span></span> have the natural word size of the platform,
+and are large enough to accommodate any C <span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long int</span></span> without
+loss of precision. Values of Caml type <span class=machine><span class=font-tt>int</span></span> have the natural word
+size of the platform minus one bit of tag, hence the conversion from IDL
+types <span class=machine><span class=font-tt>int</span></span> and <span class=machine><span class=font-tt>long</span></span> loses the most significant bit on 32-bit
+platforms. On 64-bit platforms, the conversion from <span class=machine><span class=font-tt>int</span></span> is exact,
+but the conversion from <span class=machine><span class=font-tt>long</span></span> loses the most significant bit.</p><p>If no explicit integer attribute is given for an <span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> type,
+the <span class=machine><span class=font-tt>int</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> or <span class=machine><span class=font-tt>long</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> attribute of the enclosing
+interface, if any, determines the kind of the integer.
+If no <span class=machine><span class=font-tt>int</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> or <span class=machine><span class=font-tt>long</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> attribute is in scope, the kind
+<span class=machine><span class=font-tt>camlint</span></span> is assumed, which maps IDL <span class=machine><span class=font-tt>int</span></span> and <span class=machine><span class=font-tt>long</span></span> types to the
+Caml <span class=machine><span class=font-tt>int</span></span> type.</p>
+<!--TOC subsection id="sec20" Pointers-->
+<h3 id="sec20" class="subsection">3.2 Pointers</h3><!--SEC END --><p>The mapping of IDL pointer types depends on their kinds. Writing
+[[<span class=font-it>ty</span>]] for the Caml type corresponding to the IDL type
+<span class=font-it>ty</span>, we have:
+</p><pre>
+       [ref] <span class=font-it>ty</span> *  ⇒  [[<span class=font-it>ty</span>]]
+    [unique] <span class=font-it>ty</span> *  ⇒  [[<span class=font-it>ty</span>]] option
+       [ptr] <span class=font-it>ty</span> *  ⇒  [[<span class=font-it>ty</span>]] Com.opaque
+</pre><p>
+In other terms, IDL pointers of kind <span class=machine><span class=font-tt>ref</span></span> are ignored during the mapping:
+<span class=machine><span class=font-tt>[ref] </span></span><span class=font-it>ty</span><span class=machine><span class=font-tt> *</span></span> is mapped to the same Caml type as <span class=font-it>ty</span>.
+A pointer <span class=font-it>p</span> to a C value <span class=font-it>c</span><span class=machine><span class=font-tt> = *</span></span><span class=font-it>p</span> is translated to
+the Caml value corresponding to <span class=font-it>c</span>.</p><p>IDL pointers of kind <span class=machine><span class=font-tt>unique</span></span> are mapped to an <span class=machine><span class=font-tt>option</span></span> type. The
+option value is <span class=machine><span class=font-tt>None</span></span> for a null pointer, and <span class=machine><span class=font-tt>Some(</span></span><span class=font-it>v</span><span class=machine><span class=font-tt>)</span></span>
+for a non-null pointer to a C value <span class=font-it>c</span> that translates to the ML
+value <span class=font-it>v</span>.</p><p>IDL pointers of kind <span class=machine><span class=font-tt>ptr</span></span> are mapped to a <span class=machine><span class=font-tt>Com.opaque</span></span> type.
+This is an abstract type that encapsulates the C pointer without
+attempting to convert it to an ML data structure.</p><p>IDL pointers of kind <span class=machine><span class=font-tt>ignore</span></span> denote struct fields and function
+parameters that need not be exposed in the Caml code. Those pointers
+are simply set to null when converting from Caml to C, and ignored
+when converting from C to Caml. They cannot occur elsewhere.</p><p>If no explicit pointer kind is given, the <span class=machine><span class=font-tt>pointer</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> attribute
+of the enclosing interface, if any, determines the kind of the pointer.
+If no <span class=machine><span class=font-tt>pointer</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> attribute is in scope, the kind <span class=machine><span class=font-tt>unique</span></span> is
+assumed.</p>
+<!--TOC subsection id="sec21" Arrays-->
+<h3 id="sec21" class="subsection">3.3 Arrays</h3><!--SEC END --><p>IDL arrays of characters that carry the <span class=machine><span class=font-tt>[string]</span></span> attribute are mapped
+to the Caml <span class=machine><span class=font-tt>string</span></span> type:
+</p><div class="tableau">
+<div class="center"><table border=1  style="border-spacing:0;width:80%" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>IDL type </span><span class=font-bold><span class=font-it>ty</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>Caml type </span>[[<span class=font-it>ty</span>]] </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >
+<span class=machine><span class=font-tt>[string] char []</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>string</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>[string] unsigned char []</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>string</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>[string] signed char []</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>string</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>[string] byte []</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>string</span></span> </td></tr>
+</table></div></div><p>
+Caml string values are translated to standard null-terminated C strings.
+Be careful about embedded null characters in the Caml string, which
+will be recognized as end of string by C functions.</p><p>IDL arrays of characters that carry the <span class=machine><span class=font-tt>[byte]</span></span> attribute are mapped
+to the Caml <span class=machine><span class=font-tt>bytes</span></span> type of byte arrays.</p><p>IDL arrays carrying the <span class=machine><span class=font-tt>[bigarray]</span></span> attribute are translated to Caml
+“big arrays”, as described in the next section.</p><p>All other IDL arrays are translated to ML arrays:
+</p><pre>
+        <span class=font-it>ty</span> []  ⇒  [[<span class=font-it>ty</span>]] array
+</pre><p>
+For instance, <span class=machine><span class=font-tt>double []</span></span> becomes <span class=machine><span class=font-tt>float array</span></span>.
+Consequently, multi-dimensional arrays are translated to Caml arrays
+of arrays. For instance, <span class=machine><span class=font-tt>int [][]</span></span> becomes <span class=machine><span class=font-tt>int array array</span></span>.</p><p>If the <span class=machine><span class=font-tt>unique</span></span> attribute is given, the IDL array is translated to an
+ML option type:
+</p><pre>
+        [string,unique] char []  ⇒  string option
+        [unique] <span class=font-it>ty</span> []     ⇒  [[<span class=font-it>ty</span>]] array option
+</pre><p>
+As in the case of pointers of kind <span class=machine><span class=font-tt>unique</span></span>, the option value is
+<span class=machine><span class=font-tt>None</span></span> for a null C pointer, and <span class=machine><span class=font-tt>Some(</span></span><span class=font-it>v</span><span class=machine><span class=font-tt>)</span></span> for a non-null
+C pointer to a C array that translates to the ML string or array <span class=font-it>v</span>.</p><p>Conversion between a C array and an ML array proceed element by
+element. For the conversion from C to ML, the number of elements of
+the ML array is determined as follows (in the order presented):
+</p><ul class="itemize"><li class="li-itemize">
+By the <span class=machine><span class=font-tt>length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> attribute, if present.
+</li><li class="li-itemize">By the <span class=machine><span class=font-tt>size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> attribute, if present.
+</li><li class="li-itemize">By the bound written in the array type, if any.
+</li><li class="li-itemize">By searching the first null element of the C array, if the
+<span class=machine><span class=font-tt>null</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>terminated</span></span> attribute is present.
+</li></ul><p>
+For instance, C values of IDL type <span class=machine><span class=font-tt>[length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(n)] double[]</span></span> are
+mapped to Caml <span class=machine><span class=font-tt>float array</span></span> of <span class=machine><span class=font-tt>n</span></span> elements. C values of IDL type
+<span class=machine><span class=font-tt>double[10]</span></span> are mapped to Caml <span class=machine><span class=font-tt>float array</span></span> of 10 elements.</p><p>The <span class=machine><span class=font-tt>length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> and <span class=machine><span class=font-tt>size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> attributes take as argument one or
+several limited expressions. Each expression applies to one dimension
+of the array. For instance, <span class=machine><span class=font-tt>[size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(*dimx, *dimy)] double d[][]</span></span>
+specifies a matrix of <span class=machine><span class=font-tt>double</span></span> whose first dimension has size
+<span class=machine><span class=font-tt>*dimx</span></span> and the second has size <span class=machine><span class=font-tt>*dimy</span></span>.</p>
+<!--TOC subsection id="sec22" Big arrays-->
+<h3 id="sec22" class="subsection">3.4 Big arrays</h3><!--SEC END --><p>IDL arrays of integers or floats that carry the <span class=machine><span class=font-tt>[bigarray]</span></span> attribute
+are mapped to one of the Caml <span class=machine><span class=font-tt>Bigarray</span></span> types: <span class=machine><span class=font-tt>Array1.t</span></span> for
+one-dimensional arrays, <span class=machine><span class=font-tt>Array2.t</span></span> for 2-dimensional arrays,
+<span class=machine><span class=font-tt>Array3.t</span></span> for 3-dimensional arrays, and <span class=machine><span class=font-tt>Genarray.t</span></span> for arrays of 4
+dimensions or more.</p><p>If the <span class=machine><span class=font-tt>[fortran]</span></span> attribute is given, the big array is accessed
+from Caml using the Fortran conventions (array indices start at 1;
+column-major memory layout). By default, the big array is accessed
+from Caml using the C conventions (array indices start at 0; row-major
+memory layout).</p><p>If the <span class=machine><span class=font-tt>[managed]</span></span> attribute is given on a big array type that is
+result type or out parameter type of a function, Caml assumes that the
+corresponding C array was allocated using <span class=machine><span class=font-tt>malloc()</span></span>, and is not
+referenced anywhere else; then, the Caml garbage collector will free
+the C array when the corresponding Caml big array becomes unreachable.
+By default, Caml assumes that result or out C arrays are statically or
+permanently allocated, and keeps a pointer to them during conversion
+to Caml big arrays, and does not free them when the Caml bigarrays
+become unreachable.</p><p>Finally, the <span class=machine><span class=font-tt>[unique]</span></span> attribute applies to bigarrays as to arrays,
+that is, it maps a null C pointer to <span class=machine><span class=font-tt>None</span></span>, and a non-null C pointer
+<span class=font-it>p</span> to <span class=machine><span class=font-tt>Some(</span></span><span class=font-it>v</span><span class=machine><span class=font-tt>)</span></span> where <span class=font-it>v</span> is the ML bigarray
+resulting from the translation of <span class=font-it>p</span>.</p>
+<!--TOC subsection id="sec23" Structs-->
+<h3 id="sec23" class="subsection">3.5 Structs</h3><!--SEC END --><p>IDL structs are mapped to Caml record types. The names and types of
+the IDL struct fields determine the names and types of the Caml record
+type:
+</p><pre>
+struct <span class=font-it>s</span> { ... ; <span class=font-it>ty</span><sub><span class=font-it>i</span></sub> <span class=font-it>id</span><sub><span class=font-it>i</span></sub> ; ... }  becomes  type <span class=font-it>s</span> = { ... ; <span class=font-it>id</span><sub><span class=font-it>i</span></sub> : [[<span class=font-it>ty</span><sub><span class=font-it>i</span></sub>]] ; ... }
+</pre><p>
+Example: <span class=machine><span class=font-tt>struct s </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> int n; double d[4]; </span></span><span class=machine><span class=font-tt>}</span></span> becomes
+<span class=machine><span class=font-tt>type s = </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt>n: int; d: float array</span></span><span class=machine><span class=font-tt>}</span></span>.</p><p>Exceptions to this rule are as follows:
+</p><ul class="itemize"><li class="li-itemize">
+Fields of the IDL struct that are pointers with the <span class=machine><span class=font-tt>[ignore]</span></span>
+attribute do not appear in the Caml record type.
+Example: <span class=machine><span class=font-tt>struct s </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> double x,y; [ignore] void * data; </span></span><span class=machine><span class=font-tt>}</span></span>
+becomes <span class=machine><span class=font-tt>type struct</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>s = </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt>x : float; y: float</span></span><span class=machine><span class=font-tt>}</span></span>.
+Those ignored pointer fields are set to <span class=machine><span class=font-tt>NULL</span></span> when converting from a
+Caml record to a C struct.</li><li class="li-itemize">Integer fields of the IDL struct that appear in a <span class=machine><span class=font-tt>length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span>,
+<span class=machine><span class=font-tt>size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> or <span class=machine><span class=font-tt>switch</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> attribute of another field also do not appear
+in the Caml record type. (We call those fields <em>dependent</em> fields.)
+Example: <span class=machine><span class=font-tt>struct s </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> int idx; int len; [size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(len)] double d[]; </span></span><span class=machine><span class=font-tt>}</span></span>
+is translated to the Caml record type 
+<span class=machine><span class=font-tt>type struct</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>s = </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt>idx: int; d: float array</span></span><span class=machine><span class=font-tt>}</span></span>.
+The value of <span class=machine><span class=font-tt>len</span></span> is recovered from the size of the Caml array <span class=machine><span class=font-tt>d</span></span>,
+and thus doesn’t need to be represented explicitly in the Caml record.</li><li class="li-itemize">If, after elimination of ignored pointer fields and dependent
+fields as described above, the IDL struct has only one field
+<span class=font-it>ty</span> ‍<span class=font-it>id</span>, we avoid creating a one-field Caml record type
+and translate the IDL struct type directly to the Caml type
+[[<span class=font-it>ty</span>]].
+Example: <span class=machine><span class=font-tt>struct s </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> int len; [size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(len)] double d[]; </span></span><span class=machine><span class=font-tt>}</span></span>
+is translated to the Caml type abbreviation <span class=machine><span class=font-tt>type struct</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>s = double array</span></span>.</li><li class="li-itemize">The names of labels in the Caml record type can be changed by
+using the <span class=syntax-token>mlname</span> attribute on struct field declarations. For instance,
+<pre>
+struct s { int n; [mlname(p)] int q; }
+         becomes type s = { n : int; p : int }
+</pre></li><li class="li-itemize">The Caml type system makes it difficult to use two record types
+defined in the same module and having some label names in common.
+Thus, if CamlIDL encounters two or more structs having
+identically-named fields, it prefixes the Caml label names by the names
+of the structs in order to distinguish them. For instance:
+<pre>
+struct s1 { int x; int y; }
+struct s2 { double x; double t; }
+struct s3 { int z; }
+         becomes type s1 = { s1_x: int; s1_y: int }
+                 and s2 = { s2_x: float; s2_t: float }
+                 and s3 = { z: int }
+</pre>
+The labels for <span class=machine><span class=font-tt>s1</span></span> and <span class=machine><span class=font-tt>s2</span></span> have been prefixed by <span class=machine><span class=font-tt>s1</span></span><span class=machine><span class=font-tt>_</span></span> and
+<span class=machine><span class=font-tt>s2</span></span><span class=machine><span class=font-tt>_</span></span> respectively, to avoid ambiguity on the <span class=machine><span class=font-tt>x</span></span> label. However, the
+label <span class=machine><span class=font-tt>z</span></span> for <span class=machine><span class=font-tt>s3</span></span> is not prefixed, since it is not used elsewhere.<p>The prefix added in front of multiply-defined labels is taken from the
+struct name, if any, and otherwise from the name of the nearest
+enclosing struct, union or typedef. For instance:
+</p><pre>
+typedef struct { int x; } t;
+struct s4 { struct { int x; } z; };
+         becomes type t = { t_x: int }
+                 and s4 = { z: struct_1 }
+                 and struct_1 = { s4_x: int }
+</pre><p>The “minimal prefixing” strategy described above is the default
+behavior of <span class=machine><span class=font-tt>camlidl</span></span>. If the <span class=machine><span class=font-tt>-prefix-all-labels</span></span> option is given,
+all record labels are prefixed, whether they occur several times or
+not. If the <span class=machine><span class=font-tt>-keep-labels</span></span> option is given, no automatic prefixing
+takes place; the naming of record labels is left entirely under the
+user’s control, via <span class=syntax-token>mlname</span> annotations.</p></li></ul>
+<!--TOC subsection id="sec24" Unions-->
+<h3 id="sec24" class="subsection">3.6 Unions</h3><!--SEC END --><p>IDL discriminated unions are translated to Caml sum types. Each case
+of the union corresponds to a constructor of the sum type. The
+constructor is constant if the union case has no associated field,
+otherwise has one argument corresponding to the union case field. If
+the union has a <span class=machine><span class=font-tt>default</span></span> case, an extra constructor
+<span class=machine><span class=font-tt>Default</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>unionname</span> is added to the Caml sum type, carrying an
+<span class=machine><span class=font-tt>int</span></span> argument (the value of the discriminating field),
+and possibly another argument corresponding to the default field.
+Examples:
+</p><pre>
+union u1 { case A: int x; case B: case C: double d; case D: ; }
+         becomes type u1 = A of int | B of float | C of float | D
+union u2 { case A: int x; case B: double d; default: ; }
+         becomes type u2 = A of int | B of float | Default_u of int
+union u3 { case A: int x; default: double d; }
+         becomes type u3 = A of int | Default_v of int * double
+</pre><p>
+All IDL unions must be discriminated, either via the special syntax
+<span class=machine><span class=font-tt>union </span></span><span class=font-it>name</span><span class=machine><span class=font-tt> switch(int </span></span><span class=font-it>discr</span><span class=machine><span class=font-tt>)</span></span>…, or via the
+attribute <span class=machine><span class=font-tt>switch</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(</span></span><span class=font-it>discr</span><span class=machine><span class=font-tt>)</span></span>, where <span class=font-it>discr</span> is a C l-value
+built from other parameters of the current function, or other fields
+of the current <span class=machine><span class=font-tt>struct</span></span>. Both the discriminant and the
+case labels must be of an integer type. Unless a <span class=machine><span class=font-tt>default</span></span> case is
+given, the value of the discriminant must be one of the cases of the
+union.</p>
+<!--TOC subsection id="sec25" Enums-->
+<h3 id="sec25" class="subsection">3.7 Enums</h3><!--SEC END --><p>IDL enums are translated to Caml enumerated types (sum types with only
+constant constructors). The names of the constructors are determined
+by the names of the enum labels. The values attached to the enum
+labels are ignored.
+Example:
+<span class=machine><span class=font-tt>enum e </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> A, B = 2, C = 4 </span></span><span class=machine><span class=font-tt>}</span></span> becomes <span class=machine><span class=font-tt>type enum</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>e = A | B | C</span></span>.</p><p>The <span class=syntax-token>set</span> attribute can be applied to a named enum to denote a
+bitfield obtained by logical “or” of zero, one or several labels of
+the enum. The corresponding ML value is a list of zero, one or
+several constructors of the Caml enumerated type. Consider for
+instance:
+</p><pre>enum e { A = 1, B = 2, C = 4 };
+typedef [set] enum e eset;
+</pre><p>The Caml type <span class=machine><span class=font-tt>eset</span></span> is equal to <span class=machine><span class=font-tt>enum</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>e list</span></span>.
+The C integer 6 (= <span class=machine><span class=font-tt>B | C</span></span>) is translated to the ML list <span class=machine><span class=font-tt>[B; C]</span></span>.
+The ML list <span class=machine><span class=font-tt>[A; C]</span></span> is translated to the C integer <span class=machine><span class=font-tt>A | C</span></span>, that is <span class=machine><span class=font-tt>5</span></span>.</p>
+<!--TOC subsection id="sec26" Type definitions-->
+<h3 id="sec26" class="subsection">3.8 Type definitions</h3><!--SEC END --><p>An IDL <span class=machine><span class=font-tt>typedef</span></span> statement is normally translated
+to a Caml type abbreviation. For instance,
+<span class=machine><span class=font-tt>typedef [string] char * str</span></span> becomes <span class=machine><span class=font-tt>type str = string</span></span>.</p><p>If the <span class=syntax-token>abstract</span> attribute is given, a Caml abstract type is
+generated instead of a type abbreviation, thus hinding from Caml the
+representation of the type in question. For instance,
+<span class=machine><span class=font-tt>typedef [abstract] void * handle</span></span> becomes <span class=machine><span class=font-tt>type handle</span></span>.
+In this case, the IDL type in the <span class=machine><span class=font-tt>typedef</span></span> is ignored.</p><p>If the <span class=syntax-token>mltype</span> <span class=syntax-token>(</span> <span class=syntax-token>"</span> <span class=nonterminal>caml-type-expr</span> <span class=syntax-token>"</span> <span class=syntax-token>)</span> attribute is given,
+the Caml type is made equal to <span class=nonterminal>caml-type-expr</span>. This is often used
+in conjunction with the <span class=syntax-token>ml2c</span> and <span class=syntax-token>c2ml</span> attributes to implement
+custom translation of data structures between C and ML. For instance,
+<span class=machine><span class=font-tt>typedef [mltype("int list")] struct mylist</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>struct * mylist</span></span>
+becomes <span class=machine><span class=font-tt>type mylist = int list</span></span>.</p><p>If the <span class=syntax-token>c2ml(</span><span class=nonterminal>funct-name</span><span class=syntax-token>)</span> <span class=nonterminal>and</span> <span class=machine><span class=font-tt>ml2c(</span></span>funct-name<span class=machine><span class=font-tt>)</span></span> attributes are
+given, the user-provided C functions given as attributes will be
+called to perform Caml to C and C to Caml conversions for values of
+the typedef-ed type, instead of using the <span class=machine><span class=font-tt>camlidl</span></span>-generated
+conversion functions. This allows user-controlled translation of data
+structures. The prototypes of the conversion functions must be
+</p><pre>
+        value c2ml(<span class=font-it>ty</span> * input);
+        void ml2c(value input, <span class=font-it>ty</span> * output);
+</pre><p>
+where <span class=font-it>ty</span> is the name of the type defined by <span class=machine><span class=font-tt>typedef</span></span>. In other
+terms, the <span class=machine><span class=font-tt>c2ml</span></span> function is passed a reference to a <span class=font-it>ty</span> and
+returns the corresponding Caml value, while the <span class=machine><span class=font-tt>ml2c</span></span> function is
+passed a Caml value as first argument and stores the corresponding C
+value in the <span class=font-it>ty</span> reference passed as second argument.</p><p>If the <span class=syntax-token>finalize(</span><span class=nonterminal>final-fn</span><span class=syntax-token>)</span> attribute is given in combination with the
+<span class=syntax-token>abstract</span> attribute, the function <span class=nonterminal>final-fn</span> is called when
+the Caml block representing a value of this typedef becomes
+unreachable from Caml and is reclaimed by the Caml garbage collector. 
+Similarly, <span class=syntax-token>compare(</span><span class=nonterminal>compare-fn</span><span class=syntax-token>)</span> and <span class=syntax-token>hash(</span><span class=nonterminal>hash-fn</span><span class=syntax-token>)</span> attach a
+comparison function and a hashing function (respectively) to Caml
+values for this typedef. The comparison function is called when two
+Caml values of this typedef are compared using the generic comparisons
+<span class=machine><span class=font-tt>compare</span></span>, <span class=machine><span class=font-tt>=</span></span>, <span class=machine><span class=font-tt>&lt;</span></span>, etc. The hashing function is called when
+<span class=machine><span class=font-tt>Hashtbl.hash</span></span> is applied to a Caml value of this typedef.
+The prototype of the finalization, comparison and hashing functions are:
+</p><pre>
+        value <span class=font-it>final-fn</span>(<span class=font-it>ty</span> * x);
+        int <span class=font-it>compare-fn</span>(<span class=font-it>ty</span> * x, <span class=font-it>ty</span> * y);
+        long <span class=font-it>hash-fn</span>(<span class=font-it>ty</span> * x);
+</pre><p>
+That is, their arguments are passed by reference. The comparison
+function must return an integer that is negative, zero, or positive
+depending on whether its first argument is smaller, equal or greater
+than its second argument. The hashing function returns a suitable
+hash value for its argument.</p><p>If the <span class=syntax-token>errorcheck(</span><span class=nonterminal>fn</span><span class=syntax-token>)</span> attribute is provided for the <span class=machine><span class=font-tt>typedef</span></span> <span class=font-it>ty</span>,
+the error checking function <span class=nonterminal>fn</span> is called each time a function result
+of type <span class=font-it>ty</span> is converted from C to Caml. The function can then check
+the <span class=font-it>ty</span> value for values indicating an error condition, and raise the
+appropriate exception. If in addition the <span class=syntax-token>errorcode</span> attribute is
+provided, the conversion from C to Caml is suppressed: values of type
+<span class=font-it>ty</span> are only passed to <span class=nonterminal>fn</span> for error checking, then discarded.</p>
+<!--TOC subsection id="sec27" Functions-->
+<h3 id="sec27" class="subsection">3.9 Functions</h3><!--SEC END --><p>IDL function declarations are translated to Caml functions.
+The parameters and results of the Caml function are determined from
+those of the IDL function according to the following rules:
+</p><ul class="itemize"><li class="li-itemize">
+First, dependent parameters (parameters that are <span class=machine><span class=font-tt>size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span>,
+<span class=machine><span class=font-tt>length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> or <span class=machine><span class=font-tt>switch</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> of other parameters) as well as parameters
+that are ignored pointers are removed.</li><li class="li-itemize">The remaining parameters are split into Caml function inputs and
+Caml function outputs. Parameters with the <span class=machine><span class=font-tt>[in]</span></span> attribute are added
+to the inputs of the function. Parameters with the <span class=machine><span class=font-tt>[out]</span></span>
+attribute are added to the outputs of the function. Parameters with
+the <span class=machine><span class=font-tt>[in,out]</span></span> attribute are added both to the inputs and to the
+outputs of the function, unless they are of type <span class=machine><span class=font-tt>bytes</span></span> or big array,
+in which case they are added to the inputs of the function only.
+(The reason for this exception is that byte arrays and big arrays are
+shared between Caml and C, thus allowing true <span class=machine><span class=font-tt>in,out</span></span> behavior on the
+Caml function parameter, while other data types are copied during
+Caml/C conversion, thus turning a C <span class=machine><span class=font-tt>in,out</span></span> parameter into a Caml
+<span class=machine><span class=font-tt>copy in, copy out</span></span> parameter, that is, one parameter and one result.)</li><li class="li-itemize">The return value of the IDL function is added to the outputs of
+the Caml function (in first position), unless it is of type <span class=machine><span class=font-tt>void</span></span> or
+of a type name that carries the <span class=machine><span class=font-tt>errorcode</span></span> attribute. In the latter
+two cases, the return value of the IDL function is not transmitted to
+Caml.
+</li><li class="li-itemize">The Caml function is then given type
+<span class=nonterminal>in</span><sub>1</sub> <span class=syntax-token>-&gt;</span> … <span class=syntax-token>-&gt;</span> <span class=nonterminal>in</span><sub><span class=font-it>p</span></sub> <span class=syntax-token>-&gt;</span> <span class=nonterminal>out</span><sub>1</sub> <span class=syntax-token>*</span> … <span class=syntax-token>*</span> <span class=nonterminal>out</span><sub><span class=font-it>q</span></sub>
+where <span class=nonterminal>in</span><sub>1</sub> … <span class=nonterminal>in</span><sub><span class=font-it>p</span></sub> are the types of its inputs
+and <span class=nonterminal>out</span><sub>1</sub> … <span class=nonterminal>out</span><sub><span class=font-it>q</span></sub> are the types of its outputs.
+If there are no inputs, a <span class=machine><span class=font-tt>unit</span></span> parameter is added.
+If there are no outputs, a <span class=machine><span class=font-tt>unit</span></span> result is added.
+</li></ul><p>
+Examples:
+</p><pre>
+int f([in] double x, [in] double y)             f : float -&gt; float -&gt; int
+</pre><blockquote class="quote"> Two <span class=machine><span class=font-tt>double</span></span> input, one <span class=machine><span class=font-tt>int</span></span> output </blockquote><pre>
+void g([in] int x)                              g : int -&gt; unit
+</pre><blockquote class="quote"> One <span class=machine><span class=font-tt>int</span></span> input, no output </blockquote><pre>
+int h()                                         h : unit -&gt; int
+</pre><blockquote class="quote"> No input, one <span class=machine><span class=font-tt>int</span></span> result </blockquote><pre>
+void i([in] int x, [out] double * y)            i : int -&gt; double
+</pre><blockquote class="quote"> One <span class=machine><span class=font-tt>int</span></span> input, one <span class=machine><span class=font-tt>double</span></span> output (as an <span class=machine><span class=font-tt>out</span></span>
+parameter) </blockquote><pre>
+int j([in] int x, [out] double * y)             j : int -&gt; int * double
+</pre><blockquote class="quote"> One <span class=machine><span class=font-tt>int</span></span> input, one <span class=machine><span class=font-tt>int</span></span> output (in the result), one
+<span class=machine><span class=font-tt>double</span></span> output (as an <span class=machine><span class=font-tt>out</span></span> parameter) </blockquote><pre>
+void k([in,out,ref] int * x)                    k : int -&gt; int
+</pre><blockquote class="quote"> The <span class=machine><span class=font-tt>in,out</span></span> parameter is both one <span class=machine><span class=font-tt>int</span></span> input and one
+<span class=machine><span class=font-tt>int</span></span> output. </blockquote><pre>
+HRESULT l([in] int x, [out] int * res1, [out] int * res2)
+                                                l : int -&gt; int * int
+</pre><blockquote class="quote"> <span class=machine><span class=font-tt>HRESULT</span></span> is a predefined type with the <span class=machine><span class=font-tt>errorcode</span></span>
+attribute, hence it is ignored. It remains one <span class=machine><span class=font-tt>int</span></span> input and
+two <span class=machine><span class=font-tt>int</span></span> outputs (<span class=machine><span class=font-tt>out</span></span> parameters) </blockquote><pre>
+void m([in] int len, [in,size_is(len)] double d[])
+                                                m : float array -&gt; int
+</pre><blockquote class="quote"> <span class=machine><span class=font-tt>len</span></span> is a dependent parameter, hence is ignored. The
+only input is the <span class=machine><span class=font-tt>double</span></span> array </blockquote><pre>
+void n([in] int inputlen, [out] int * outputlen, 
+       [in,out,size_is(inputlen),length_is(*outputlen)] double d[])
+                                                n : float array -&gt; float array
+</pre><blockquote class="quote"> The two parameters <span class=machine><span class=font-tt>inputlen</span></span> and <span class=machine><span class=font-tt>outputlen</span></span> are
+dependent, hence ignored. The <span class=machine><span class=font-tt>double</span></span> array is both an input
+and an output. </blockquote><pre>
+void p([in] int dimx, [in] int dimy,
+       [in,out,bigarray,size_is(dimx,dimy)] double d[][])
+p : (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array2.t -&gt; unit
+</pre><blockquote class="quote"> The two parameters <span class=machine><span class=font-tt>dimx</span></span> and <span class=machine><span class=font-tt>dimy</span></span> are dependent
+(determined from the dimensions of the big array argument),
+hence ignored. The two-dimensional array <span class=machine><span class=font-tt>d</span></span>, although marked <span class=machine><span class=font-tt>[in,out]</span></span>,
+is a big array, hence passed as an input that will be modified in
+place by the C function <span class=machine><span class=font-tt>p</span></span>. The Caml function has no outputs.
+</blockquote>
+<!--TOC paragraph id="sec28" Error checking:-->
+<h4 id="sec28" class="paragraph">Error checking:</h4><!--SEC END --><p>
+For every output that is of a named type with the <span class=syntax-token>errorcheck(</span><span class=nonterminal>fn</span><span class=syntax-token>)</span>
+attribute, the error checking function <span class=nonterminal>fn</span> is called after the C
+function returns. That function is assumed to raise a Caml exception
+if it finds an output denoting an error.</p>
+<!--TOC paragraph id="sec29" Custom calling and deallocation sequences:-->
+<h4 id="sec29" class="paragraph">Custom calling and deallocation sequences:</h4><!--SEC END --><p>
+The IDL declaration for a function can optionally specify a custom
+calling sequence and/or a custom deallocation sequence, via <span class=nonterminal>quote</span>
+clauses following the function declaration:
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><span class=nonterminal>function-decl</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> {<span class=syntax-token>*</span>} <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>(</span> <a href="#params" class="syntax"><span class=nonterminal>params</span></a> <span class=syntax-token>)</span> 
+{ <span class=syntax-token>quote</span><span class=syntax-token>(</span> <a href="#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>,</span> <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span> } </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>
+The general shape of a <span class=machine><span class=font-tt>camlidl</span></span>-generated stub function is as
+follows:
+</p><pre>
+value caml_wrapper(value camlparam1, ..., value camlparamK)
+
+  /* Convert the function parameters from Caml to C */
+  param1 = ...;
+  ...
+  paramN = ...;
+  /* Call the C function ’ident’ */
+  _res = ident(param1, ..., paramN);
+  /* Convert the function result and out parameters to Caml values */
+  camlres = ...;
+  /* Return result to Caml */
+  return camlres;
+
+</pre><p>
+A <span class=syntax-token>quote(call,</span> <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span> clause causes the C statements in
+<a href="#string" class="syntax"><span class=nonterminal>string</span></a> to be inserted in the generated stub code
+instead of the default calling sequence <span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>res = ident(param1, ..., paramN)</span></span>.
+Thus, the statements in <a href="#string" class="syntax"><span class=nonterminal>string</span></a> find the converted parameters in
+local variables that have the same names as the parameters in the IDL
+declaration, and should leave the result of the function, if any, in
+the local variable named <span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>res</span></span>.</p><p>A <span class=syntax-token>quote(dealloc,</span> <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span> clause causes the C statements in
+<a href="#string" class="syntax"><span class=nonterminal>string</span></a> to be inserted in the generated stub code just before the
+stub function returns, hence after the conversion of the C function
+results to Caml values. Again, the statements in <a href="#string" class="syntax"><span class=nonterminal>string</span></a> have access
+to the function result in the local variable named <span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>res</span></span>, and to out
+parameters in local variables having the same names as the
+parameters. Since the function results and out parameters have
+already been converted to Caml values, the code in <a href="#string" class="syntax"><span class=nonterminal>string</span></a> can safely
+deallocate the data structures they point to.</p><p>Custom calling sequences are typically used to rearrange or combine
+function parameters, and to perform extra error checks on the
+arguments and results. For instance, the Unix <span class=machine><span class=font-tt>write</span></span> system call can
+be specified in IDL as follows:
+</p><pre>        int write([in] int fd,
+                  [in,string,length_is(len)] char * data,
+                  [in] int len,
+                  [in] int ofs,
+                  [in] int towrite)
+          quote(call,
+            " /* Validate the arguments */
+              if (ofs &lt; 0 || ofs + towrite &gt;= len) failwith(\"write\");
+              /* Perform the write */
+              _res = write(fd, data + ofs, towrite);
+              /* Validate the result */
+              if (_res == -1) failwith(\"write\"); ");
+</pre><p>Custom deallocation sequences are useful to free data structures
+dynamically allocated and returned by the C function. For instance,
+a C function <span class=machine><span class=font-tt>f</span></span> that returns a <span class=machine><span class=font-tt>malloc</span></span>-ed string can be specified in
+IDL as follows:
+</p><pre>        [string] char * f([in] int x)
+          quote(dealloc, "free(_res); ");
+</pre><p>If the string is returned as an <span class=machine><span class=font-tt>out</span></span> parameter instead, we would write:
+</p><pre>        void f ([in] int x, [out, string*] char ** str)
+          quote(dealloc, "free(*str); ");
+</pre>
+<!--TOC paragraph id="sec30" Blocking functions:-->
+<h4 id="sec30" class="paragraph">Blocking functions:</h4><!--SEC END --><p>
+A function can be given the attribute <span class=machine><span class=font-tt>blocking</span></span> to indicate that it
+may block on an input/output operation. The generated code will then
+allow other Caml threads to execute concurrently with the operation.</p>
+<!--TOC subsection id="sec31" Interfaces-->
+<h3 id="sec31" class="subsection">3.10 Interfaces</h3><!--SEC END --><p>IDL interfaces that do not have the <span class=syntax-token>object</span> attribute are
+essentially ignored. That is, the declarations contained in the
+interface are processed as if they occurred at the top-level of the
+IDL file. The <span class=syntax-token>pointer_default</span>, <span class=syntax-token>int_default</span> and
+<span class=syntax-token>long_default</span> attributes to the interface can be
+used to specify the default pointer kind and integer mappings
+for the declarations contained in the interface. Other attributes, as
+well as the name of the super-interface if any, are ignored.</p><p>IDL interfaces having the <span class=syntax-token>object</span> attribute specify COM-style object
+interfaces. The function declarations contained in the interface
+specify the methods of the COM interface. Other kinds of declarations
+(type declarations, <span class=syntax-token>import</span> statements, etc) are treated as if they
+occurred at the top-level of the IDL file. An optional
+super-interface can be given, in which case the COM interface
+implements the methods of the super-interface in addition to those
+specified in the IDL interface.
+Example:
+</p><pre>[object, uuid(...)] interface IA { typedef int t; int f(int x); }
+[object] interface IB : IA { import "foo.idl"; void g([string] char * s); }
+</pre><p>This defines a type <span class=machine><span class=font-tt>t</span></span> and imports the file <span class=machine><span class=font-tt>foo.idl</span></span> as usual. In
+addition, two interfaces are declared: <span class=machine><span class=font-tt>IA</span></span>, containing one
+method <span class=machine><span class=font-tt>f</span></span> from <span class=machine><span class=font-tt>int</span></span> to <span class=machine><span class=font-tt>int</span></span>, and <span class=machine><span class=font-tt>IB</span></span>, containing
+two methods, <span class=machine><span class=font-tt>f</span></span> from <span class=machine><span class=font-tt>int</span></span> to <span class=machine><span class=font-tt>int</span></span> and <span class=machine><span class=font-tt>g</span></span> from <span class=machine><span class=font-tt>string</span></span> to <span class=machine><span class=font-tt>unit</span></span>.</p><p>The definition of an object interface <span class=font-it>i</span> generates the following
+Caml definitions:
+</p><ul class="itemize"><li class="li-itemize">
+An abstract type <span class=font-it>i</span> identifying the interface.
+COM interfaces of type <span class=font-it>i</span> are represented in Caml
+with type <span class=font-it>i</span> <span class=machine><span class=font-tt> Com.interface</span></span>.
+</li><li class="li-itemize">If a super-interface <span class=font-it>s</span> is given, a conversion function
+<span class=font-it>s</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>of</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>i</span> of type
+<span class=font-it>i</span> <span class=machine><span class=font-tt> Com.interface -&gt; </span></span> <span class=font-it>s</span> <span class=machine><span class=font-tt> Com.interface</span></span>.
+</li><li class="li-itemize">If the <span class=machine><span class=font-tt>uuid(</span></span><span class=font-it>iid</span><span class=machine><span class=font-tt>)</span></span> attribute is given, a value
+<span class=machine><span class=font-tt>iid</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>i</span> of type <span class=font-it>i</span><span class=machine><span class=font-tt> Com.iid</span></span> holding the given interface
+identifier.
+</li><li class="li-itemize">A Caml class <span class=font-it>i</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>class</span></span>, with the same methods as the COM
+interface.
+</li><li class="li-itemize">A function <span class=machine><span class=font-tt>use</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>i</span> of type <span class=font-it>i</span> <span class=machine><span class=font-tt> Com.interface -&gt; </span></span><span class=font-it>i</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>class</span></span>, to transform a COM object into a Caml object. This
+allows the methods of the COM object to be invoked from Caml.
+</li><li class="li-itemize">A function <span class=machine><span class=font-tt>make</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>i</span> of type <span class=machine><span class=font-tt>#</span></span><span class=font-it>i</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>class -&gt; </span></span><span class=font-it>i</span>
+<span class=machine><span class=font-tt> Com.interface</span></span>, to transform a Caml object into a COM object with
+interface <span class=font-it>i</span>. This allows the methods of the Caml object to be
+invoked from any COM client.
+</li></ul><p>Example: in the <span class=machine><span class=font-tt>IA</span></span> and <span class=machine><span class=font-tt>IB</span></span> example above, the following Caml
+definitions are generated for <span class=machine><span class=font-tt>IA</span></span>:
+</p><pre>type iA
+val iid_iA : iA Com.iid
+class iA_class : iA Com.interface -&gt; object method f : int -&gt; int end
+val use_iA : iA Com.interface -&gt; iA_class
+val make_iA : #iA_class -&gt; iA Com.interface
+</pre><p>For <span class=machine><span class=font-tt>IB</span></span>, we get:
+</p><pre>type iB
+val iA_of_iB : iB Com.interface -&gt; iA Com.interface
+class iB_class :
+  iB Com.interface -&gt; object inherit iA_class method g : string -&gt; unit end
+val use_iB : iB Com.interface -&gt; iB_class
+val make_iB : #iB_class -&gt; iB Com.interface
+</pre>
+<!--TOC paragraph id="sec32" Error handling in interfaces:-->
+<h4 id="sec32" class="paragraph">Error handling in interfaces:</h4><!--SEC END --><p> Conventionally, methods of
+COM interfaces always return a result of type <span class=machine><span class=font-tt>HRESULT</span></span> that says
+whether the method succeeded or failed, and in the latter case returns
+an error code to its caller.</p><p>When calling an interface method from Caml, if the method returns an
+<span class=machine><span class=font-tt>HRESULT</span></span> denoting failure, the exception <span class=machine><span class=font-tt>Com.Error</span></span> is raised with a
+message describing the error. Successful <span class=machine><span class=font-tt>HRESULT</span></span> return values are
+ignored. To make them available to Caml, <span class=machine><span class=font-tt>camlidl</span></span> defines the types
+<span class=machine><span class=font-tt>HRESULT</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>bool</span></span> and <span class=machine><span class=font-tt>HRESULT</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>int</span></span>. If those types are used as return
+types instead of <span class=machine><span class=font-tt>HRESULT</span></span>, failure results are mapped to
+<span class=machine><span class=font-tt>Com.Error</span></span> exceptions as before, but successful results are mapped to
+the Caml types <span class=machine><span class=font-tt>bool</span></span> and <span class=machine><span class=font-tt>int</span></span> respectively. (For <span class=machine><span class=font-tt>HRESULT</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>bool</span></span>,
+the <span class=machine><span class=font-tt>S</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>OK</span></span> result is mapped to <span class=machine><span class=font-tt>true</span></span> and other successful results are
+mapped to <span class=machine><span class=font-tt>false</span></span>. For <span class=machine><span class=font-tt>HRESULT</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>int</span></span>, the low 16 bits of the result
+code are returned as a Caml <span class=machine><span class=font-tt>int</span></span>.)</p><p>When calling a Caml method from a COM client, any exception that
+escapes the Caml method is mapped back to a failure <span class=machine><span class=font-tt>HRESULT</span></span>. A
+textual description of the uncaught exception is saved using
+<span class=machine><span class=font-tt>SetLastError</span></span>, and can be consulted by the COM client using
+<span class=machine><span class=font-tt>GetLastError</span></span> (this is the standard convention for passing extended
+error information in COM).</p><p>If the IDL return type of the method is not one of the <span class=machine><span class=font-tt>HRESULT</span></span>
+types, any exception escaping the Caml method aborts the whole program
+after printing a description of the exception. Hence, programmers of
+Caml components should either use <span class=machine><span class=font-tt>HRESULT</span></span> as result type, or make
+very sure that all exceptions are properly caught by the method.</p>
+<!--TOC section id="sec33" Using <span class=machine><span class=font-tt>camlidl</span></span>-->
+<h2 id="sec33" class="section">4 Using <span class=machine><span class=font-tt>camlidl</span></span></h2><!--SEC END -->
+<!--TOC subsection id="sec34" Overview-->
+<h3 id="sec34" class="subsection">4.1 Overview</h3><!--SEC END --><p>The <span class=machine><span class=font-tt>camlidl</span></span> stub generator is invoked as follows:
+</p><pre>
+        camlidl <span class=font-it>options</span> <span class=font-it>file1</span>.idl <span class=font-it>file2</span>.idl ...
+</pre><p>
+For each file <span class=font-it>f</span><span class=machine><span class=font-tt>.idl</span></span> given on the command line, <span class=machine><span class=font-tt>camlidl</span></span>
+generates the following files:
+</p><ul class="itemize"><li class="li-itemize">
+A Caml interface file <span class=font-it>f</span><span class=machine><span class=font-tt>.mli</span></span> that defines the Caml view
+of the IDL file. It contains Caml definitions for the types declared
+in the IDL file, as well as declarations for the functions and the
+interfaces.
+</li><li class="li-itemize">A Caml implementation file <span class=font-it>f</span><span class=machine><span class=font-tt>.ml</span></span> that implements the
+<span class=font-it>f</span><span class=machine><span class=font-tt>.mli</span></span> file.
+</li><li class="li-itemize">A C source file <span class=font-it>f</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>stubs.c</span></span> that contains the stub functions for
+converting between C and Caml data representations.
+</li><li class="li-itemize">If the <span class=machine><span class=font-tt>-header</span></span> option is given, a C header file <span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span>
+containing C declarations for the types declared in the IDL file.
+</li></ul><p>
+The generated <span class=machine><span class=font-tt>.ml</span></span> and <span class=machine><span class=font-tt>.c</span></span> files must be compiled and linked with
+the remainder of the Caml program.</p>
+<!--TOC subsection id="sec35" Options-->
+<h3 id="sec35" class="subsection">4.2 Options</h3><!--SEC END --><p>The following command-line options are recognized by <span class=machine><span class=font-tt>camlidl</span></span>.</p><dl class="description"><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-cpp</span></span></span></dt><dd class="dd-description">
+Pre-process the source IDL files with the C preprocessor. This option
+is set by default.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-D </span></span></span><span class=font-bold> </span><span class=font-bold><span class=font-it>symbol</span></span><span class=font-bold><span class=machine><span class=font-tt>=</span></span></span><span class=font-bold><span class=font-it>value</span></span></dt><dd class="dd-description">
+Define a preprocessor symbol. The option <span class=machine><span class=font-tt>-D</span></span><span class=font-it>symbol</span><span class=machine><span class=font-tt>=</span></span><span class=font-it>value</span>
+is passed to the C preprocessor. The <span class=font-it>value</span> can be omitted,
+as in <span class=machine><span class=font-tt>-D</span></span> <span class=font-it>symbol</span>, and defaults to <span class=machine><span class=font-tt>1</span></span>.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-header</span></span></span></dt><dd class="dd-description">
+Generate a C header file <span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span> containing C declarations for the
+types and functions declared in the IDL file <span class=font-it>f</span><span class=machine><span class=font-tt>.c</span></span>.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-I </span></span></span><span class=font-bold> </span><span class=font-bold><span class=font-it>dir</span></span></dt><dd class="dd-description">
+Add the directory <span class=font-it>dir</span> to the list of directories searched for
+<span class=machine><span class=font-tt>.idl</span></span> files, as given on the command line or recursively loaded
+by <span class=syntax-token>import</span> statements.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-keep-labels</span></span></span></dt><dd class="dd-description">
+Keep the Caml names of record labels as specified in the IDL file.
+Do not prefix them with the name of the enclosing struct, even if they
+appear in several struct definitions.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-nocpp</span></span></span></dt><dd class="dd-description">
+Suppresses the pre-processing of source IDL files.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-no-include</span></span></span></dt><dd class="dd-description">
+By default, <span class=machine><span class=font-tt>camlidl</span></span> emits a <span class=machine><span class=font-tt>#include "</span></span><span class=font-it>f</span><span class=machine><span class=font-tt>.h"</span></span> statement in
+the file <span class=font-it>f</span><span class=machine><span class=font-tt>.c</span></span> containing the generated C code.
+The <span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span> header file being included is
+either the one generated by <span class=machine><span class=font-tt>camlidl -header</span></span>, or generated by another
+tool (such as Microsoft’s <span class=machine><span class=font-tt>midl</span></span> compiler) from the IDL file, or
+hand-written. The <span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span> file is assumed to provide all C type
+declarations needed for compiling the stub code.<p>The <span class=machine><span class=font-tt>-no-include</span></span> option suppresses the automatic inclusion of the
+<span class=font-it>f</span><span class=machine><span class=font-tt>.h</span></span> file. The IDL file should then include the right header
+files and provide the right type declarations via <span class=syntax-token>quote</span> statements.</p></dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-prefix-all-labels</span></span></span></dt><dd class="dd-description">
+Prefix all Caml names of record labels with the name of the enclosing
+struct. The default is to prefix only those labels that could cause
+ambiguity because they appear in several struct definitions.</dd><dt class="dt-description"><span class=font-bold><span class=machine><span class=font-tt>-prepro</span></span></span><span class=font-bold> </span><span class=font-bold><span class=font-it>preprocessing-command</span></span></dt><dd class="dd-description">
+Set the command that is executed to pre-process the source IDL files.
+The default is the C preprocessor.</dd></dl>
+<!--TOC subsection id="sec36" The <span class=machine><span class=font-tt>camlidldll</span></span> script-->
+<h3 id="sec36" class="subsection">4.3 The <span class=machine><span class=font-tt>camlidldll</span></span> script</h3><!--SEC END --><p>Under Windows, a <span class=machine><span class=font-tt>bash</span></span> script called <span class=machine><span class=font-tt>camlidldll</span></span> is provided to
+automate the construction of a DLL containing a COM component written
+in Caml.</p><p>The script <span class=machine><span class=font-tt>camlidldll</span></span> accepts essentially the same command-line
+arguments and options as the <span class=machine><span class=font-tt>ocamlc</span></span> compiler. (It also accepts
+<span class=machine><span class=font-tt>.tlb</span></span> type library files on the command-line; see
+section ‍<a href="#s-dispatch">5.3</a>, “Dispatch interfaces”, for more
+information on type libraries.)
+It produces a DLL file that encapsulates the Caml and C object files
+given on the command line.</p><p>Use <span class=machine><span class=font-tt>regsvr32 /s </span></span><span class=font-it>file</span><span class=machine><span class=font-tt>.dll</span></span> to record the components in the
+system registry once it is compiled to a DLL.</p>
+<!--TOC section id="sec37" Hints on writing IDL files-->
+<h2 id="sec37" class="section">5 Hints on writing IDL files</h2><!--SEC END -->
+<!--TOC subsection id="sec38" Writing an IDL file for a C library-->
+<h3 id="sec38" class="subsection">5.1 Writing an IDL file for a C library</h3><!--SEC END --><p>When writing an IDL file for a C library that doesn’t have an IDL interface
+already, the include files for that library are a good starting point:
+just copy the relevant type and functin declarations to the IDL file,
+then annotate them with IDL attributes to describe more precisely
+their actual behavior. The documentation of the library must be read
+carefully to determine the mode of function parameters (<span class=machine><span class=font-tt>in</span></span>, <span class=machine><span class=font-tt>out</span></span>,
+<span class=machine><span class=font-tt>inout</span></span>), the actual sizes of arrays, etc.</p><p>The type definitions in the IDL file need not correspond exactly with
+those in the include files. Often, a cleaner Caml interface can be
+obtained by omitting irrelevant struct fields, or changing their types.
+For instance, the Unix library functions for reading library entries
+may use the following structure:
+</p><pre>        struct dirent {
+            long int d_ino;
+            __off_t d_off;
+            unsigned short int d_reclen;
+            unsigned char d_type;
+            char d_name[256];
+        };
+</pre><p>Of those fields, only <span class=machine><span class=font-tt>d</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>name</span></span> and <span class=machine><span class=font-tt>d</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>ino</span></span> are of interest to the
+user; the other fields are internal information for the library
+functions, are not specified in the POSIX specs, and therefore must
+not be used. Thus, in the IDL file, you should declare:
+</p><pre>        struct dirent {
+            long int d_ino;
+            char d_name[256];
+        };
+</pre><p>Thus, the Caml code will have 
+<span class=machine><span class=font-tt>type struct</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>dirent = </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt>d</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>ino: int; d</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>name: string</span></span><span class=machine><span class=font-tt>}</span></span>
+as desired. However, the generated stub code, being
+compiled against the “true” definition of <span class=machine><span class=font-tt>struct dirent</span></span>, will find
+those two fields at the correct offsets in the actual struct.</p><p>Special attention must be paid to integer fields or variables. 
+By default, integer IDL types are mapped to the Caml type <span class=machine><span class=font-tt>int</span></span>,
+which is convenient to use in Caml code, but loses one bit
+when converting from a C <span class=machine><span class=font-tt>long</span></span> integer, and may lose one bit (on
+32-bit platforms) when converting from a C <span class=machine><span class=font-tt>int</span></span> integer. When the
+range of values represented by the C integer is small enough, this
+loss is acceptable. Otherwise, you should use the attributes
+<span class=machine><span class=font-tt>nativeint</span></span>, <span class=machine><span class=font-tt>int32</span></span> or <span class=machine><span class=font-tt>int64</span></span> so that integer IDL types are mapped
+to one of the Caml boxed integer types. (We recommend that you use
+<span class=machine><span class=font-tt>int32</span></span> or <span class=machine><span class=font-tt>int64</span></span> for integers that are specified as being exactly 32
+bit wide or 64 bit wide, and <span class=machine><span class=font-tt>nativeint</span></span> for unspecified <span class=machine><span class=font-tt>int</span></span> or
+<span class=machine><span class=font-tt>long</span></span> integers.)</p><p>Yet another possibility is to declare certain integer fields or variables
+as <span class=machine><span class=font-tt>double</span></span> in the IDL file, so that they are represented by <span class=machine><span class=font-tt>float</span></span>
+in Caml, and all 32 bits of the integer are preserved in Caml. For
+instance, the Unix function to get the current type is declared as
+</p><pre>        time_t time(time_t * t);
+</pre><p>where <span class=machine><span class=font-tt>time</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>t</span></span> is usually defined as <span class=machine><span class=font-tt>long</span></span>. We can nonetheless
+pretend (in the IDL file) that <span class=machine><span class=font-tt>time</span></span> returns a double:
+</p><pre>        double time() quote(" _res = time(NULL); ");
+</pre><p>This way, <span class=machine><span class=font-tt>time</span></span> will have the Caml type <span class=machine><span class=font-tt>unit -&gt; float</span></span>.
+Again, the stub code “knows” that <span class=machine><span class=font-tt>time</span></span> actually returns an integer,
+and therefore will insert the right integer-float coercions.</p>
+<!--TOC subsection id="sec39" Sharing IDL files between MIDL and CamlIDL-->
+<h3 id="sec39" class="subsection">5.2 Sharing IDL files between MIDL and CamlIDL</h3><!--SEC END --><p>The Microsoft software development kit provides a number of IDL files
+describing various libraries and components. In its current state,
+<span class=machine><span class=font-tt>camlidl</span></span> cannot exploit those files directly: they use many
+(often poorly documented) Microsoft IDL features that are not
+implemented yet in <span class=machine><span class=font-tt>camlidl</span></span>; symmetrically, <span class=machine><span class=font-tt>camlidl</span></span> introduces
+several new annotations that are not recognized by Microsoft’s <span class=machine><span class=font-tt>midl</span></span>
+compiler. So, significant editing work on the IDL files is required.</p><p>The C preprocessor can be used to alleviate the <span class=machine><span class=font-tt>camlidl</span></span>-<span class=machine><span class=font-tt>midl</span></span>
+incompatibilities: <span class=machine><span class=font-tt>camlidl</span></span> defines the preprocessor symbol <span class=machine><span class=font-tt>CAMLIDL</span></span>
+when preprocessing its input files, while <span class=machine><span class=font-tt>midl</span></span> does not. Hence,
+one can bracket incompatible definitions in 
+<span class=machine><span class=font-tt>#ifdef CAMLIDL ... #else ... #endif</span></span>. Along these lines, a C
+preprocessor header file, <span class=machine><span class=font-tt>camlidlcompat.h</span></span>, is provided: it uses
+<span class=machine><span class=font-tt>#define</span></span> to remove <span class=machine><span class=font-tt>camlidl</span></span>-specific attributes when compiling with
+<span class=machine><span class=font-tt>midl</span></span>, and to remove <span class=machine><span class=font-tt>midl</span></span>-specific attributes when compiling with
+<span class=machine><span class=font-tt>camlidl</span></span>. Thus, an IDL file compatible with both <span class=machine><span class=font-tt>midl</span></span> and
+<span class=machine><span class=font-tt>camlidl</span></span> would look like this:
+</p><pre>        #include &lt;camlidlcompat.h&gt;
+
+        #ifndef CAMLIDL
+        import "unknwn.idl";    // imports specific to MIDL
+        import "oaidl.idl";
+        #endif
+        import "mymodule.idl";  // imports common to MIDL and CamlIDL
+
+        typedef [abstract,marshal_as(int)] void * ptr;
+
+        ...
+
+        #ifndef CAMLIDL
+        [...] library MyTypeLib {
+          importlib("stdole32.tlb");
+          [...] coclass MyComponent { [default] interface IX; }
+        }
+        #endif
+</pre><p>Notice that since <span class=machine><span class=font-tt>camlidl</span></span> doesn’t handle type libraries, the type
+library part of an <span class=machine><span class=font-tt>midl</span></span> file must be enclosed in <span class=machine><span class=font-tt>#ifndef CAMLIDL</span></span>.</p>
+<!--TOC subsection id="sec40" Dispatch interfaces and type libraries-->
+<h3 id="sec40" class="subsection">5.3 Dispatch interfaces and type libraries</h3><!--SEC END --><p> <a id="s-dispatch"></a></p><p>A dispatch interface, in COM lingo, is an interface that supports
+dynamic, interpreted dispatch of method interfaces. This form of
+interpreted dispatch is used by Visual Basic and other scripting
+languages to perform calls to methods of COM components.</p><p>CamlIDL provides minimal support for dispatch interfaces. To equip a
+Caml component with a dispatch interface (thus making it callable from
+Visual Basic), you need to do the following:
+</p><ol class="enumerate" type=1><li class="li-enumerate">
+Use <span class=machine><span class=font-tt>IDispatch</span></span> instead of <span class=machine><span class=font-tt>IUnknown</span></span> as the super-interface of
+the component’s interfaces.
+</li><li class="li-enumerate">Write a type library for your component and compile it using
+<span class=machine><span class=font-tt>midl</span></span>. A type library is a run-time representation of the interfaces
+supported by an object. The <span class=machine><span class=font-tt>midl</span></span> compiler can generate a type
+library from the IDL description of the component, enriched with some
+special-purpose declarations (the <span class=machine><span class=font-tt>library</span></span> and <span class=machine><span class=font-tt>coclass</span></span>
+statements). Refer to the documentation of <span class=machine><span class=font-tt>midl</span></span> for more
+information.
+</li><li class="li-enumerate">Pass the type library files (<span class=machine><span class=font-tt>.tlb</span></span> files) generated by <span class=machine><span class=font-tt>midl</span></span>
+as extra arguments to <span class=machine><span class=font-tt>camlidldll</span></span> when generating the DLL for your
+Caml component.
+</li></ol>
+<!--TOC section id="sec41" Release notes-->
+<h2 id="sec41" class="section">6 Release notes</h2><!--SEC END --><p>Here are some caveats and open issues that apply to the current
+release.</p>
+<!--TOC paragraph id="sec42" Deallocation of function results and <span class=machine><span class=font-tt>out</span></span> parameters:-->
+<h4 id="sec42" class="paragraph">Deallocation of function results and <span class=machine><span class=font-tt>out</span></span> parameters:</h4><!--SEC END --><p>
+If a C function dynamically allocates some of its outputs (either
+returned or stored in <span class=machine><span class=font-tt>out</span></span> parameters), its IDL declaration must
+contain a <span class=syntax-token>quote(dealloc,</span> <a href="#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span> clause to properly free the
+space occupied by those outputs after they have been converted to
+Caml. Otherwise, memory leaks will occur. (The only exception is
+results and output parameters of type <span class=machine><span class=font-tt>[bigarray,managed] </span></span><span class=font-it>ty</span><span class=machine><span class=font-tt>[]</span></span>,
+where the Caml garbage collector takes care of deallocation.)</p><p>This does not conform to the MIDL and COM specifications, which say
+that space for <span class=machine><span class=font-tt>out</span></span> data structures must be allocated
+with <span class=machine><span class=font-tt>CoTaskMemAlloc</span></span> by the callee, and automatically freed
+using <span class=machine><span class=font-tt>CoTaskMemFree</span></span> by the generated stub code. (The specs don’t
+say what happens with the return value of the function.)
+However, there are many functions in Win32 (not to mention the
+Unix world) that do not follow this convention, and
+return data structures (e.g. strings) that are statically
+allocated, or require special deallocation functions. Hence,
+<span class=machine><span class=font-tt>camlidl</span></span> leaves deallocation of outputs entirely under user control.</p>
+<!--TOC paragraph id="sec43" Allocation and deallocation of <span class=machine><span class=font-tt>in,out</span></span> parameters:-->
+<h4 id="sec43" class="paragraph">Allocation and deallocation of <span class=machine><span class=font-tt>in,out</span></span> parameters:</h4><!--SEC END --><p>
+For <span class=machine><span class=font-tt>in,out</span></span> parameters, the MIDL/COM rules are that the caller (the
+stub code) should allocate the inputs, the callee should free them
+and allocate again its outputs, and the caller should free the outputs.
+As explained above, <span class=machine><span class=font-tt>camlidl</span></span>-generated stubs don’t automatically free
+the outputs. Worse, the inputs passed to the functions are allocated
+partially on the stack and partially in the heap
+(using <span class=machine><span class=font-tt>CoTaskMemAlloc</span></span>), so the callee may perform an incorrect
+free on a stack-allocated argument. The best thing to do is avoid
+<span class=machine><span class=font-tt>in,out</span></span> parameters entirely, and split them into one <span class=machine><span class=font-tt>in</span></span> and one
+<span class=machine><span class=font-tt>out</span></span> parameter.</p>
+<!--TOC paragraph id="sec44" Reference-counting of COM interfaces:-->
+<h4 id="sec44" class="paragraph">Reference-counting of COM interfaces:</h4><!--SEC END --><p>
+Caml finalized objects are used to call <span class=machine><span class=font-tt>Release</span></span> automatically on COM
+interfaces that become unreachable. The reference counting of
+interfaces passed as <span class=machine><span class=font-tt>in</span></span> and <span class=machine><span class=font-tt>out</span></span> parameters is correctly
+implemented. However, <span class=machine><span class=font-tt>in,out</span></span> parameters that are interfaces are not
+correctly handled. Again, avoid <span class=machine><span class=font-tt>in,out</span></span> parameters.</p>
+<!--TOC paragraph id="sec45" COM support:-->
+<h4 id="sec45" class="paragraph">COM support:</h4><!--SEC END --><p>
+The support for COM is currently quite small. COM components
+registered in the system registry can be imported via
+<span class=machine><span class=font-tt>Com.create</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>instance</span></span>. Components written in Caml can be exported as
+DLLs, but not yet as standalone servers. Preliminary support for
+dispatch interfaces is available, however many of the data types used
+in the Automation framework are not supported yet (e.g. <span class=machine><span class=font-tt>SAFEARRAY</span></span>).
+</p><!--CUT END -->
+<!--HTMLFOOT-->
+<!--ENDHTML-->
+<!--FOOTER-->
+<hr class="horizontal-rule" style="height:2px"><blockquote class="quote"><em>This document was translated from L<sup>A</sup>T<sub>E</sub>X by
+</em><a href="http://hevea.inria.fr/index.html"><em>H</em><em><span style="font-size:small"><sup>E</sup></span></em><em>V</em><em><span style="font-size:small"><sup>E</sup></span></em><em>A</em></a><em>.</em></blockquote></body>
+</html>

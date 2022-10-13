@@ -2,14 +2,14 @@ TEXINPUTS=./styles:
 TRANSF=tools/transf
 TEXQUOTE=tools/texquote2
 
-all: $(TRANSF) $(TEXQUOTE) main.pdf htmlman/index.html
+all: $(TRANSF) $(TEXQUOTE) main.pdf ../docs/index.html
 
 main.pdf: main.tex manual.tex
 	TEXINPUTS=$(TEXINPUTS) latexmk -pdf main.tex
 
-htmlman/index.html: main.tex manual.tex
-	cd htmlman; \
-        hevea -I ../styles -I .. -fix ../main.tex && \
+../docs/index.html: main.tex manual.tex
+	cd ../docs && \
+        hevea -I ../doc/styles -I ../doc -fix ../doc/main.tex && \
 	hacha main.html
 
 manual.tex: manual.etex

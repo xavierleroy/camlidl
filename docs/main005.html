@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="hevea 2.35">
+<link rel="stylesheet" type="text/css" href="main.css">
+<title>Hints on writing IDL files</title>
+</head>
+<body >
+<a href="main004.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main006.html"><img src="next_motif.svg" alt="Next"></a>
+<hr>
+<h2 id="sec37" class="section">5 Hints on writing IDL files</h2>
+<h3 id="sec38" class="subsection">5.1 Writing an IDL file for a C library</h3>
+<p>When writing an IDL file for a C library that doesn’t have an IDL interface
+already, the include files for that library are a good starting point:
+just copy the relevant type and functin declarations to the IDL file,
+then annotate them with IDL attributes to describe more precisely
+their actual behavior. The documentation of the library must be read
+carefully to determine the mode of function parameters (<span class=machine><span class=font-tt>in</span></span>, <span class=machine><span class=font-tt>out</span></span>,
+<span class=machine><span class=font-tt>inout</span></span>), the actual sizes of arrays, etc.</p><p>The type definitions in the IDL file need not correspond exactly with
+those in the include files. Often, a cleaner Caml interface can be
+obtained by omitting irrelevant struct fields, or changing their types.
+For instance, the Unix library functions for reading library entries
+may use the following structure:
+</p><pre>        struct dirent {
+            long int d_ino;
+            __off_t d_off;
+            unsigned short int d_reclen;
+            unsigned char d_type;
+            char d_name[256];
+        };
+</pre><p>Of those fields, only <span class=machine><span class=font-tt>d</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>name</span></span> and <span class=machine><span class=font-tt>d</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>ino</span></span> are of interest to the
+user; the other fields are internal information for the library
+functions, are not specified in the POSIX specs, and therefore must
+not be used. Thus, in the IDL file, you should declare:
+</p><pre>        struct dirent {
+            long int d_ino;
+            char d_name[256];
+        };
+</pre><p>Thus, the Caml code will have 
+<span class=machine><span class=font-tt>type struct</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>dirent = </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt>d</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>ino: int; d</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>name: string</span></span><span class=machine><span class=font-tt>}</span></span>
+as desired. However, the generated stub code, being
+compiled against the “true” definition of <span class=machine><span class=font-tt>struct dirent</span></span>, will find
+those two fields at the correct offsets in the actual struct.</p><p>Special attention must be paid to integer fields or variables. 
+By default, integer IDL types are mapped to the Caml type <span class=machine><span class=font-tt>int</span></span>,
+which is convenient to use in Caml code, but loses one bit
+when converting from a C <span class=machine><span class=font-tt>long</span></span> integer, and may lose one bit (on
+32-bit platforms) when converting from a C <span class=machine><span class=font-tt>int</span></span> integer. When the
+range of values represented by the C integer is small enough, this
+loss is acceptable. Otherwise, you should use the attributes
+<span class=machine><span class=font-tt>nativeint</span></span>, <span class=machine><span class=font-tt>int32</span></span> or <span class=machine><span class=font-tt>int64</span></span> so that integer IDL types are mapped
+to one of the Caml boxed integer types. (We recommend that you use
+<span class=machine><span class=font-tt>int32</span></span> or <span class=machine><span class=font-tt>int64</span></span> for integers that are specified as being exactly 32
+bit wide or 64 bit wide, and <span class=machine><span class=font-tt>nativeint</span></span> for unspecified <span class=machine><span class=font-tt>int</span></span> or
+<span class=machine><span class=font-tt>long</span></span> integers.)</p><p>Yet another possibility is to declare certain integer fields or variables
+as <span class=machine><span class=font-tt>double</span></span> in the IDL file, so that they are represented by <span class=machine><span class=font-tt>float</span></span>
+in Caml, and all 32 bits of the integer are preserved in Caml. For
+instance, the Unix function to get the current type is declared as
+</p><pre>        time_t time(time_t * t);
+</pre><p>where <span class=machine><span class=font-tt>time</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>t</span></span> is usually defined as <span class=machine><span class=font-tt>long</span></span>. We can nonetheless
+pretend (in the IDL file) that <span class=machine><span class=font-tt>time</span></span> returns a double:
+</p><pre>        double time() quote(" _res = time(NULL); ");
+</pre><p>This way, <span class=machine><span class=font-tt>time</span></span> will have the Caml type <span class=machine><span class=font-tt>unit -&gt; float</span></span>.
+Again, the stub code “knows” that <span class=machine><span class=font-tt>time</span></span> actually returns an integer,
+and therefore will insert the right integer-float coercions.</p>
+<h3 id="sec39" class="subsection">5.2 Sharing IDL files between MIDL and CamlIDL</h3>
+<p>The Microsoft software development kit provides a number of IDL files
+describing various libraries and components. In its current state,
+<span class=machine><span class=font-tt>camlidl</span></span> cannot exploit those files directly: they use many
+(often poorly documented) Microsoft IDL features that are not
+implemented yet in <span class=machine><span class=font-tt>camlidl</span></span>; symmetrically, <span class=machine><span class=font-tt>camlidl</span></span> introduces
+several new annotations that are not recognized by Microsoft’s <span class=machine><span class=font-tt>midl</span></span>
+compiler. So, significant editing work on the IDL files is required.</p><p>The C preprocessor can be used to alleviate the <span class=machine><span class=font-tt>camlidl</span></span>-<span class=machine><span class=font-tt>midl</span></span>
+incompatibilities: <span class=machine><span class=font-tt>camlidl</span></span> defines the preprocessor symbol <span class=machine><span class=font-tt>CAMLIDL</span></span>
+when preprocessing its input files, while <span class=machine><span class=font-tt>midl</span></span> does not. Hence,
+one can bracket incompatible definitions in 
+<span class=machine><span class=font-tt>#ifdef CAMLIDL ... #else ... #endif</span></span>. Along these lines, a C
+preprocessor header file, <span class=machine><span class=font-tt>camlidlcompat.h</span></span>, is provided: it uses
+<span class=machine><span class=font-tt>#define</span></span> to remove <span class=machine><span class=font-tt>camlidl</span></span>-specific attributes when compiling with
+<span class=machine><span class=font-tt>midl</span></span>, and to remove <span class=machine><span class=font-tt>midl</span></span>-specific attributes when compiling with
+<span class=machine><span class=font-tt>camlidl</span></span>. Thus, an IDL file compatible with both <span class=machine><span class=font-tt>midl</span></span> and
+<span class=machine><span class=font-tt>camlidl</span></span> would look like this:
+</p><pre>        #include &lt;camlidlcompat.h&gt;
+
+        #ifndef CAMLIDL
+        import "unknwn.idl";    // imports specific to MIDL
+        import "oaidl.idl";
+        #endif
+        import "mymodule.idl";  // imports common to MIDL and CamlIDL
+
+        typedef [abstract,marshal_as(int)] void * ptr;
+
+        ...
+
+        #ifndef CAMLIDL
+        [...] library MyTypeLib {
+          importlib("stdole32.tlb");
+          [...] coclass MyComponent { [default] interface IX; }
+        }
+        #endif
+</pre><p>Notice that since <span class=machine><span class=font-tt>camlidl</span></span> doesn’t handle type libraries, the type
+library part of an <span class=machine><span class=font-tt>midl</span></span> file must be enclosed in <span class=machine><span class=font-tt>#ifndef CAMLIDL</span></span>.</p>
+<h3 id="sec40" class="subsection">5.3 Dispatch interfaces and type libraries</h3>
+<p> <a id="s-dispatch"></a></p><p>A dispatch interface, in COM lingo, is an interface that supports
+dynamic, interpreted dispatch of method interfaces. This form of
+interpreted dispatch is used by Visual Basic and other scripting
+languages to perform calls to methods of COM components.</p><p>CamlIDL provides minimal support for dispatch interfaces. To equip a
+Caml component with a dispatch interface (thus making it callable from
+Visual Basic), you need to do the following:
+</p><ol class="enumerate" type=1><li class="li-enumerate">
+Use <span class=machine><span class=font-tt>IDispatch</span></span> instead of <span class=machine><span class=font-tt>IUnknown</span></span> as the super-interface of
+the component’s interfaces.
+</li><li class="li-enumerate">Write a type library for your component and compile it using
+<span class=machine><span class=font-tt>midl</span></span>. A type library is a run-time representation of the interfaces
+supported by an object. The <span class=machine><span class=font-tt>midl</span></span> compiler can generate a type
+library from the IDL description of the component, enriched with some
+special-purpose declarations (the <span class=machine><span class=font-tt>library</span></span> and <span class=machine><span class=font-tt>coclass</span></span>
+statements). Refer to the documentation of <span class=machine><span class=font-tt>midl</span></span> for more
+information.
+</li><li class="li-enumerate">Pass the type library files (<span class=machine><span class=font-tt>.tlb</span></span> files) generated by <span class=machine><span class=font-tt>midl</span></span>
+as extra arguments to <span class=machine><span class=font-tt>camlidldll</span></span> when generating the DLL for your
+Caml component.
+</li></ol>
+<hr>
+<a href="main004.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main006.html"><img src="next_motif.svg" alt="Next"></a>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="hevea 2.35">
+<link rel="stylesheet" type="text/css" href="main.css">
+<title>Release notes</title>
+</head>
+<body >
+<a href="main005.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<hr>
+<h2 id="sec41" class="section">6 Release notes</h2>
+<p>Here are some caveats and open issues that apply to the current
+release.</p>
+<h4 id="sec42" class="paragraph">Deallocation of function results and <span class=machine><span class=font-tt>out</span></span> parameters:</h4>
+<p>
+If a C function dynamically allocates some of its outputs (either
+returned or stored in <span class=machine><span class=font-tt>out</span></span> parameters), its IDL declaration must
+contain a <span class=syntax-token>quote(dealloc,</span> <a href="main002.html#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span> clause to properly free the
+space occupied by those outputs after they have been converted to
+Caml. Otherwise, memory leaks will occur. (The only exception is
+results and output parameters of type <span class=machine><span class=font-tt>[bigarray,managed] </span></span><span class=font-it>ty</span><span class=machine><span class=font-tt>[]</span></span>,
+where the Caml garbage collector takes care of deallocation.)</p><p>This does not conform to the MIDL and COM specifications, which say
+that space for <span class=machine><span class=font-tt>out</span></span> data structures must be allocated
+with <span class=machine><span class=font-tt>CoTaskMemAlloc</span></span> by the callee, and automatically freed
+using <span class=machine><span class=font-tt>CoTaskMemFree</span></span> by the generated stub code. (The specs don’t
+say what happens with the return value of the function.)
+However, there are many functions in Win32 (not to mention the
+Unix world) that do not follow this convention, and
+return data structures (e.g. strings) that are statically
+allocated, or require special deallocation functions. Hence,
+<span class=machine><span class=font-tt>camlidl</span></span> leaves deallocation of outputs entirely under user control.</p>
+<h4 id="sec43" class="paragraph">Allocation and deallocation of <span class=machine><span class=font-tt>in,out</span></span> parameters:</h4>
+<p>
+For <span class=machine><span class=font-tt>in,out</span></span> parameters, the MIDL/COM rules are that the caller (the
+stub code) should allocate the inputs, the callee should free them
+and allocate again its outputs, and the caller should free the outputs.
+As explained above, <span class=machine><span class=font-tt>camlidl</span></span>-generated stubs don’t automatically free
+the outputs. Worse, the inputs passed to the functions are allocated
+partially on the stack and partially in the heap
+(using <span class=machine><span class=font-tt>CoTaskMemAlloc</span></span>), so the callee may perform an incorrect
+free on a stack-allocated argument. The best thing to do is avoid
+<span class=machine><span class=font-tt>in,out</span></span> parameters entirely, and split them into one <span class=machine><span class=font-tt>in</span></span> and one
+<span class=machine><span class=font-tt>out</span></span> parameter.</p>
+<h4 id="sec44" class="paragraph">Reference-counting of COM interfaces:</h4>
+<p>
+Caml finalized objects are used to call <span class=machine><span class=font-tt>Release</span></span> automatically on COM
+interfaces that become unreachable. The reference counting of
+interfaces passed as <span class=machine><span class=font-tt>in</span></span> and <span class=machine><span class=font-tt>out</span></span> parameters is correctly
+implemented. However, <span class=machine><span class=font-tt>in,out</span></span> parameters that are interfaces are not
+correctly handled. Again, avoid <span class=machine><span class=font-tt>in,out</span></span> parameters.</p>
+<h4 id="sec45" class="paragraph">COM support:</h4>
+<p>
+The support for COM is currently quite small. COM components
+registered in the system registry can be imported via
+<span class=machine><span class=font-tt>Com.create</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>instance</span></span>. Components written in Caml can be exported as
+DLLs, but not yet as standalone servers. Preliminary support for
+dispatch interfaces is available, however many of the data types used
+in the Automation framework are not supported yet (e.g. <span class=machine><span class=font-tt>SAFEARRAY</span></span>).
+</p><hr>
+<a href="main005.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+</body>
+</html>

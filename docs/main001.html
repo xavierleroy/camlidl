@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="hevea 2.35">
+<link rel="stylesheet" type="text/css" href="main.css">
+<title>Overview</title>
+</head>
+<body >
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main002.html"><img src="next_motif.svg" alt="Next"></a>
+<hr>
+<h2 id="sec1" class="section">1 Overview</h2>
+<p>Camlidl generates stub code for interfacing Caml with C
+(as described in chapter “Interfacing with C” of the
+<a href="http://caml.inria.fr/ocaml/htmlman/index.html">Objective Caml
+reference manual</a>) from an IDL description of the C functions to be
+made available in Caml.
+Thus, Camlidl automates the most tedious task in interfacing C
+libraries with Caml programs. It can also be used to interface Caml
+programs with other languages, as long as those languages have a
+well-defined C interface.</p><p>In addition, Camlidl provides basic support for COM interfaces and
+components. It supports both using COM components (usually written in
+C++ or C) from Caml programs, and packaging Caml objects as
+COM components that can then be used from C++ or C.</p>
+<h3 id="sec2" class="subsection">1.1 What is IDL?</h3>
+<p>IDL stands for Interface Description Language. This is a generic term
+for a family of small languages that have been developed to provide
+type specifications for libraries written in C and C++. Those
+languages resembles C declarations (as found in C header files), with
+extra annotations to provide more precise types for the arguments and
+results of the functions.</p><p>The particular IDL used by Camlidl is inspired by Microsoft’s IDL,
+which itself is an extension of the IDL found in DCE (The Open Group’s
+Distributed Common Environment). The initial motivation for those IDLs
+was to automate the generation of stub code for remote procedure calls
+and network objects, where the arguments to the function are marshaled
+at the calling site, then sent across the network or through
+interprocess communications to a server process, which unmarshals the
+arguments, compute the function application, marshal the results,
+sends them back to the calling site, where they are unmarshaled and
+returned to the caller. IDLs were also found to be very useful for
+inter-language communications, since the same type information that
+guides the generation of marshaling stubs can be used to generate
+stubs to convert between the data representations of several
+languages.</p>
+<h3 id="sec3" class="subsection">1.2 What is COM?</h3>
+<p>COM is Microsoft’s Common Object Model. It provides a set of
+programming conventions as well as system support for packaging
+C++ objects as executable components that can be used in other
+programs, either by dynamic linking of the component inside the
+program, or through interprocess or internetwork communications
+between the program and a remote server. COM components implement one
+or several interfaces, (similar to Caml object types or Java
+interfaces) identified by unique 128-bit interface identifiers (IIDs).
+COM specifies a standard protocol for reference counting of
+components, and for asking a component which interfaces it
+implements.</p><p>While the full range of COM services and third-party components is
+available only on Microsoft’s Windows operating systems, the basic COM
+conventions can also be used on Unix and other operating systems
+to exchange objects between Caml and C or C++. Of particular
+interest is the encapsulation of Caml objects as COM components, which
+can then be used inside larger C or C++ applications; those
+applications do not need to know anything about Caml: they just call
+the component methods as if they were C++ methods or C
+functions, without knowing that they are actually implemented in Caml.</p><p>For more information about COM, see for instance <em>Inside COM</em>
+by Dale Rogerson (Microsoft Press), or the 
+<a href="http://msdn.microsoft.com">Microsoft developer Web site</a>.</p>
+<hr>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main002.html"><img src="next_motif.svg" alt="Next"></a>
+</body>
+</html>

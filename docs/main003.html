@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="hevea 2.35">
+<link rel="stylesheet" type="text/css" href="main.css">
+<title>The Caml-IDL mapping</title>
+</head>
+<body >
+<a href="main002.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main004.html"><img src="next_motif.svg" alt="Next"></a>
+<hr>
+<h2 id="sec18" class="section">3 The Caml-IDL mapping</h2>
+<p>This section describes how IDL types, function declarations, and
+interfaces are mapped to Caml types, functions and classes.</p>
+<h3 id="sec19" class="subsection">3.1 Base types</h3>
+<div class="tableau">
+<div class="center"><table border=1  style="border-spacing:0;width:80%" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>IDL type </span><span class=font-bold><span class=font-it>ty</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>Caml type </span>[[<span class=font-it>ty</span>]] </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >
+<span class=machine><span class=font-tt>byte</span></span>, <span class=machine><span class=font-tt>short</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>long</span></span> with <span class=machine><span class=font-tt>[camlint]</span></span> attribute</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>long</span></span> with <span class=machine><span class=font-tt>[nativeint]</span></span> attribute</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>nativeint</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>long</span></span> with <span class=machine><span class=font-tt>[int32]</span></span> attribute</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int32</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>long</span></span> with <span class=machine><span class=font-tt>[int64]</span></span> attribute</td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int64</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>hyper</span></span>, <span class=machine><span class=font-tt>long long</span></span>, <span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>int64</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>int64</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>char</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>char</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>float</span></span>, <span class=machine><span class=font-tt>double</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>float</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>boolean</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>bool</span></span> </td></tr>
+</table></div></div><p>
+(For integer types, <span class=machine><span class=font-tt>signed</span></span> and <span class=machine><span class=font-tt>unsigned</span></span> variants of the same IDL
+integer type translate to the same Caml type.)</p><p>Depending on the attributes, the <span class=machine><span class=font-tt>int</span></span> and <span class=machine><span class=font-tt>long</span></span> integer types are
+converted to one of the Caml integer types <span class=machine><span class=font-tt>int</span></span>, <span class=machine><span class=font-tt>nativeint</span></span>,
+<span class=machine><span class=font-tt>int32</span></span>, or <span class=machine><span class=font-tt>int64</span></span>. Values of Caml type <span class=machine><span class=font-tt>int32</span></span> are exactly 32-bit wide
+and values of type <span class=machine><span class=font-tt>int64</span></span> are exactly 64-bit wide on all platforms.
+Values of type <span class=machine><span class=font-tt>nativeint</span></span> have the natural word size of the platform,
+and are large enough to accommodate any C <span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long int</span></span> without
+loss of precision. Values of Caml type <span class=machine><span class=font-tt>int</span></span> have the natural word
+size of the platform minus one bit of tag, hence the conversion from IDL
+types <span class=machine><span class=font-tt>int</span></span> and <span class=machine><span class=font-tt>long</span></span> loses the most significant bit on 32-bit
+platforms. On 64-bit platforms, the conversion from <span class=machine><span class=font-tt>int</span></span> is exact,
+but the conversion from <span class=machine><span class=font-tt>long</span></span> loses the most significant bit.</p><p>If no explicit integer attribute is given for an <span class=machine><span class=font-tt>int</span></span> or <span class=machine><span class=font-tt>long</span></span> type,
+the <span class=machine><span class=font-tt>int</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> or <span class=machine><span class=font-tt>long</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> attribute of the enclosing
+interface, if any, determines the kind of the integer.
+If no <span class=machine><span class=font-tt>int</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> or <span class=machine><span class=font-tt>long</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> attribute is in scope, the kind
+<span class=machine><span class=font-tt>camlint</span></span> is assumed, which maps IDL <span class=machine><span class=font-tt>int</span></span> and <span class=machine><span class=font-tt>long</span></span> types to the
+Caml <span class=machine><span class=font-tt>int</span></span> type.</p>
+<h3 id="sec20" class="subsection">3.2 Pointers</h3>
+<p>The mapping of IDL pointer types depends on their kinds. Writing
+[[<span class=font-it>ty</span>]] for the Caml type corresponding to the IDL type
+<span class=font-it>ty</span>, we have:
+</p><pre>
+       [ref] <span class=font-it>ty</span> *  ⇒  [[<span class=font-it>ty</span>]]
+    [unique] <span class=font-it>ty</span> *  ⇒  [[<span class=font-it>ty</span>]] option
+       [ptr] <span class=font-it>ty</span> *  ⇒  [[<span class=font-it>ty</span>]] Com.opaque
+</pre><p>
+In other terms, IDL pointers of kind <span class=machine><span class=font-tt>ref</span></span> are ignored during the mapping:
+<span class=machine><span class=font-tt>[ref] </span></span><span class=font-it>ty</span><span class=machine><span class=font-tt> *</span></span> is mapped to the same Caml type as <span class=font-it>ty</span>.
+A pointer <span class=font-it>p</span> to a C value <span class=font-it>c</span><span class=machine><span class=font-tt> = *</span></span><span class=font-it>p</span> is translated to
+the Caml value corresponding to <span class=font-it>c</span>.</p><p>IDL pointers of kind <span class=machine><span class=font-tt>unique</span></span> are mapped to an <span class=machine><span class=font-tt>option</span></span> type. The
+option value is <span class=machine><span class=font-tt>None</span></span> for a null pointer, and <span class=machine><span class=font-tt>Some(</span></span><span class=font-it>v</span><span class=machine><span class=font-tt>)</span></span>
+for a non-null pointer to a C value <span class=font-it>c</span> that translates to the ML
+value <span class=font-it>v</span>.</p><p>IDL pointers of kind <span class=machine><span class=font-tt>ptr</span></span> are mapped to a <span class=machine><span class=font-tt>Com.opaque</span></span> type.
+This is an abstract type that encapsulates the C pointer without
+attempting to convert it to an ML data structure.</p><p>IDL pointers of kind <span class=machine><span class=font-tt>ignore</span></span> denote struct fields and function
+parameters that need not be exposed in the Caml code. Those pointers
+are simply set to null when converting from Caml to C, and ignored
+when converting from C to Caml. They cannot occur elsewhere.</p><p>If no explicit pointer kind is given, the <span class=machine><span class=font-tt>pointer</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> attribute
+of the enclosing interface, if any, determines the kind of the pointer.
+If no <span class=machine><span class=font-tt>pointer</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>default</span></span> attribute is in scope, the kind <span class=machine><span class=font-tt>unique</span></span> is
+assumed.</p>
+<h3 id="sec21" class="subsection">3.3 Arrays</h3>
+<p>IDL arrays of characters that carry the <span class=machine><span class=font-tt>[string]</span></span> attribute are mapped
+to the Caml <span class=machine><span class=font-tt>string</span></span> type:
+</p><div class="tableau">
+<div class="center"><table border=1  style="border-spacing:0;width:80%" class="cellpadding1"><tr><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>IDL type </span><span class=font-bold><span class=font-it>ty</span></span></td><td style="text-align:center;border:solid 1px;white-space:nowrap" ><span class=font-bold>Caml type </span>[[<span class=font-it>ty</span>]] </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" >
+<span class=machine><span class=font-tt>[string] char []</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>string</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>[string] unsigned char []</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>string</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>[string] signed char []</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>string</span></span> </td></tr>
+<tr><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>[string] byte []</span></span></td><td style="text-align:left;border:solid 1px;white-space:nowrap" ><span class=machine><span class=font-tt>string</span></span> </td></tr>
+</table></div></div><p>
+Caml string values are translated to standard null-terminated C strings.
+Be careful about embedded null characters in the Caml string, which
+will be recognized as end of string by C functions.</p><p>IDL arrays of characters that carry the <span class=machine><span class=font-tt>[byte]</span></span> attribute are mapped
+to the Caml <span class=machine><span class=font-tt>bytes</span></span> type of byte arrays.</p><p>IDL arrays carrying the <span class=machine><span class=font-tt>[bigarray]</span></span> attribute are translated to Caml
+“big arrays”, as described in the next section.</p><p>All other IDL arrays are translated to ML arrays:
+</p><pre>
+        <span class=font-it>ty</span> []  ⇒  [[<span class=font-it>ty</span>]] array
+</pre><p>
+For instance, <span class=machine><span class=font-tt>double []</span></span> becomes <span class=machine><span class=font-tt>float array</span></span>.
+Consequently, multi-dimensional arrays are translated to Caml arrays
+of arrays. For instance, <span class=machine><span class=font-tt>int [][]</span></span> becomes <span class=machine><span class=font-tt>int array array</span></span>.</p><p>If the <span class=machine><span class=font-tt>unique</span></span> attribute is given, the IDL array is translated to an
+ML option type:
+</p><pre>
+        [string,unique] char []  ⇒  string option
+        [unique] <span class=font-it>ty</span> []     ⇒  [[<span class=font-it>ty</span>]] array option
+</pre><p>
+As in the case of pointers of kind <span class=machine><span class=font-tt>unique</span></span>, the option value is
+<span class=machine><span class=font-tt>None</span></span> for a null C pointer, and <span class=machine><span class=font-tt>Some(</span></span><span class=font-it>v</span><span class=machine><span class=font-tt>)</span></span> for a non-null
+C pointer to a C array that translates to the ML string or array <span class=font-it>v</span>.</p><p>Conversion between a C array and an ML array proceed element by
+element. For the conversion from C to ML, the number of elements of
+the ML array is determined as follows (in the order presented):
+</p><ul class="itemize"><li class="li-itemize">
+By the <span class=machine><span class=font-tt>length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> attribute, if present.
+</li><li class="li-itemize">By the <span class=machine><span class=font-tt>size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> attribute, if present.
+</li><li class="li-itemize">By the bound written in the array type, if any.
+</li><li class="li-itemize">By searching the first null element of the C array, if the
+<span class=machine><span class=font-tt>null</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>terminated</span></span> attribute is present.
+</li></ul><p>
+For instance, C values of IDL type <span class=machine><span class=font-tt>[length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(n)] double[]</span></span> are
+mapped to Caml <span class=machine><span class=font-tt>float array</span></span> of <span class=machine><span class=font-tt>n</span></span> elements. C values of IDL type
+<span class=machine><span class=font-tt>double[10]</span></span> are mapped to Caml <span class=machine><span class=font-tt>float array</span></span> of 10 elements.</p><p>The <span class=machine><span class=font-tt>length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> and <span class=machine><span class=font-tt>size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> attributes take as argument one or
+several limited expressions. Each expression applies to one dimension
+of the array. For instance, <span class=machine><span class=font-tt>[size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(*dimx, *dimy)] double d[][]</span></span>
+specifies a matrix of <span class=machine><span class=font-tt>double</span></span> whose first dimension has size
+<span class=machine><span class=font-tt>*dimx</span></span> and the second has size <span class=machine><span class=font-tt>*dimy</span></span>.</p>
+<h3 id="sec22" class="subsection">3.4 Big arrays</h3>
+<p>IDL arrays of integers or floats that carry the <span class=machine><span class=font-tt>[bigarray]</span></span> attribute
+are mapped to one of the Caml <span class=machine><span class=font-tt>Bigarray</span></span> types: <span class=machine><span class=font-tt>Array1.t</span></span> for
+one-dimensional arrays, <span class=machine><span class=font-tt>Array2.t</span></span> for 2-dimensional arrays,
+<span class=machine><span class=font-tt>Array3.t</span></span> for 3-dimensional arrays, and <span class=machine><span class=font-tt>Genarray.t</span></span> for arrays of 4
+dimensions or more.</p><p>If the <span class=machine><span class=font-tt>[fortran]</span></span> attribute is given, the big array is accessed
+from Caml using the Fortran conventions (array indices start at 1;
+column-major memory layout). By default, the big array is accessed
+from Caml using the C conventions (array indices start at 0; row-major
+memory layout).</p><p>If the <span class=machine><span class=font-tt>[managed]</span></span> attribute is given on a big array type that is
+result type or out parameter type of a function, Caml assumes that the
+corresponding C array was allocated using <span class=machine><span class=font-tt>malloc()</span></span>, and is not
+referenced anywhere else; then, the Caml garbage collector will free
+the C array when the corresponding Caml big array becomes unreachable.
+By default, Caml assumes that result or out C arrays are statically or
+permanently allocated, and keeps a pointer to them during conversion
+to Caml big arrays, and does not free them when the Caml bigarrays
+become unreachable.</p><p>Finally, the <span class=machine><span class=font-tt>[unique]</span></span> attribute applies to bigarrays as to arrays,
+that is, it maps a null C pointer to <span class=machine><span class=font-tt>None</span></span>, and a non-null C pointer
+<span class=font-it>p</span> to <span class=machine><span class=font-tt>Some(</span></span><span class=font-it>v</span><span class=machine><span class=font-tt>)</span></span> where <span class=font-it>v</span> is the ML bigarray
+resulting from the translation of <span class=font-it>p</span>.</p>
+<h3 id="sec23" class="subsection">3.5 Structs</h3>
+<p>IDL structs are mapped to Caml record types. The names and types of
+the IDL struct fields determine the names and types of the Caml record
+type:
+</p><pre>
+struct <span class=font-it>s</span> { ... ; <span class=font-it>ty</span><sub><span class=font-it>i</span></sub> <span class=font-it>id</span><sub><span class=font-it>i</span></sub> ; ... }  becomes  type <span class=font-it>s</span> = { ... ; <span class=font-it>id</span><sub><span class=font-it>i</span></sub> : [[<span class=font-it>ty</span><sub><span class=font-it>i</span></sub>]] ; ... }
+</pre><p>
+Example: <span class=machine><span class=font-tt>struct s </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> int n; double d[4]; </span></span><span class=machine><span class=font-tt>}</span></span> becomes
+<span class=machine><span class=font-tt>type s = </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt>n: int; d: float array</span></span><span class=machine><span class=font-tt>}</span></span>.</p><p>Exceptions to this rule are as follows:
+</p><ul class="itemize"><li class="li-itemize">
+Fields of the IDL struct that are pointers with the <span class=machine><span class=font-tt>[ignore]</span></span>
+attribute do not appear in the Caml record type.
+Example: <span class=machine><span class=font-tt>struct s </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> double x,y; [ignore] void * data; </span></span><span class=machine><span class=font-tt>}</span></span>
+becomes <span class=machine><span class=font-tt>type struct</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>s = </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt>x : float; y: float</span></span><span class=machine><span class=font-tt>}</span></span>.
+Those ignored pointer fields are set to <span class=machine><span class=font-tt>NULL</span></span> when converting from a
+Caml record to a C struct.</li><li class="li-itemize">Integer fields of the IDL struct that appear in a <span class=machine><span class=font-tt>length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span>,
+<span class=machine><span class=font-tt>size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> or <span class=machine><span class=font-tt>switch</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> attribute of another field also do not appear
+in the Caml record type. (We call those fields <em>dependent</em> fields.)
+Example: <span class=machine><span class=font-tt>struct s </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> int idx; int len; [size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(len)] double d[]; </span></span><span class=machine><span class=font-tt>}</span></span>
+is translated to the Caml record type 
+<span class=machine><span class=font-tt>type struct</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>s = </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt>idx: int; d: float array</span></span><span class=machine><span class=font-tt>}</span></span>.
+The value of <span class=machine><span class=font-tt>len</span></span> is recovered from the size of the Caml array <span class=machine><span class=font-tt>d</span></span>,
+and thus doesn’t need to be represented explicitly in the Caml record.</li><li class="li-itemize">If, after elimination of ignored pointer fields and dependent
+fields as described above, the IDL struct has only one field
+<span class=font-it>ty</span> ‍<span class=font-it>id</span>, we avoid creating a one-field Caml record type
+and translate the IDL struct type directly to the Caml type
+[[<span class=font-it>ty</span>]].
+Example: <span class=machine><span class=font-tt>struct s </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> int len; [size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(len)] double d[]; </span></span><span class=machine><span class=font-tt>}</span></span>
+is translated to the Caml type abbreviation <span class=machine><span class=font-tt>type struct</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>s = double array</span></span>.</li><li class="li-itemize">The names of labels in the Caml record type can be changed by
+using the <span class=syntax-token>mlname</span> attribute on struct field declarations. For instance,
+<pre>
+struct s { int n; [mlname(p)] int q; }
+         becomes type s = { n : int; p : int }
+</pre></li><li class="li-itemize">The Caml type system makes it difficult to use two record types
+defined in the same module and having some label names in common.
+Thus, if CamlIDL encounters two or more structs having
+identically-named fields, it prefixes the Caml label names by the names
+of the structs in order to distinguish them. For instance:
+<pre>
+struct s1 { int x; int y; }
+struct s2 { double x; double t; }
+struct s3 { int z; }
+         becomes type s1 = { s1_x: int; s1_y: int }
+                 and s2 = { s2_x: float; s2_t: float }
+                 and s3 = { z: int }
+</pre>
+The labels for <span class=machine><span class=font-tt>s1</span></span> and <span class=machine><span class=font-tt>s2</span></span> have been prefixed by <span class=machine><span class=font-tt>s1</span></span><span class=machine><span class=font-tt>_</span></span> and
+<span class=machine><span class=font-tt>s2</span></span><span class=machine><span class=font-tt>_</span></span> respectively, to avoid ambiguity on the <span class=machine><span class=font-tt>x</span></span> label. However, the
+label <span class=machine><span class=font-tt>z</span></span> for <span class=machine><span class=font-tt>s3</span></span> is not prefixed, since it is not used elsewhere.<p>The prefix added in front of multiply-defined labels is taken from the
+struct name, if any, and otherwise from the name of the nearest
+enclosing struct, union or typedef. For instance:
+</p><pre>
+typedef struct { int x; } t;
+struct s4 { struct { int x; } z; };
+         becomes type t = { t_x: int }
+                 and s4 = { z: struct_1 }
+                 and struct_1 = { s4_x: int }
+</pre><p>The “minimal prefixing” strategy described above is the default
+behavior of <span class=machine><span class=font-tt>camlidl</span></span>. If the <span class=machine><span class=font-tt>-prefix-all-labels</span></span> option is given,
+all record labels are prefixed, whether they occur several times or
+not. If the <span class=machine><span class=font-tt>-keep-labels</span></span> option is given, no automatic prefixing
+takes place; the naming of record labels is left entirely under the
+user’s control, via <span class=syntax-token>mlname</span> annotations.</p></li></ul>
+<h3 id="sec24" class="subsection">3.6 Unions</h3>
+<p>IDL discriminated unions are translated to Caml sum types. Each case
+of the union corresponds to a constructor of the sum type. The
+constructor is constant if the union case has no associated field,
+otherwise has one argument corresponding to the union case field. If
+the union has a <span class=machine><span class=font-tt>default</span></span> case, an extra constructor
+<span class=machine><span class=font-tt>Default</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>unionname</span> is added to the Caml sum type, carrying an
+<span class=machine><span class=font-tt>int</span></span> argument (the value of the discriminating field),
+and possibly another argument corresponding to the default field.
+Examples:
+</p><pre>
+union u1 { case A: int x; case B: case C: double d; case D: ; }
+         becomes type u1 = A of int | B of float | C of float | D
+union u2 { case A: int x; case B: double d; default: ; }
+         becomes type u2 = A of int | B of float | Default_u of int
+union u3 { case A: int x; default: double d; }
+         becomes type u3 = A of int | Default_v of int * double
+</pre><p>
+All IDL unions must be discriminated, either via the special syntax
+<span class=machine><span class=font-tt>union </span></span><span class=font-it>name</span><span class=machine><span class=font-tt> switch(int </span></span><span class=font-it>discr</span><span class=machine><span class=font-tt>)</span></span>…, or via the
+attribute <span class=machine><span class=font-tt>switch</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is(</span></span><span class=font-it>discr</span><span class=machine><span class=font-tt>)</span></span>, where <span class=font-it>discr</span> is a C l-value
+built from other parameters of the current function, or other fields
+of the current <span class=machine><span class=font-tt>struct</span></span>. Both the discriminant and the
+case labels must be of an integer type. Unless a <span class=machine><span class=font-tt>default</span></span> case is
+given, the value of the discriminant must be one of the cases of the
+union.</p>
+<h3 id="sec25" class="subsection">3.7 Enums</h3>
+<p>IDL enums are translated to Caml enumerated types (sum types with only
+constant constructors). The names of the constructors are determined
+by the names of the enum labels. The values attached to the enum
+labels are ignored.
+Example:
+<span class=machine><span class=font-tt>enum e </span></span><span class=machine><span class=font-tt>{</span></span><span class=machine><span class=font-tt> A, B = 2, C = 4 </span></span><span class=machine><span class=font-tt>}</span></span> becomes <span class=machine><span class=font-tt>type enum</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>e = A | B | C</span></span>.</p><p>The <span class=syntax-token>set</span> attribute can be applied to a named enum to denote a
+bitfield obtained by logical “or” of zero, one or several labels of
+the enum. The corresponding ML value is a list of zero, one or
+several constructors of the Caml enumerated type. Consider for
+instance:
+</p><pre>enum e { A = 1, B = 2, C = 4 };
+typedef [set] enum e eset;
+</pre><p>The Caml type <span class=machine><span class=font-tt>eset</span></span> is equal to <span class=machine><span class=font-tt>enum</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>e list</span></span>.
+The C integer 6 (= <span class=machine><span class=font-tt>B | C</span></span>) is translated to the ML list <span class=machine><span class=font-tt>[B; C]</span></span>.
+The ML list <span class=machine><span class=font-tt>[A; C]</span></span> is translated to the C integer <span class=machine><span class=font-tt>A | C</span></span>, that is <span class=machine><span class=font-tt>5</span></span>.</p>
+<h3 id="sec26" class="subsection">3.8 Type definitions</h3>
+<p>An IDL <span class=machine><span class=font-tt>typedef</span></span> statement is normally translated
+to a Caml type abbreviation. For instance,
+<span class=machine><span class=font-tt>typedef [string] char * str</span></span> becomes <span class=machine><span class=font-tt>type str = string</span></span>.</p><p>If the <span class=syntax-token>abstract</span> attribute is given, a Caml abstract type is
+generated instead of a type abbreviation, thus hinding from Caml the
+representation of the type in question. For instance,
+<span class=machine><span class=font-tt>typedef [abstract] void * handle</span></span> becomes <span class=machine><span class=font-tt>type handle</span></span>.
+In this case, the IDL type in the <span class=machine><span class=font-tt>typedef</span></span> is ignored.</p><p>If the <span class=syntax-token>mltype</span> <span class=syntax-token>(</span> <span class=syntax-token>"</span> <span class=nonterminal>caml-type-expr</span> <span class=syntax-token>"</span> <span class=syntax-token>)</span> attribute is given,
+the Caml type is made equal to <span class=nonterminal>caml-type-expr</span>. This is often used
+in conjunction with the <span class=syntax-token>ml2c</span> and <span class=syntax-token>c2ml</span> attributes to implement
+custom translation of data structures between C and ML. For instance,
+<span class=machine><span class=font-tt>typedef [mltype("int list")] struct mylist</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>struct * mylist</span></span>
+becomes <span class=machine><span class=font-tt>type mylist = int list</span></span>.</p><p>If the <span class=syntax-token>c2ml(</span><span class=nonterminal>funct-name</span><span class=syntax-token>)</span> <span class=nonterminal>and</span> <span class=machine><span class=font-tt>ml2c(</span></span>funct-name<span class=machine><span class=font-tt>)</span></span> attributes are
+given, the user-provided C functions given as attributes will be
+called to perform Caml to C and C to Caml conversions for values of
+the typedef-ed type, instead of using the <span class=machine><span class=font-tt>camlidl</span></span>-generated
+conversion functions. This allows user-controlled translation of data
+structures. The prototypes of the conversion functions must be
+</p><pre>
+        value c2ml(<span class=font-it>ty</span> * input);
+        void ml2c(value input, <span class=font-it>ty</span> * output);
+</pre><p>
+where <span class=font-it>ty</span> is the name of the type defined by <span class=machine><span class=font-tt>typedef</span></span>. In other
+terms, the <span class=machine><span class=font-tt>c2ml</span></span> function is passed a reference to a <span class=font-it>ty</span> and
+returns the corresponding Caml value, while the <span class=machine><span class=font-tt>ml2c</span></span> function is
+passed a Caml value as first argument and stores the corresponding C
+value in the <span class=font-it>ty</span> reference passed as second argument.</p><p>If the <span class=syntax-token>finalize(</span><span class=nonterminal>final-fn</span><span class=syntax-token>)</span> attribute is given in combination with the
+<span class=syntax-token>abstract</span> attribute, the function <span class=nonterminal>final-fn</span> is called when
+the Caml block representing a value of this typedef becomes
+unreachable from Caml and is reclaimed by the Caml garbage collector. 
+Similarly, <span class=syntax-token>compare(</span><span class=nonterminal>compare-fn</span><span class=syntax-token>)</span> and <span class=syntax-token>hash(</span><span class=nonterminal>hash-fn</span><span class=syntax-token>)</span> attach a
+comparison function and a hashing function (respectively) to Caml
+values for this typedef. The comparison function is called when two
+Caml values of this typedef are compared using the generic comparisons
+<span class=machine><span class=font-tt>compare</span></span>, <span class=machine><span class=font-tt>=</span></span>, <span class=machine><span class=font-tt>&lt;</span></span>, etc. The hashing function is called when
+<span class=machine><span class=font-tt>Hashtbl.hash</span></span> is applied to a Caml value of this typedef.
+The prototype of the finalization, comparison and hashing functions are:
+</p><pre>
+        value <span class=font-it>final-fn</span>(<span class=font-it>ty</span> * x);
+        int <span class=font-it>compare-fn</span>(<span class=font-it>ty</span> * x, <span class=font-it>ty</span> * y);
+        long <span class=font-it>hash-fn</span>(<span class=font-it>ty</span> * x);
+</pre><p>
+That is, their arguments are passed by reference. The comparison
+function must return an integer that is negative, zero, or positive
+depending on whether its first argument is smaller, equal or greater
+than its second argument. The hashing function returns a suitable
+hash value for its argument.</p><p>If the <span class=syntax-token>errorcheck(</span><span class=nonterminal>fn</span><span class=syntax-token>)</span> attribute is provided for the <span class=machine><span class=font-tt>typedef</span></span> <span class=font-it>ty</span>,
+the error checking function <span class=nonterminal>fn</span> is called each time a function result
+of type <span class=font-it>ty</span> is converted from C to Caml. The function can then check
+the <span class=font-it>ty</span> value for values indicating an error condition, and raise the
+appropriate exception. If in addition the <span class=syntax-token>errorcode</span> attribute is
+provided, the conversion from C to Caml is suppressed: values of type
+<span class=font-it>ty</span> are only passed to <span class=nonterminal>fn</span> for error checking, then discarded.</p>
+<h3 id="sec27" class="subsection">3.9 Functions</h3>
+<p>IDL function declarations are translated to Caml functions.
+The parameters and results of the Caml function are determined from
+those of the IDL function according to the following rules:
+</p><ul class="itemize"><li class="li-itemize">
+First, dependent parameters (parameters that are <span class=machine><span class=font-tt>size</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span>,
+<span class=machine><span class=font-tt>length</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> or <span class=machine><span class=font-tt>switch</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>is</span></span> of other parameters) as well as parameters
+that are ignored pointers are removed.</li><li class="li-itemize">The remaining parameters are split into Caml function inputs and
+Caml function outputs. Parameters with the <span class=machine><span class=font-tt>[in]</span></span> attribute are added
+to the inputs of the function. Parameters with the <span class=machine><span class=font-tt>[out]</span></span>
+attribute are added to the outputs of the function. Parameters with
+the <span class=machine><span class=font-tt>[in,out]</span></span> attribute are added both to the inputs and to the
+outputs of the function, unless they are of type <span class=machine><span class=font-tt>bytes</span></span> or big array,
+in which case they are added to the inputs of the function only.
+(The reason for this exception is that byte arrays and big arrays are
+shared between Caml and C, thus allowing true <span class=machine><span class=font-tt>in,out</span></span> behavior on the
+Caml function parameter, while other data types are copied during
+Caml/C conversion, thus turning a C <span class=machine><span class=font-tt>in,out</span></span> parameter into a Caml
+<span class=machine><span class=font-tt>copy in, copy out</span></span> parameter, that is, one parameter and one result.)</li><li class="li-itemize">The return value of the IDL function is added to the outputs of
+the Caml function (in first position), unless it is of type <span class=machine><span class=font-tt>void</span></span> or
+of a type name that carries the <span class=machine><span class=font-tt>errorcode</span></span> attribute. In the latter
+two cases, the return value of the IDL function is not transmitted to
+Caml.
+</li><li class="li-itemize">The Caml function is then given type
+<span class=nonterminal>in</span><sub>1</sub> <span class=syntax-token>-&gt;</span> … <span class=syntax-token>-&gt;</span> <span class=nonterminal>in</span><sub><span class=font-it>p</span></sub> <span class=syntax-token>-&gt;</span> <span class=nonterminal>out</span><sub>1</sub> <span class=syntax-token>*</span> … <span class=syntax-token>*</span> <span class=nonterminal>out</span><sub><span class=font-it>q</span></sub>
+where <span class=nonterminal>in</span><sub>1</sub> … <span class=nonterminal>in</span><sub><span class=font-it>p</span></sub> are the types of its inputs
+and <span class=nonterminal>out</span><sub>1</sub> … <span class=nonterminal>out</span><sub><span class=font-it>q</span></sub> are the types of its outputs.
+If there are no inputs, a <span class=machine><span class=font-tt>unit</span></span> parameter is added.
+If there are no outputs, a <span class=machine><span class=font-tt>unit</span></span> result is added.
+</li></ul><p>
+Examples:
+</p><pre>
+int f([in] double x, [in] double y)             f : float -&gt; float -&gt; int
+</pre><blockquote class="quote"> Two <span class=machine><span class=font-tt>double</span></span> input, one <span class=machine><span class=font-tt>int</span></span> output </blockquote><pre>
+void g([in] int x)                              g : int -&gt; unit
+</pre><blockquote class="quote"> One <span class=machine><span class=font-tt>int</span></span> input, no output </blockquote><pre>
+int h()                                         h : unit -&gt; int
+</pre><blockquote class="quote"> No input, one <span class=machine><span class=font-tt>int</span></span> result </blockquote><pre>
+void i([in] int x, [out] double * y)            i : int -&gt; double
+</pre><blockquote class="quote"> One <span class=machine><span class=font-tt>int</span></span> input, one <span class=machine><span class=font-tt>double</span></span> output (as an <span class=machine><span class=font-tt>out</span></span>
+parameter) </blockquote><pre>
+int j([in] int x, [out] double * y)             j : int -&gt; int * double
+</pre><blockquote class="quote"> One <span class=machine><span class=font-tt>int</span></span> input, one <span class=machine><span class=font-tt>int</span></span> output (in the result), one
+<span class=machine><span class=font-tt>double</span></span> output (as an <span class=machine><span class=font-tt>out</span></span> parameter) </blockquote><pre>
+void k([in,out,ref] int * x)                    k : int -&gt; int
+</pre><blockquote class="quote"> The <span class=machine><span class=font-tt>in,out</span></span> parameter is both one <span class=machine><span class=font-tt>int</span></span> input and one
+<span class=machine><span class=font-tt>int</span></span> output. </blockquote><pre>
+HRESULT l([in] int x, [out] int * res1, [out] int * res2)
+                                                l : int -&gt; int * int
+</pre><blockquote class="quote"> <span class=machine><span class=font-tt>HRESULT</span></span> is a predefined type with the <span class=machine><span class=font-tt>errorcode</span></span>
+attribute, hence it is ignored. It remains one <span class=machine><span class=font-tt>int</span></span> input and
+two <span class=machine><span class=font-tt>int</span></span> outputs (<span class=machine><span class=font-tt>out</span></span> parameters) </blockquote><pre>
+void m([in] int len, [in,size_is(len)] double d[])
+                                                m : float array -&gt; int
+</pre><blockquote class="quote"> <span class=machine><span class=font-tt>len</span></span> is a dependent parameter, hence is ignored. The
+only input is the <span class=machine><span class=font-tt>double</span></span> array </blockquote><pre>
+void n([in] int inputlen, [out] int * outputlen, 
+       [in,out,size_is(inputlen),length_is(*outputlen)] double d[])
+                                                n : float array -&gt; float array
+</pre><blockquote class="quote"> The two parameters <span class=machine><span class=font-tt>inputlen</span></span> and <span class=machine><span class=font-tt>outputlen</span></span> are
+dependent, hence ignored. The <span class=machine><span class=font-tt>double</span></span> array is both an input
+and an output. </blockquote><pre>
+void p([in] int dimx, [in] int dimy,
+       [in,out,bigarray,size_is(dimx,dimy)] double d[][])
+p : (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array2.t -&gt; unit
+</pre><blockquote class="quote"> The two parameters <span class=machine><span class=font-tt>dimx</span></span> and <span class=machine><span class=font-tt>dimy</span></span> are dependent
+(determined from the dimensions of the big array argument),
+hence ignored. The two-dimensional array <span class=machine><span class=font-tt>d</span></span>, although marked <span class=machine><span class=font-tt>[in,out]</span></span>,
+is a big array, hence passed as an input that will be modified in
+place by the C function <span class=machine><span class=font-tt>p</span></span>. The Caml function has no outputs.
+</blockquote>
+<h4 id="sec28" class="paragraph">Error checking:</h4>
+<p>
+For every output that is of a named type with the <span class=syntax-token>errorcheck(</span><span class=nonterminal>fn</span><span class=syntax-token>)</span>
+attribute, the error checking function <span class=nonterminal>fn</span> is called after the C
+function returns. That function is assumed to raise a Caml exception
+if it finds an output denoting an error.</p>
+<h4 id="sec29" class="paragraph">Custom calling and deallocation sequences:</h4>
+<p>
+The IDL declaration for a function can optionally specify a custom
+calling sequence and/or a custom deallocation sequence, via <span class=nonterminal>quote</span>
+clauses following the function declaration:
+</p><div class="syntax"><table class="display dcenter"><tr style="vertical-align:middle"><td class="dcell"><table style="border-spacing:6px;border-collapse:separate;" class="cellpading0"><tr><td style="text-align:right;white-space:nowrap" ><span class=nonterminal>function-decl</span></td><td style="text-align:center;white-space:nowrap" >::=</td><td style="text-align:left;white-space:nowrap" >
+<a href="main002.html#attributes" class="syntax"><span class=nonterminal>attributes</span></a> <a href="main002.html#type-spec" class="syntax"><span class=nonterminal>type-spec</span></a> {<span class=syntax-token>*</span>} <a href="main002.html#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>(</span> <a href="main002.html#params" class="syntax"><span class=nonterminal>params</span></a> <span class=syntax-token>)</span> 
+{ <span class=syntax-token>quote</span><span class=syntax-token>(</span> <a href="main002.html#ident" class="syntax"><span class=nonterminal>ident</span></a> <span class=syntax-token>,</span> <a href="main002.html#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span> } </td></tr>
+<tr><td style="text-align:right;white-space:nowrap" >&nbsp;</td></tr>
+</table></td></tr>
+</table></div><p>
+The general shape of a <span class=machine><span class=font-tt>camlidl</span></span>-generated stub function is as
+follows:
+</p><pre>
+value caml_wrapper(value camlparam1, ..., value camlparamK)
+
+  /* Convert the function parameters from Caml to C */
+  param1 = ...;
+  ...
+  paramN = ...;
+  /* Call the C function ’ident’ */
+  _res = ident(param1, ..., paramN);
+  /* Convert the function result and out parameters to Caml values */
+  camlres = ...;
+  /* Return result to Caml */
+  return camlres;
+
+</pre><p>
+A <span class=syntax-token>quote(call,</span> <a href="main002.html#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span> clause causes the C statements in
+<a href="main002.html#string" class="syntax"><span class=nonterminal>string</span></a> to be inserted in the generated stub code
+instead of the default calling sequence <span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>res = ident(param1, ..., paramN)</span></span>.
+Thus, the statements in <a href="main002.html#string" class="syntax"><span class=nonterminal>string</span></a> find the converted parameters in
+local variables that have the same names as the parameters in the IDL
+declaration, and should leave the result of the function, if any, in
+the local variable named <span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>res</span></span>.</p><p>A <span class=syntax-token>quote(dealloc,</span> <a href="main002.html#string" class="syntax"><span class=nonterminal>string</span></a> <span class=syntax-token>)</span> clause causes the C statements in
+<a href="main002.html#string" class="syntax"><span class=nonterminal>string</span></a> to be inserted in the generated stub code just before the
+stub function returns, hence after the conversion of the C function
+results to Caml values. Again, the statements in <a href="main002.html#string" class="syntax"><span class=nonterminal>string</span></a> have access
+to the function result in the local variable named <span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>res</span></span>, and to out
+parameters in local variables having the same names as the
+parameters. Since the function results and out parameters have
+already been converted to Caml values, the code in <a href="main002.html#string" class="syntax"><span class=nonterminal>string</span></a> can safely
+deallocate the data structures they point to.</p><p>Custom calling sequences are typically used to rearrange or combine
+function parameters, and to perform extra error checks on the
+arguments and results. For instance, the Unix <span class=machine><span class=font-tt>write</span></span> system call can
+be specified in IDL as follows:
+</p><pre>        int write([in] int fd,
+                  [in,string,length_is(len)] char * data,
+                  [in] int len,
+                  [in] int ofs,
+                  [in] int towrite)
+          quote(call,
+            " /* Validate the arguments */
+              if (ofs &lt; 0 || ofs + towrite &gt;= len) failwith(\"write\");
+              /* Perform the write */
+              _res = write(fd, data + ofs, towrite);
+              /* Validate the result */
+              if (_res == -1) failwith(\"write\"); ");
+</pre><p>Custom deallocation sequences are useful to free data structures
+dynamically allocated and returned by the C function. For instance,
+a C function <span class=machine><span class=font-tt>f</span></span> that returns a <span class=machine><span class=font-tt>malloc</span></span>-ed string can be specified in
+IDL as follows:
+</p><pre>        [string] char * f([in] int x)
+          quote(dealloc, "free(_res); ");
+</pre><p>If the string is returned as an <span class=machine><span class=font-tt>out</span></span> parameter instead, we would write:
+</p><pre>        void f ([in] int x, [out, string*] char ** str)
+          quote(dealloc, "free(*str); ");
+</pre>
+<h4 id="sec30" class="paragraph">Blocking functions:</h4>
+<p>
+A function can be given the attribute <span class=machine><span class=font-tt>blocking</span></span> to indicate that it
+may block on an input/output operation. The generated code will then
+allow other Caml threads to execute concurrently with the operation.</p>
+<h3 id="sec31" class="subsection">3.10 Interfaces</h3>
+<p>IDL interfaces that do not have the <span class=syntax-token>object</span> attribute are
+essentially ignored. That is, the declarations contained in the
+interface are processed as if they occurred at the top-level of the
+IDL file. The <span class=syntax-token>pointer_default</span>, <span class=syntax-token>int_default</span> and
+<span class=syntax-token>long_default</span> attributes to the interface can be
+used to specify the default pointer kind and integer mappings
+for the declarations contained in the interface. Other attributes, as
+well as the name of the super-interface if any, are ignored.</p><p>IDL interfaces having the <span class=syntax-token>object</span> attribute specify COM-style object
+interfaces. The function declarations contained in the interface
+specify the methods of the COM interface. Other kinds of declarations
+(type declarations, <span class=syntax-token>import</span> statements, etc) are treated as if they
+occurred at the top-level of the IDL file. An optional
+super-interface can be given, in which case the COM interface
+implements the methods of the super-interface in addition to those
+specified in the IDL interface.
+Example:
+</p><pre>[object, uuid(...)] interface IA { typedef int t; int f(int x); }
+[object] interface IB : IA { import "foo.idl"; void g([string] char * s); }
+</pre><p>This defines a type <span class=machine><span class=font-tt>t</span></span> and imports the file <span class=machine><span class=font-tt>foo.idl</span></span> as usual. In
+addition, two interfaces are declared: <span class=machine><span class=font-tt>IA</span></span>, containing one
+method <span class=machine><span class=font-tt>f</span></span> from <span class=machine><span class=font-tt>int</span></span> to <span class=machine><span class=font-tt>int</span></span>, and <span class=machine><span class=font-tt>IB</span></span>, containing
+two methods, <span class=machine><span class=font-tt>f</span></span> from <span class=machine><span class=font-tt>int</span></span> to <span class=machine><span class=font-tt>int</span></span> and <span class=machine><span class=font-tt>g</span></span> from <span class=machine><span class=font-tt>string</span></span> to <span class=machine><span class=font-tt>unit</span></span>.</p><p>The definition of an object interface <span class=font-it>i</span> generates the following
+Caml definitions:
+</p><ul class="itemize"><li class="li-itemize">
+An abstract type <span class=font-it>i</span> identifying the interface.
+COM interfaces of type <span class=font-it>i</span> are represented in Caml
+with type <span class=font-it>i</span> <span class=machine><span class=font-tt> Com.interface</span></span>.
+</li><li class="li-itemize">If a super-interface <span class=font-it>s</span> is given, a conversion function
+<span class=font-it>s</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>of</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>i</span> of type
+<span class=font-it>i</span> <span class=machine><span class=font-tt> Com.interface -&gt; </span></span> <span class=font-it>s</span> <span class=machine><span class=font-tt> Com.interface</span></span>.
+</li><li class="li-itemize">If the <span class=machine><span class=font-tt>uuid(</span></span><span class=font-it>iid</span><span class=machine><span class=font-tt>)</span></span> attribute is given, a value
+<span class=machine><span class=font-tt>iid</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>i</span> of type <span class=font-it>i</span><span class=machine><span class=font-tt> Com.iid</span></span> holding the given interface
+identifier.
+</li><li class="li-itemize">A Caml class <span class=font-it>i</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>class</span></span>, with the same methods as the COM
+interface.
+</li><li class="li-itemize">A function <span class=machine><span class=font-tt>use</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>i</span> of type <span class=font-it>i</span> <span class=machine><span class=font-tt> Com.interface -&gt; </span></span><span class=font-it>i</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>class</span></span>, to transform a COM object into a Caml object. This
+allows the methods of the COM object to be invoked from Caml.
+</li><li class="li-itemize">A function <span class=machine><span class=font-tt>make</span></span><span class=machine><span class=font-tt>_</span></span><span class=font-it>i</span> of type <span class=machine><span class=font-tt>#</span></span><span class=font-it>i</span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>class -&gt; </span></span><span class=font-it>i</span>
+<span class=machine><span class=font-tt> Com.interface</span></span>, to transform a Caml object into a COM object with
+interface <span class=font-it>i</span>. This allows the methods of the Caml object to be
+invoked from any COM client.
+</li></ul><p>Example: in the <span class=machine><span class=font-tt>IA</span></span> and <span class=machine><span class=font-tt>IB</span></span> example above, the following Caml
+definitions are generated for <span class=machine><span class=font-tt>IA</span></span>:
+</p><pre>type iA
+val iid_iA : iA Com.iid
+class iA_class : iA Com.interface -&gt; object method f : int -&gt; int end
+val use_iA : iA Com.interface -&gt; iA_class
+val make_iA : #iA_class -&gt; iA Com.interface
+</pre><p>For <span class=machine><span class=font-tt>IB</span></span>, we get:
+</p><pre>type iB
+val iA_of_iB : iB Com.interface -&gt; iA Com.interface
+class iB_class :
+  iB Com.interface -&gt; object inherit iA_class method g : string -&gt; unit end
+val use_iB : iB Com.interface -&gt; iB_class
+val make_iB : #iB_class -&gt; iB Com.interface
+</pre>
+<h4 id="sec32" class="paragraph">Error handling in interfaces:</h4>
+<p> Conventionally, methods of
+COM interfaces always return a result of type <span class=machine><span class=font-tt>HRESULT</span></span> that says
+whether the method succeeded or failed, and in the latter case returns
+an error code to its caller.</p><p>When calling an interface method from Caml, if the method returns an
+<span class=machine><span class=font-tt>HRESULT</span></span> denoting failure, the exception <span class=machine><span class=font-tt>Com.Error</span></span> is raised with a
+message describing the error. Successful <span class=machine><span class=font-tt>HRESULT</span></span> return values are
+ignored. To make them available to Caml, <span class=machine><span class=font-tt>camlidl</span></span> defines the types
+<span class=machine><span class=font-tt>HRESULT</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>bool</span></span> and <span class=machine><span class=font-tt>HRESULT</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>int</span></span>. If those types are used as return
+types instead of <span class=machine><span class=font-tt>HRESULT</span></span>, failure results are mapped to
+<span class=machine><span class=font-tt>Com.Error</span></span> exceptions as before, but successful results are mapped to
+the Caml types <span class=machine><span class=font-tt>bool</span></span> and <span class=machine><span class=font-tt>int</span></span> respectively. (For <span class=machine><span class=font-tt>HRESULT</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>bool</span></span>,
+the <span class=machine><span class=font-tt>S</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>OK</span></span> result is mapped to <span class=machine><span class=font-tt>true</span></span> and other successful results are
+mapped to <span class=machine><span class=font-tt>false</span></span>. For <span class=machine><span class=font-tt>HRESULT</span></span><span class=machine><span class=font-tt>_</span></span><span class=machine><span class=font-tt>int</span></span>, the low 16 bits of the result
+code are returned as a Caml <span class=machine><span class=font-tt>int</span></span>.)</p><p>When calling a Caml method from a COM client, any exception that
+escapes the Caml method is mapped back to a failure <span class=machine><span class=font-tt>HRESULT</span></span>. A
+textual description of the uncaught exception is saved using
+<span class=machine><span class=font-tt>SetLastError</span></span>, and can be consulted by the COM client using
+<span class=machine><span class=font-tt>GetLastError</span></span> (this is the standard convention for passing extended
+error information in COM).</p><p>If the IDL return type of the method is not one of the <span class=machine><span class=font-tt>HRESULT</span></span>
+types, any exception escaping the Caml method aborts the whole program
+after printing a description of the exception. Hence, programmers of
+Caml components should either use <span class=machine><span class=font-tt>HRESULT</span></span> as result type, or make
+very sure that all exceptions are properly caught by the method.</p>
+<hr>
+<a href="main002.html"><img src="previous_motif.svg" alt="Previous"></a>
+<a href="index.html"><img src="contents_motif.svg" alt="Up"></a>
+<a href="main004.html"><img src="next_motif.svg" alt="Next"></a>
+</body>
+</html>
