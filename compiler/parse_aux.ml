@@ -110,27 +110,11 @@ let make_bigarray ty =
 
 (* Apply a "string" or "bytes" attribute to an array or pointer type *)
 
-let is_char_type = function
-  | Type_int ((Char | UChar | SChar | Byte), _) -> true
-  | _ -> false
-
 let make_string ty_elt attr ty =
-  if is_char_type ty_elt then
-    Type_array({attr with is_string = true}, ty_elt)
-  else begin
-    eprintf "%t: Warning: `string' attribute applies only \
-                 to arrays of characters, ignored\n"  print_location;
-    ty
-  end
+  Type_array({attr with is_string = true}, ty_elt)
 
 let make_bytes ty_elt attr ty =
-  if is_char_type ty_elt then
-    Type_array({attr with is_bytes = true}, ty_elt)
-  else begin
-    eprintf "%t: Warning: `bytes' attribute applies only \
-                 to arrays of characters, ignored\n"  print_location;
-    ty
-  end
+  Type_array({attr with is_bytes = true}, ty_elt)
 
 (* Apply a type-related attribute to a type *)
 
