@@ -1,3 +1,8 @@
+CamlIDL 1.11:
+-------------
+
+* Fix regression in parsing of `[string]` attribute (#23).
+
 CamlIDL 1.10:
 -------------
 
