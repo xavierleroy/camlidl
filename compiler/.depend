@@ -88,9 +88,9 @@ parse.cmo : utils.cmi parser_midl.cmi parse_aux.cmi linenum.cmi \
 parse.cmx : utils.cmx parser_midl.cmx parse_aux.cmx linenum.cmx \
     lexer_midl.cmx clflags.cmx parse.cmi
 parse_aux.cmo : typedef.cmi predef.cmi linenum.cmi intf.cmi idltypes.cmi \
-    funct.cmi file.cmi cvttyp.cmi constdecl.cmi parse_aux.cmi
+    funct.cmi file.cmi cvttyp.cmi constdecl.cmi parse_aux.cmi utils.cmi
 parse_aux.cmx : typedef.cmx predef.cmx linenum.cmx intf.cmx idltypes.cmi \
-    funct.cmx file.cmx cvttyp.cmx constdecl.cmx parse_aux.cmi
+    funct.cmx file.cmx cvttyp.cmx constdecl.cmx parse_aux.cmi utils.cmx
 parser_midl.cmo : typedef.cmi parse_aux.cmi intf.cmi idltypes.cmi funct.cmi \
     file.cmi cvttyp.cmi constdecl.cmi parser_midl.cmi
 parser_midl.cmx : typedef.cmx parse_aux.cmx intf.cmx idltypes.cmi funct.cmx \
