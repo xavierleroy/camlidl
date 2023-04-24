@@ -284,7 +284,7 @@ let emit_function oc fundecl ins outs locals emit_call =
 (* Emit wrapper function for C function *)
 
 let emit_standard_call oc fundecl =
-  if fundecl.fun_blocking then iprintf oc "enter_blocking_section();\n";
+  if fundecl.fun_blocking then iprintf oc "caml_enter_blocking_section();\n";
   begin match fundecl.fun_call with
     Some s ->
       iprintf oc "/* begin user-supplied calling sequence */\n";
@@ -304,7 +304,7 @@ let emit_standard_call oc fundecl =
     end;
     fprintf oc ");\n"
   end;
-  if fundecl.fun_blocking then iprintf oc "leave_blocking_section();\n"
+  if fundecl.fun_blocking then iprintf oc "caml_leave_blocking_section();\n"
 
 let emit_wrapper oc fundecl =
   current_function := fundecl.fun_name;
@@ -320,7 +320,7 @@ let emit_method_call intfname methname oc fundecl =
   (* Reset the error mechanism *)
   iprintf oc "SetErrorInfo(0L, NULL);\n";
   (* Emit the call *)
-  if fundecl.fun_blocking then iprintf oc "enter_blocking_section();\n";
+  if fundecl.fun_blocking then iprintf oc "caml_enter_blocking_section();\n";
   begin match fundecl.fun_call with
     Some s ->
       iprintf oc "/* begin user-supplied calling sequence */\n";
@@ -334,7 +334,7 @@ let emit_method_call intfname methname oc fundecl =
     List.iter (fun (name, _, _) -> fprintf oc ", %s" name) fundecl.fun_params;
     fprintf oc ");\n"
   end;
-  if fundecl.fun_blocking then iprintf oc "leave_blocking_section();\n"
+  if fundecl.fun_blocking then iprintf oc "caml_leave_blocking_section();\n"
 
 let emit_method_wrapper oc intf_name meth =
   current_function := sprintf "%s %s" intf_name meth.fun_name;
