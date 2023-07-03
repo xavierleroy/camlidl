@@ -13,6 +13,7 @@
 #* $Id: Makefile,v 1.4 2002-04-22 11:50:47 xleroy Exp $
 
 include ../config/Makefile
+include $(OCAMLLIB)/Makefile.config
 
 BYTEOBJS=com.cmo
 BYTELIB=com.cma
@@ -20,7 +21,17 @@ NATIVEOBJS=$(BYTEOBJS:.cmo=.cmx)
 NATIVELIB=$(BYTELIB:.cma=.cmxa)
 INTERFACES=$(BYTEOBJS:.cmo=.cmi)
 
-all: $(BYTELIB) $(NATIVELIB)
+all:: allbyt
+install:: installbyt
+ifneq "${ARCH}" "none"
+ifneq "${NATIVE_COMPILER}" "false"
+all:: allopt
+install:: installopt
+endif
+endif
+
+allbyt: $(BYTELIB)
+allopt: $(NATIVELIB)
 
 $(BYTELIB): $(BYTEOBJS)
 	$(OCAMLC) -a -o $(BYTELIB) -dllib -lcamlidl -cclib -lcamlidl $(BYTEOBJS)
@@ -28,9 +39,11 @@ $(BYTELIB): $(BYTEOBJS)
 $(NATIVELIB): $(NATIVEOBJS)
 	$(OCAMLOPT) -a -o $(NATIVELIB) -cclib -lcamlidl $(NATIVEOBJS)
 
-install:
-	cp $(INTERFACES) $(BYTELIB) $(NATIVELIB) $(NATIVELIB:.cmxa=.$(LIBEXT)) $(OCAMLLIB)
-	cd $(OCAMLLIB); $(RANLIB) $(NATIVELIB:.cmxa=.$(LIBEXT))
+installbyt:
+	cp -p $(INTERFACES) $(BYTELIB) $(OCAMLLIB)
+
+installopt:
+	cp -p $(NATIVELIB) $(NATIVELIB:.cmxa=.$(LIBEXT)) $(OCAMLLIB)
 
 .SUFFIXES: .mli .ml .cmi .cmo .cmx
 
