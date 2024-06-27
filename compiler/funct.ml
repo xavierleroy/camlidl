@@ -261,7 +261,7 @@ let emit_function oc fundecl ins outs locals emit_call =
       output_variable_declarations oc;
       fprintf oc "  value _vresult;\n";
       fprintf oc "  value _vres[%d] = { " num_outs;
-      for i = 1 to num_outs do fprintf oc "0, " done;
+      for i = 1 to num_outs do fprintf oc "Val_unit, " done;
       fprintf oc "};\n\n"
   end;
   end_diversion oc;
