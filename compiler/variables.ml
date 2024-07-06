@@ -62,9 +62,9 @@ let init_value_block oc blk numvals =
     for i = 0 to numvals - 1 do
       fprintf oc "%s[%d] = " blk i
     done;
-    fprintf oc "0;\n"
+    fprintf oc "Val_unit;\n"
   end else begin
-    iprintf oc "memset(%s, 0, %d * sizeof(value));\n" blk numvals
+    iprintf oc "memset(%s, Val_unit, %d * sizeof(value));\n" blk numvals
   end
 
 (* Copy an array of values into the fields of a newly-allocated block *)

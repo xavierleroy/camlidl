@@ -237,7 +237,7 @@ let emit_callback_wrapper oc intf meth =
   (* Declare locals to hold ML arguments and result, and C result if any *)
   let num_ins = List.length ins in
   fprintf oc "  value _varg[%d] = { " (num_ins + 1);
-  for i = 0 to num_ins do fprintf oc "0, " done;
+  for i = 0 to num_ins do fprintf oc "Val_unit, " done;
   fprintf oc "};\n";
   fprintf oc "  value _vres;\n";
   if meth.fun_res <> Type_void then
