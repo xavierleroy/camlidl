@@ -64,7 +64,9 @@ let init_value_block oc blk numvals =
     done;
     fprintf oc "Val_unit;\n"
   end else begin
-    iprintf oc "memset(%s, Val_unit, %d * sizeof(value));\n" blk numvals
+    let idx = new_var "_c" in
+    iprintf oc "for (mlsize_t %s = 0; %s < %d; %s++) %s[%s] = Val_unit;\n"
+               idx idx numvals idx blk idx
   end
 
 (* Copy an array of values into the fields of a newly-allocated block *)
@@ -76,12 +78,8 @@ let copy_values_to_block oc src dst numvals =
     done
   else begin
     let idx = new_var "_c" in
-    iprintf oc "{ mlsize_t %s;\n" idx;
-    increase_indent();
-    iprintf oc "for (%s = 0; %s < %d; %s++) Field(%s, %s) = %s[%s];\n"
+    iprintf oc "for (mlsize_t %s = 0; %s < %d; %s++) Field(%s, %s) = %s[%s];\n"
                idx idx numvals idx dst idx src idx;
-    decrease_indent();
-    iprintf oc "}\n"
   end
 
 (* Record if we need the context parameter *)
