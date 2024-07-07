@@ -1,6 +1,7 @@
 CamlIDL 1.13:
 -------------
 
+* Include OPAM files in the sources, to support `opam pin` (#26) 
 * Use `Val_unit` instead of 0 to initialize local roots, for compatibility
   with OCaml 5 and OCaml 4 in no-page-table mode (#29)
 
