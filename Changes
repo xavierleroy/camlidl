@@ -1,3 +1,15 @@
+CamlIDL 1.13:
+-------------
+
+* Use `Val_unit` instead of 0 to initialize local roots, for compatibility
+  with OCaml 5 and OCaml 4 in no-page-table mode (#29)
+
+CamlIDL 1.12:
+-------------
+
+* Always use modern, `caml_`-prefixed names for FFI functions, continued (#25)
+* Support building with a bytecode-only compiler (#27)
+
 CamlIDL 1.11:
 -------------
 
