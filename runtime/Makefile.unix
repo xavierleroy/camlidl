@@ -26,10 +26,10 @@ dllcamlidl.so libcamlidl.a: $(OBJS)
 #	$(RANLIB) $@
 
 install:
-	cp camlidlruntime.h $(OCAMLLIB)/caml/camlidlruntime.h
-	cp libcamlidl.a $(OCAMLLIB)/libcamlidl.a
-	cp dllcamlidl.so $(OCAMLLIB)/stublibs/dllcamlidl.so
-	cd $(OCAMLLIB); $(RANLIB) libcamlidl.a
+	cp camlidlruntime.h $(DESTDIR)$(OCAMLLIB)/caml/camlidlruntime.h
+	cp libcamlidl.a $(DESTDIR)$(OCAMLLIB)/libcamlidl.a
+	cp dllcamlidl.so $(DESTDIR)$(OCAMLLIB)/stublibs/dllcamlidl.so
+	cd $(DESTDIR)$(OCAMLLIB); $(RANLIB) libcamlidl.a
 
 clean:
 	rm -f *.a *.o *.so
