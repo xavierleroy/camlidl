@@ -40,10 +40,10 @@ $(NATIVELIB): $(NATIVEOBJS)
 	$(OCAMLOPT) -a -o $(NATIVELIB) -cclib -lcamlidl $(NATIVEOBJS)
 
 installbyt:
-	cp -p $(INTERFACES) $(BYTELIB) $(OCAMLLIB)
+	cp -p $(INTERFACES) $(BYTELIB) $(DESTDIR)$(OCAMLLIB)
 
 installopt:
-	cp -p $(NATIVELIB) $(NATIVELIB:.cmxa=.$(LIBEXT)) $(OCAMLLIB)
+	cp -p $(NATIVELIB) $(NATIVELIB:.cmxa=.$(LIBEXT)) $(DESTDIR)$(OCAMLLIB)
 
 .SUFFIXES: .mli .ml .cmi .cmo .cmx
 
