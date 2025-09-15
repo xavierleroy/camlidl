@@ -123,6 +123,7 @@ type type_decl =
     td_c2ml: string option;
     td_ml2c: string option;
     td_finalize: string option;
+    td_initialize: string option;
     td_compare: string option;
     td_hash: string option;
     td_errorcode: bool;

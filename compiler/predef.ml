@@ -23,7 +23,8 @@ let hresult =
     td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
-    td_finalize = None; td_compare = None; td_hash = None;
+    td_finalize = None; td_initialize = None;
+    td_compare = None; td_hash = None;
     td_errorcode = true;
     td_errorcheck = Some "camlidl_check_hresult";
     td_mltype = None }
@@ -33,7 +34,8 @@ let hresult_bool =
     td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
-    td_finalize = None; td_compare = None; td_hash = None;
+    td_finalize = None; td_initialize = None;
+    td_compare = None; td_hash = None;
     td_errorcode = false;
     td_errorcheck = Some "camlidl_check_hresult";
     td_mltype = Some "bool" }
@@ -43,7 +45,8 @@ let hresult_int =
     td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
-    td_finalize = None; td_compare = None; td_hash = None;
+    td_finalize = None; td_initialize = None;
+    td_compare = None; td_hash = None;
     td_errorcode = false;
     td_errorcheck = Some "camlidl_check_hresult";
     td_mltype = Some "int" }
@@ -53,7 +56,8 @@ let bstr =
     td_type = Type_int(Long, Iunboxed);
     td_abstract = false;
     td_c2ml = None; td_ml2c = None;
-    td_finalize = None; td_compare = None; td_hash = None;
+    td_finalize = None; td_initialize = None;
+    td_compare = None; td_hash = None;
     td_errorcode = false;
     td_errorcheck = None;
     td_mltype = Some "string" }

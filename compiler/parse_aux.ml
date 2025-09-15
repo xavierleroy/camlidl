@@ -318,6 +318,8 @@ let make_typedef attrs tybase decls =
       merge_attributes ty {td with td_ml2c = Some f} rem
   | ("finalize", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_finalize = Some f} rem
+  | ("initialize", [Expr_ident f]) :: rem ->
+      merge_attributes ty {td with td_initialize = Some f} rem
   | ("compare", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_compare = Some f} rem
   | ("hash", [Expr_ident f]) :: rem ->
@@ -341,7 +343,8 @@ let make_typedef attrs tybase decls =
               td_type = Type_void; (* dummy *)
               td_abstract = false; td_mltype = None;
               td_c2ml = None; td_ml2c = None;
-              td_finalize = None; td_compare = None; td_hash = None;
+              td_finalize = None; td_initialize = None;
+              td_compare = None; td_hash = None;
               td_errorcode = false; td_errorcheck = None} in
     let (ty', td') = merge_attributes ty td attrs in
     {td' with td_type = ty'} in

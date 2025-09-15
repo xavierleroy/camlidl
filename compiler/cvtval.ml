@@ -239,4 +239,9 @@ let rec allocate_output_space oc pref c ty =
       Idlarray.bigarray_allocate_output_space oc pref attr ty_arg c
   | Type_const ty' -> (* does this make sense? *)
       allocate_output_space oc pref c ty'
+  | Type_named(modl, ty_name) ->
+      begin match !typedef_find ty_name with
+        {td_initialize = Some fn} -> iprintf oc "%s(&%s);\n" fn c
+      | _ -> ()
+      end
   | _ -> ()

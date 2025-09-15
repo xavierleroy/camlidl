@@ -188,6 +188,8 @@ arguments.
        {"typedef" }
 \entree{@"finalize"'('fun-name')'@ }
        {"typedef" }
+\entree{@"initialize"'('fun-name')'@ }
+       {"typedef" }
 \entree{@"fortran"@       }
        {array type with "bigarray" attribute}
 \entree{@"hash"'('fun-name')'@ }
@@ -734,7 +736,7 @@ value in the \var{ty} reference passed as second argument.
 If the @"finalize("final-fn")"@ attribute is given in combination with the
 @"abstract"@ attribute, the function @final-fn@ is called when
 the Caml block representing a value of this typedef becomes
-unreachable from Caml and is reclaimed by the Caml garbage collector.  
+unreachable from Caml and is reclaimed by the Caml garbage collector. Conversely, @"initialize("init-fn")"@ attribute is used to initialize the value when used for an out parameter.
 Similarly, @"compare("compare-fn")"@ and @"hash("hash-fn")"@ attach a
 comparison function and a hashing function (respectively) to Caml
 values for this typedef.  The comparison function is called when two

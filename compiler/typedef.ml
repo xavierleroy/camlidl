@@ -50,6 +50,10 @@ let c_declaration oc td =
     None -> ()
   | Some s -> fprintf oc "extern void %s(%s *);\n" s td.td_name
   end;
+  begin match td.td_initialize with
+    None -> ()
+  | Some s -> fprintf oc "extern void %s(%s *);\n" s td.td_name
+  end;
   begin match td.td_compare with
     None -> ()
   | Some s ->

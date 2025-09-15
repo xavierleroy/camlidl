@@ -43,6 +43,7 @@ cvtval.cmo : \
     variables.cmi \
     utils.cmi \
     union.cmi \
+    typedef.cmi \
     struct.cmi \
     lexpr.cmi \
     idltypes.cmi \
@@ -54,6 +55,7 @@ cvtval.cmx : \
     variables.cmx \
     utils.cmx \
     union.cmx \
+    typedef.cmx \
     struct.cmx \
     lexpr.cmx \
     idltypes.cmi \
@@ -120,7 +122,6 @@ file.cmx : \
     clflags.cmx \
     file.cmi
 file.cmi : \
-    typedef.cmi \
     intf.cmi \
     idltypes.cmi \
     funct.cmi \
@@ -262,6 +263,7 @@ normalize.cmo : \
     funct.cmi \
     fixlabels.cmi \
     file.cmi \
+    cvttyp.cmi \
     constdecl.cmi \
     normalize.cmi
 normalize.cmx : \
@@ -275,6 +277,7 @@ normalize.cmx : \
     funct.cmx \
     fixlabels.cmx \
     file.cmx \
+    cvttyp.cmx \
     constdecl.cmx \
     normalize.cmi
 normalize.cmi : \
@@ -360,8 +363,8 @@ predef.cmx : \
     idltypes.cmi \
     predef.cmi
 predef.cmi : \
-    typedef.cmi \
-    intf.cmi
+    intf.cmi \
+    idltypes.cmi
 prefix.cmo : \
     utils.cmi \
     idltypes.cmi \
