@@ -16,6 +16,12 @@ open Utils
 open Printf
 open Idltypes
 
+(* Record typedefs by name *)
+
+let typedef_find =
+  ref ((fun _ -> invalid_arg "typedef_find") : string -> type_decl)
+
+
 (* Convert an IDL type to a C declarator *)
 
 let integer_type = function

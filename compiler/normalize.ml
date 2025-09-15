@@ -38,7 +38,7 @@ let find_typedef s =
 let expand_typedef s = (find_typedef s).td_type
 
 let _ =
-  Typedef.find := find_typedef;
+  Cvttyp.typedef_find := find_typedef;
   Lexpr.expand_typedef := expand_typedef
 
 let all_comps = ref ([] : component list)

@@ -19,7 +19,7 @@ open Idltypes
 type diversion_type = Div_c | Div_h | Div_ml | Div_mli | Div_ml_mli
 
 type component =
-    Comp_typedecl of Typedef.type_decl
+    Comp_typedecl of type_decl
   | Comp_structdecl of struct_decl
   | Comp_uniondecl of union_decl
   | Comp_enumdecl of enum_decl

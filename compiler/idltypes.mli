@@ -114,3 +114,17 @@ and lexpr =
   | Expr_dereffield of lexpr * string
   | Expr_field of lexpr * string
 
+
+type type_decl =
+  { td_name: string;
+    td_mod: string;
+    td_type: idltype;
+    td_abstract: bool;
+    td_c2ml: string option;
+    td_ml2c: string option;
+    td_finalize: string option;
+    td_compare: string option;
+    td_hash: string option;
+    td_errorcode: bool;
+    td_errorcheck: string option;
+    td_mltype: string option }

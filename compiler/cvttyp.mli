@@ -42,3 +42,6 @@ val scrape_const: idltype -> idltype
 
 (* Determine if a type is an ignored pointer *)
 val is_ignored: idltype -> bool
+
+(* Get typedef definition from name **)
+val typedef_find: (string -> type_decl) ref
