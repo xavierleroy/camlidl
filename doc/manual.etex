@@ -763,6 +763,15 @@ appropriate exception.  If in addition the @"errorcode"@ attribute is
 provided, the conversion from C to Caml is suppressed: values of type
 \var{ty} are only passed to @fn@ for error checking, then discarded.
 
+If the @"internal_type(sizeof("type-expr"),"get-function-name","set-function-name")"@ attribute is provided the attribute @"abstract" is added and the C type used in the custom block or abstract value is "type-expr" instead of the type aliased \var{ty}. The "get-function-name" is used for converting the input parameters and the "set-function-name" for output parameter.
+The prototype of those functions are:
+\begin{alltt}
+        typedef [internal_type(sizeof(\var{wrap}),\var{get},\var{set})] \var{view} ty;
+        void get(\var{view} * x, \var{wrap} * y);
+        void set(\var{wrap} * y, \var{view} * x);
+\end{alltt}
+The internal type can still be the same than the internal type for incrementing reference count in "set-function-name" for example. The "sizeof" is just present because of a current limitation of the parsing method.
+
 \subsection{Functions}
 
 IDL function declarations are translated to Caml functions.

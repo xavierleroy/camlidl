@@ -12,4 +12,6 @@ quote(C, "void t3_ml2c(value v, t3 * c) { *c = Int_val(v); }")
 
 quote(C, "value t3_c2ml(t3 * c) { return Val_int(*c); }")
 
-void t2_of_int([out] t2 x, [in] int y);
+void t2_copy([out] t2 x, [in] t2 y);
+
+typedef [abstract,internal_type(sizeof(float),wrapper_get,wrapper_set)] int t4;

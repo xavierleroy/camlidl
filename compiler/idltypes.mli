@@ -114,6 +114,11 @@ and lexpr =
   | Expr_dereffield of lexpr * string
   | Expr_field of lexpr * string
 
+type type_decl_internal_type = {
+  td_it_type: idltype;
+  td_it_get: string;
+  td_it_set: string;
+}
 
 type type_decl =
   { td_name: string;
@@ -128,4 +133,6 @@ type type_decl =
     td_hash: string option;
     td_errorcode: bool;
     td_errorcheck: string option;
-    td_mltype: string option }
+    td_mltype: string option;
+    td_internal_type: type_decl_internal_type option;
+  }

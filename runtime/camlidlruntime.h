@@ -42,6 +42,7 @@ struct camlidl_block_list {
 struct camlidl_ctx_struct {
   int flags;
   struct camlidl_block_list * head;
+  void* custom_ctx[];
 };
 
 #define CAMLIDL_TRANSIENT 1

@@ -334,6 +334,12 @@ let make_typedef attrs tybase decls =
       merge_attributes ty {td with td_errorcheck = Some f} rem
   | (("handle" | "transmit_as" | "context_handle"), _) :: rem ->
       merge_attributes ty td rem
+  | ("internal_type", [Expr_sizeof ty_intern;Expr_ident get;Expr_ident set]) :: rem ->
+      merge_attributes ty {td with
+         td_abstract = true;
+         td_internal_type =
+           Some {td_it_type = ty_intern; td_it_get = get; td_it_set = set }
+      } rem
   | attr :: rem ->
       merge_attributes (apply_type_attribute ty attr) td rem in
   let merge_definition tybase decl =
@@ -345,7 +351,8 @@ let make_typedef attrs tybase decls =
               td_c2ml = None; td_ml2c = None;
               td_finalize = None; td_initialize = None;
               td_compare = None; td_hash = None;
-              td_errorcode = false; td_errorcheck = None} in
+              td_errorcode = false; td_errorcheck = None;
+              td_internal_type = None } in
     let (ty', td') = merge_attributes ty td attrs in
     {td' with td_type = ty'} in
   (* If one of the decls is just a name, generate it first,
