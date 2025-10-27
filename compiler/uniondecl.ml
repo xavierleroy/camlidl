@@ -91,6 +91,7 @@ let transl_ml_to_c oc ud =
 (* Translation function from a C union to an ML datatype *)
 
 let transl_c_to_ml oc ud =
+  let c_to_ml oc pref = c_to_ml oc pref [] in
   current_function := sprintf "union %s" ud.ud_name;
   let discr = new_var "_discr" in
   let c = new_var "_c" in

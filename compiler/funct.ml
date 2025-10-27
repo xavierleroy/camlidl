@@ -23,7 +23,7 @@ open Cvttyp
 open Cvtval
 
 type in_out =
-    In | Out | InOut
+    In | Out | InOut | InContext of string
 
 type function_decl =
   { fun_name: string;
@@ -54,21 +54,25 @@ let remove_dependent_parameters params =
     params
 
 (* Split parameters into in parameters and out parameters.
-   In/out get copied to both. Inout (in place) are viewed as in. *)
+   In/out get copied to both. Inout (in place) are viewed as in.
+   InContext are viewed as in, and put in an associative list
+*)
 
 let rec split_in_out = function
-    [] -> ([], [])
+    [] -> ([], [], [])
   | (name, inout, ty) :: rem ->
-      let (ins, outs) = split_in_out rem in
+      let (ins, outs, contexts) = split_in_out rem in
       match inout with
-        In -> ((name, ty) :: ins, outs)
-      | Out -> (ins, (name, ty) :: outs)
+        In -> ((name, ty) :: ins, outs, contexts)
+      | InContext context_name -> ((name, ty) :: ins, outs,
+                        (context_name,(name,ty))::contexts)
+      | Out -> (ins, (name, ty) :: outs, contexts)
       | InOut ->
           match ty with
             Type_array({is_bytes = true}, _) | Type_bigarray(_, _) ->
-              ((name, ty) :: ins, outs)
+              ((name, ty) :: ins, outs, contexts)
           | _ ->
-              ((name, ty) :: ins, (name, ty) :: outs)
+              ((name, ty) :: ins, (name, ty) :: outs, contexts)
 
 (* Determine if a typedef represents an error code *)
 
@@ -85,14 +89,14 @@ let rec is_errorcode = function
 
 let ml_view fundecl =
   let true_params = remove_dependent_parameters fundecl.fun_params in
-  let (ins, outs) = split_in_out true_params in
+  let (ins, outs, contexts) = split_in_out true_params in
   (* Add return value as an out if it's not void and not an error code *)
   let outs2 =
     if fundecl.fun_res = Type_void || is_errorcode fundecl.fun_res
     then outs
     else ("_res", fundecl.fun_res) :: outs in
   (* Remove out parameters that are error codes *)
-  (ins, outs2)
+  (ins, outs2, contexts)
 
 (* Generate the ML declaration for a function *)
 
@@ -100,7 +104,7 @@ let mlname fundecl =
   match fundecl.fun_mlname with Some n -> n | None -> fundecl.fun_name
 
 let ml_declaration oc fundecl =
-  let (ins, outs) = ml_view fundecl in
+  let (ins, outs,_) = ml_view fundecl in
   fprintf oc "external %s : " (String.uncapitalize_ascii (mlname fundecl));
   out_ml_types oc "->" ins;
   fprintf oc " -> ";
@@ -118,6 +122,7 @@ let out_inout oc = function
     In -> fprintf oc "in"
   | Out -> fprintf oc "out"
   | InOut -> fprintf oc "in,out"
+  | InContext name -> fprintf oc "context(%s)" name
 
 (* Generate the C declaration for a function *)
 
@@ -172,7 +177,7 @@ let rec call_error_check oc name ty =
 
 (* Shared code between emit_wrapper and emit_method_wrapper *)
 
-let emit_function oc fundecl ins outs locals emit_call =
+let emit_function oc fundecl ins outs contexts locals emit_call =
   need_context := false;
   (* Emit function header *)
   fprintf oc "value camlidl_%s_%s(" fundecl.fun_mod fundecl.fun_name;
@@ -215,7 +220,7 @@ let emit_function oc fundecl ins outs locals emit_call =
   (* Initialize outs that are pointers or arrays so that they point
      to suitable storage *)
   List.iter
-    (function (name, Out, ty) -> allocate_output_space pc pref name ty
+    (function (name, Out, ty) -> allocate_output_space pc pref contexts name ty
             | _ -> ())
     fundecl.fun_params;
   (* Generate the call to the C function *)
@@ -235,7 +240,7 @@ let emit_function oc fundecl ins outs locals emit_call =
       output_dealloc pc fundecl.fun_dealloc;
       iprintf pc "return Val_unit;\n"
   | [name, ty] ->
-      c_to_ml pc pref ty name "_vres";
+      c_to_ml pc pref contexts ty name "_vres";
       output_variable_declarations oc;
       fprintf oc "  value _vres;\n\n";
       output_context oc pc;
@@ -248,7 +253,7 @@ let emit_function oc fundecl ins outs locals emit_call =
       let pos = ref 0 in
       List.iter
         (fun (name, ty) ->
-          c_to_ml pc pref ty name (sprintf "_vres[%d]" !pos);
+          c_to_ml pc pref contexts ty name (sprintf "_vres[%d]" !pos);
           incr pos)
         outs;
       iprintf pc "_vresult = camlidl_alloc_small(%d, 0);\n" num_outs;
@@ -308,8 +313,8 @@ let emit_standard_call oc fundecl =
 
 let emit_wrapper oc fundecl =
   current_function := fundecl.fun_name;
-  let (ins, outs) = ml_view fundecl in
-  emit_function oc fundecl ins outs fundecl.fun_params emit_standard_call;
+  let (ins, outs,contexts) = ml_view fundecl in
+  emit_function oc fundecl ins outs contexts fundecl.fun_params emit_standard_call;
   current_function := ""
 
 (* Emit wrapper function for COM method *)
@@ -340,11 +345,11 @@ let emit_method_wrapper oc intf_name meth =
   current_function := sprintf "%s %s" intf_name meth.fun_name;
   let fundecl =
     {meth with fun_name = sprintf "%s_%s" intf_name meth.fun_name} in
-  let (ins1, outs) = ml_view fundecl in
+  let (ins1, outs,contexts) = ml_view fundecl in
   (* Add an ML parameter and a C local for "this" *)
   let intf_type = Type_pointer(Ignore, Type_interface("", intf_name)) in
   let ins = ("this", intf_type) :: ins1 in
   let locals = ("this", In, intf_type) :: fundecl.fun_params in
-  emit_function oc fundecl ins outs locals
+  emit_function oc fundecl ins outs contexts locals
                    (emit_method_call intf_name meth.fun_name);
   current_function := ""

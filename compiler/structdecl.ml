@@ -77,6 +77,7 @@ let transl_ml_to_c oc sd =
 (* Translation function from a C struct to an ML record *)
 
 let transl_c_to_ml oc sd =
+  let c_to_ml oc pref = c_to_ml oc pref [] in
   current_function := sprintf "struct %s" sd.sd_name;
   let c = new_var "_c" in
   fprintf oc "value camlidl_c2ml_%s_struct_%s(struct %s * %s, camlidl_ctx _ctx)\n"

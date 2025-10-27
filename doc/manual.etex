@@ -772,6 +772,8 @@ The prototype of those functions are:
 \end{alltt}
 The internal type can still be the same than the internal type for incrementing reference count in "set-function-name" for example. The "sizeof" is just present because of a current limitation of the parsing method.
 
+If the @"context(("type-expr") "name")"@ attribute is provided the functions c2ml, initialize and "set-function-name" get an additional argument of type "type-expr". This attribute can appear multiple times. A function where an output of this typedef appears must have an argument decorated with [context("name")] in place of [in]. A pointer to the C version of this argument is given as the additional argument (except in the case of ref pointer where it is directly given).
+
 \subsection{Functions}
 
 IDL function declarations are translated to Caml functions.

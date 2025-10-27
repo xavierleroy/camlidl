@@ -135,4 +135,7 @@ type type_decl =
     td_errorcheck: string option;
     td_mltype: string option;
     td_internal_type: type_decl_internal_type option;
+    td_contexts : (string * idltype) list;
   }
+
+type available_contexts = (string * (string * idltype)) list

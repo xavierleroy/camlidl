@@ -39,6 +39,16 @@ let internal_name td =
   | None -> td.td_name
   | Some _ -> td.td_name^"__internal"
 
+let print_contexts_signature oc contexts =
+    List.iter (fun (name,ty) -> fprintf oc ",%a" out_c_decl ("ctx_"^name,Type_pointer(Ptr,ty)))
+      contexts
+
+(* print contexts name with disambiguating prefix *)
+let print_contexts_name oc contexts =
+    List.iter (fun (name,_) -> fprintf oc ",ctx_%s" name)
+      contexts
+
+
 (* Generate the C typedef corresponding to the typedef *)
 let c_declaration oc td =
   fprintf oc "typedef %a;\n" out_c_decl (td.td_name, td.td_type);
@@ -47,7 +57,8 @@ let c_declaration oc td =
   | Some td_it ->
     fprintf oc "typedef %a;\n" out_c_decl (internal_name td, td_it.td_it_type);
     fprintf oc "extern void %s(%s *, %s *);\n" td_it.td_it_get td.td_name  (internal_name td);
-    fprintf oc "extern void %s(%s *, %s *);\n" td_it.td_it_set (internal_name td) td.td_name;
+    fprintf oc "extern void %s(%s *, %s *%a);\n" td_it.td_it_set (internal_name td) td.td_name
+    print_contexts_signature td.td_contexts;
   end;
   begin match td.td_ml2c with
     None -> ()
@@ -55,7 +66,8 @@ let c_declaration oc td =
   end;
   begin match td.td_c2ml with
     None -> ()
-  | Some s -> fprintf oc "extern value %s(%s *);\n" s td.td_name
+  | Some s -> fprintf oc "extern value %s(%s *%a);\n" s td.td_name
+                print_contexts_signature td.td_contexts
   end;
   begin match td.td_finalize with
     None -> ()
@@ -63,7 +75,8 @@ let c_declaration oc td =
   end;
   begin match td.td_initialize with
     None -> ()
-  | Some s -> fprintf oc "extern void %s(%s *);\n" s td.td_name
+  | Some s -> fprintf oc "extern void %s(%s *%a);\n" s td.td_name
+              print_contexts_signature td.td_contexts
   end;
   begin match td.td_compare with
     None -> ()
@@ -91,13 +104,15 @@ let declare_transl oc td =
   end;
   begin match td.td_c2ml with
     Some s ->
-      fprintf oc "extern value %s(%s *);\n"
-                 s td.td_name;
-      fprintf oc "#define camlidl_c2ml_%s_%s(c,ctx) %s(c)\n\n"
-                 td.td_mod td.td_name s
+      fprintf oc "extern value %s(%s *%a);\n"
+                 s td.td_name
+                 print_contexts_signature td.td_contexts;
+      fprintf oc "#define camlidl_c2ml_%s_%s(c,ctx%a) %s(c%a)\n\n"
+                 td.td_mod td.td_name print_contexts_name td.td_contexts s print_contexts_name td.td_contexts 
   | None ->
-      fprintf oc "extern value camlidl_c2ml_%s_%s(%s *, camlidl_ctx _ctx);\n"
+      fprintf oc "extern value camlidl_c2ml_%s_%s(%s *, camlidl_ctx _ctx%a);\n"
                  td.td_mod td.td_name td.td_name
+                 print_contexts_signature td.td_contexts
   end;
   fprintf oc "\n"
 
@@ -197,8 +212,9 @@ static long camlidl_hash_%s_%s(value v)
   current_function := sprintf "typedef %s" td.td_name;
   let v = new_ml_variable() in
   let c = new_var "_c" in
-  fprintf oc "value camlidl_c2ml_%s_%s(%s * %s, camlidl_ctx _ctx)\n"
-             td.td_mod td.td_name td.td_name c;
+  fprintf oc "value camlidl_c2ml_%s_%s(%s * %s, camlidl_ctx _ctx%a)\n"
+             td.td_mod td.td_name td.td_name c
+             print_contexts_signature td.td_contexts;
   fprintf oc "{\n";
   let pc = divert_output() in
   increase_indent();
@@ -211,8 +227,9 @@ static long camlidl_hash_%s_%s(value v)
           iprintf pc "*((%s *) Data_custom_val(%s)) = *%s;\n"
                 td.td_name v c
       | Some td_it ->
-          iprintf pc "%s(((%s *) Data_custom_val(%s)),%s);\n"
+          iprintf pc "%s(((%s *) Data_custom_val(%s)),%s%a);\n"
                 td_it.td_it_set (internal_name td) v c
+                print_contexts_name td.td_contexts
     end else begin
       iprintf pc "%s = camlidl_alloc((sizeof(%s) + sizeof(value) - 1) / sizeof(value), Abstract_tag);\n"
               v (internal_name td);
@@ -221,11 +238,12 @@ static long camlidl_hash_%s_%s(value v)
           iprintf pc "*((%s *) Bp_val(%s)) = *%s;\n"
                   td.td_name v c
       | Some td_it ->
-          iprintf pc "%s(((%s *) Bp_val(%s)),%s);\n"
+          iprintf pc "%s(((%s *) Bp_val(%s)),%s%a);\n"
                   td_it.td_it_set (internal_name td) v c
+                  print_contexts_name td.td_contexts
     end
   else begin
-    c_to_ml pc Prefix.empty td.td_type (sprintf "(*%s)" c) v
+    c_to_ml pc Prefix.empty [] td.td_type (sprintf "(*%s)" c) v
   end;
   iprintf pc "return %s;\n" v;
   decrease_indent();
@@ -246,8 +264,11 @@ let emit_transl oc td =
   end;
   begin match td.td_c2ml with
     Some s ->
-      fprintf oc "#define camlidl_c2ml_%s_%s(c,ctx) %s(c)\n\n"
-                 td.td_mod td.td_name s
+      fprintf oc "#define camlidl_c2ml_%s_%s(c,ctx%a) %s(c%a)\n\n"
+                 td.td_mod td.td_name
+                 print_contexts_name td.td_contexts
+                 s
+                 print_contexts_name td.td_contexts
   | None ->
       transl_c_to_ml oc td
   end

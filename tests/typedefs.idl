@@ -15,3 +15,40 @@ quote(C, "value t3_c2ml(t3 * c) { return Val_int(*c); }")
 void t2_copy([out] t2 x, [in] t2 y);
 
 typedef [abstract,internal_type(sizeof(float),wrapper_get,wrapper_set)] int t4;
+
+/* Lib which uses a reference counted context */
+
+/* Functions for managing context */
+quote(H, "struct ctx_lib { int* data; int len; int refcount; };")
+quote(H, "void ctx_lib_init(struct ctx_lib*);")
+quote(H, "void ctx_lib_ref(struct ctx_lib*);")
+quote(H, "void ctx_lib_deref(struct ctx_lib*);")
+
+typedef [abstract,
+        initialize(ctx_lib_init),
+        finalize(ctx_lib_deref)] struct ctx_lib ctx_t;
+
+quote(H, "void _ctx_nothing(struct ctx_lib*){};")
+
+void _ctx_nothing([out,ref] ctx_t* ctx);
+
+
+/* Functions on values of the Lib */
+quote(H, "struct t_lib { int* data; int len; };")
+quote(H, "void t_lib_init(struct t_lib*,struct ctx_lib*);")
+quote(H, "void t_lib_clear(struct t_lib*,struct ctx_lib*);")
+
+quote(H, "struct t_lib_wrapper { struct ctx_lib* ctx; struct t_lib t;};")
+quote(C, "void t_lib_wrapper_get(struct t_lib *x, struct t_lib_wrapper* i){ *x = i->t; }")
+quote(C, "void t_lib_wrapper_set(struct t_lib_wrapper* i, struct t_lib* t,struct ctx_lib* ctx){ ctx_lib_ref(ctx); i->t = *t; i->ctx = ctx; }")
+quote(C, "void t_lib_wrapper_clear(struct t_lib_wrapper* i){ t_lib_clear(&i->t,i->ctx); ctx_lib_deref(i->ctx); }")
+
+typedef [abstract,
+    internal_type(sizeof(struct t_lib_wrapper),t_lib_wrapper_get,t_lib_wrapper_set),
+    context((struct ctx_lib) ctx),
+    initialize(t_lib_init),
+    finalize(t_lib_wrapper_clear)] struct t_lib t5;
+
+quote(H, "void lib_set_si(struct t_lib* t,int i, struct ctx_lib* ctx);")
+void lib_set_si([out,ref] t5* x, [in] int i, [context(ctx),ref] ctx_t* ctx);
+void lib_sin_cos([out,ref] t5* sin, [out,ref] t5* cos, [in,ref] t5* x, [context(ctx),ref] ctx_t* ctx);

@@ -34,6 +34,21 @@ let allocate_space oc onstack ty c =
     "*" ^ c
   end
 
+(* Add arguments for contexts *)
+let print_available_contexts contexts oc td =
+  List.iter
+  (fun (name,_) ->
+    let (name,ty) = 
+      try
+        List.assoc name contexts
+      with Not_found ->
+        error(Printf.sprintf "The context named %s needed for typedef %s is not available" name td.td_name) in
+    begin match ty with
+    | Type_pointer(Ref,_) -> iprintf oc ", %s" name
+    | _ -> iprintf oc ", &%s" name
+    end
+  ) td.td_contexts
+
 (* Helper functions to deal with option types / NULL pointers *)
 
 let option_ml_to_c oc v c conv =
@@ -156,7 +171,8 @@ let rec ml_to_c oc onstack pref ty v c =
    [pref] is the access prefix for the dependent parameters (size,
    discriminants, etc) to be updated. *)
 
-let rec c_to_ml oc pref ty c v =
+let rec c_to_ml oc pref contexts ty c v =
+  let c_to_ml oc pref = c_to_ml oc pref contexts in
   match ty with
   | Type_int((Char | SChar), repr) ->
       iprintf oc "%s = Val_int((unsigned char)(%s));\n" v c
@@ -196,7 +212,9 @@ let rec c_to_ml oc pref ty c v =
         iprintf oc "%s = camlidl_c2ml_%s_enum_%s(%s);\n"
                    v en.en_mod en.en_name c
   | Type_named(modl, name) ->
-      iprintf oc "%s = camlidl_c2ml_%s_%s(&%s, _ctx);\n" v modl name c;
+      let td = !typedef_find name in
+      iprintf oc "%s = camlidl_c2ml_%s_%s(&%s, _ctx%a);\n" v modl name c
+                (print_available_contexts contexts) td;
       need_context := true
   | Type_pointer(Ref, Type_interface(modl, name)) ->
       iprintf oc "%s = camlidl_pack_interface(%s, _ctx);\n" v c;
@@ -227,21 +245,26 @@ let rec c_to_ml oc pref ty c v =
       c_to_ml oc pref ty' c v
 
 (* Allocate suitable space for the C out parameter [c]. *)
-
-let rec allocate_output_space oc pref c ty =
+let rec allocate_output_space oc pref contexts c ty =
   match ty with
     Type_pointer(attr, ty_arg) ->
       let c' = new_c_variable ty_arg in
-      iprintf oc "%s = &%s;\n" c c'
+      iprintf oc "%s = &%s;\n" c c';
+      begin match attr with
+      | Ref ->
+        allocate_output_space oc pref contexts c' ty_arg
+      | _ -> ()
+      end
   | Type_array(attr, ty_arg) ->
       Idlarray.array_allocate_output_space oc pref attr ty_arg c
   | Type_bigarray(attr, ty_arg) ->
       Idlarray.bigarray_allocate_output_space oc pref attr ty_arg c
   | Type_const ty' -> (* does this make sense? *)
-      allocate_output_space oc pref c ty'
+      allocate_output_space oc pref contexts c ty'
   | Type_named(modl, ty_name) ->
       begin match !typedef_find ty_name with
-        {td_initialize = Some fn} -> iprintf oc "%s(&%s);\n" fn c
+        {td_initialize = Some fn } as td -> iprintf oc "%s(&%s%a);\n" fn c
+        (print_available_contexts contexts) td
       | _ -> ()
       end
   | _ -> ()

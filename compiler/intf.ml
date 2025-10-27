@@ -32,7 +32,7 @@ type interface =
 (* Print a method type *)
 
 let out_method_type oc meth =
-  let (ins, outs) = ml_view meth in
+  let (ins, outs, _) = ml_view meth in
   begin match ins with
     [] -> ()
   | _  -> out_ml_types oc "->" ins;
@@ -221,7 +221,7 @@ let output_context before after =
 let emit_callback_wrapper oc intf meth =
   current_function := sprintf "%s::%s" intf.intf_name meth.fun_name;
   need_context := false;
-  let (ins, outs) = ml_view meth in
+  let (ins, outs,_) = ml_view meth in
   let pref = Prefix.enter_function meth.fun_params in
   (* Emit function header *)
   let fun_name =
@@ -250,7 +250,7 @@ let emit_callback_wrapper oc intf meth =
   iprintf pc
     "_varg[0] = ((struct camlidl_intf *) this)->caml_object;\n";
   iter_index
-    (fun pos (name, ty) -> c_to_ml pc pref ty name (sprintf "_varg[%d]" pos))
+    (fun pos (name, ty) -> c_to_ml pc pref [] ty name (sprintf "_varg[%d]" pos))
     1 ins;
   decrease_indent();
   iprintf pc "End_roots();\n";

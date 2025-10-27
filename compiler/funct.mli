@@ -17,7 +17,7 @@
 open Idltypes
 
 type in_out =
-    In | Out | InOut
+    In | Out | InOut | InContext of string
 
 type function_decl =
   { fun_name: string;
@@ -31,6 +31,7 @@ type function_decl =
 
 val ml_view :
       function_decl -> (string * idltype) list * (string * idltype) list
+      * Idltypes.available_contexts
 
 val ml_declaration : out_channel -> function_decl -> unit
 val c_declaration : out_channel -> function_decl -> unit

@@ -222,6 +222,9 @@ let make_param attrs tybase decl =
                       | Some Out -> Some InOut
                       | _ -> Some In in
       merge_attributes mode' ty rem
+  | ("context", [Expr_ident name]) :: rem ->
+      let mode' = Some (InContext name) in
+      merge_attributes mode' ty rem
   | ("out", _) :: rem ->
       let mode' =
         match mode with Some InOut -> mode
@@ -340,6 +343,9 @@ let make_typedef attrs tybase decls =
          td_internal_type =
            Some {td_it_type = ty_intern; td_it_get = get; td_it_set = set }
       } rem
+  | ("context", [ Expr_cast(context_type, Expr_ident context_name) ]) :: rem ->
+    merge_attributes ty { td with td_contexts = (context_name,context_type)::td.td_contexts }
+    rem
   | attr :: rem ->
       merge_attributes (apply_type_attribute ty attr) td rem in
   let merge_definition tybase decl =
@@ -352,9 +358,10 @@ let make_typedef attrs tybase decls =
               td_finalize = None; td_initialize = None;
               td_compare = None; td_hash = None;
               td_errorcode = false; td_errorcheck = None;
-              td_internal_type = None } in
+              td_internal_type = None;
+              td_contexts = [] } in
     let (ty', td') = merge_attributes ty td attrs in
-    {td' with td_type = ty'} in
+    {td' with td_type = ty'; td_contexts = List.rev td'.td_contexts } in
   (* If one of the decls is just a name, generate it first,
      then use it as the tybase for the others decls.
      This helps for typedef struct {...} t, *p, ... *)

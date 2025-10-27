@@ -28,7 +28,8 @@ let hresult =
     td_errorcode = true;
     td_errorcheck = Some "camlidl_check_hresult";
     td_mltype = None;
-    td_internal_type = None; }
+    td_internal_type = None;
+    td_contexts = [] }
 
 let hresult_bool =
   { td_name = "HRESULT_bool"; td_mod = "Com";
@@ -40,7 +41,8 @@ let hresult_bool =
     td_errorcode = false;
     td_errorcheck = Some "camlidl_check_hresult";
     td_mltype = Some "bool";
-    td_internal_type = None; }
+    td_internal_type = None;
+    td_contexts = [] }
 
 let hresult_int =
   { td_name = "HRESULT_int"; td_mod = "Com";
@@ -52,7 +54,8 @@ let hresult_int =
     td_errorcode = false;
     td_errorcheck = Some "camlidl_check_hresult";
     td_mltype = Some "int";
-    td_internal_type = None; }
+    td_internal_type = None;
+    td_contexts = [] }
 
 let bstr =
   { td_name = "BSTR"; td_mod = "Com";
@@ -64,7 +67,8 @@ let bstr =
     td_errorcode = false;
     td_errorcheck = None;
     td_mltype = Some "string";
-    td_internal_type = None;  }
+    td_internal_type = None;
+    td_contexts = []  }
 
 let rec iunknown =
   { intf_name = "IUnknown"; intf_mod = "Com";

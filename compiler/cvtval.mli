@@ -19,6 +19,6 @@ open Idltypes
 val ml_to_c :
   out_channel -> bool -> Prefix.t -> idltype -> string -> string -> unit
 val c_to_ml :
-  out_channel -> Prefix.t -> idltype -> string -> string -> unit
+  out_channel -> Prefix.t -> available_contexts -> idltype -> string -> string -> unit
 val allocate_output_space :
-  out_channel -> Prefix.t -> string -> idltype -> unit
+  out_channel -> Prefix.t -> available_contexts -> string -> idltype -> unit

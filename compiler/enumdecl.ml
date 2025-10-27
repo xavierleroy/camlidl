@@ -77,6 +77,7 @@ let transl_ml_to_c oc en =
 (* Translation function from a C enum to an ML datatype *)
 
 let transl_c_to_ml oc en =
+  let c_to_ml oc pref = c_to_ml oc pref [] in
   current_function := sprintf "enum %s" en.en_name;
   let c = new_var "_c" in
   fprintf oc "value camlidl_c2ml_%s_enum_%s(int %s)\n"
