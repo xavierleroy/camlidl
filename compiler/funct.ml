@@ -162,17 +162,18 @@ let output_dealloc oc dealloc =
 
 (* Call an error checking function if needed *)
 
-let rec call_error_check oc name ty =
+let rec call_error_check oc contexts name ty =
   match ty with
     Type_named(modl, ty_name) ->
       begin match !typedef_find ty_name with
-        {td_errorcheck = Some fn} -> iprintf oc "%s(%s);\n" fn name
+        {td_errorcheck = Some fn} as td -> iprintf oc "%s(%s%a);\n" fn name
+        (print_available_contexts contexts) td
       | _ -> ()
       end
   | Type_pointer(kind, ty_elt) ->
-      call_error_check oc ("*" ^ name) ty_elt
+      call_error_check oc contexts ("*" ^ name) ty_elt
   | Type_const ty' ->
-      call_error_check oc name ty'
+      call_error_check oc contexts name ty'
   | _ -> ()
 
 (* Shared code between emit_wrapper and emit_method_wrapper *)
@@ -227,9 +228,9 @@ let emit_function oc fundecl ins outs contexts locals emit_call =
   emit_call pc fundecl;
   (* Call error checking functions on result and out parameters
      that need it *)
-  call_error_check pc "_res" fundecl.fun_res;
+  call_error_check pc contexts "_res" fundecl.fun_res;
   List.iter
-    (function (name, (Out|InOut), ty) -> call_error_check pc name ty
+    (function (name, (Out|InOut), ty) -> call_error_check pc contexts name ty
             | _ -> ())
     fundecl.fun_params;
   (* Convert outs from C to ML *)

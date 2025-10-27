@@ -22,3 +22,5 @@ val c_to_ml :
   out_channel -> Prefix.t -> available_contexts -> idltype -> string -> string -> unit
 val allocate_output_space :
   out_channel -> Prefix.t -> available_contexts -> string -> idltype -> unit
+val print_available_contexts:
+  available_contexts -> out_channel -> type_decl -> unit
