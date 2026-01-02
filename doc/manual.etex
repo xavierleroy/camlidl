@@ -805,7 +805,9 @@ If the @"hidden"@ attribute is provided, the typedef will not be exposed
 in the generated ".mli" file.  The type will still be generated in the
 ".ml" file, but will not appear in the module's interface.  This is
 useful when there are @"hidden"@ functions whose types involve
-@"hidden"@ types.
+@"hidden"@ types.  If a @"hidden"@ type is used in the public interface,
+it will be expanded to its definition, or replaced by the value of any
+@"mltype"@ attribute on its declaration.
 
 \subsection{Functions}
 
