@@ -1,0 +1,13 @@
+/* Test hidden attribute for function declarations */
+
+/* Regular public function */
+int public_func([in] int x);
+
+/* Hidden function - should not appear in .mli */
+[hidden]
+int hidden_func([in] int x);
+
+/* Hidden with other attributes */
+[hidden, blocking]
+int hidden_blocking_func([in] int x);
+

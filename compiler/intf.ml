@@ -183,7 +183,8 @@ let ml_class_definition oc intf =
           fun_mlname = None;
           fun_call = None;
           fun_dealloc = None;
-          fun_blocking = false } in
+          fun_blocking = false;
+          fun_hidden = false } in
       Funct.ml_declaration oc prim)
     intf.intf_methods;
   fprintf oc "\n";

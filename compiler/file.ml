@@ -80,7 +80,8 @@ let gen_mli_file oc intf =
   gen_type_def oc intf;
   (* Generate the function declarations *)
   let emit_fundecl = function
-      Comp_fundecl fd -> Funct.ml_declaration oc fd
+      Comp_fundecl fd ->
+        if not fd.Funct.fun_hidden then Funct.ml_declaration oc fd
     | Comp_constdecl cd -> Constdecl.ml_declaration oc cd
     | Comp_diversion((Div_mli | Div_ml_mli), txt) ->
         output_string oc txt; output_char oc '\n'

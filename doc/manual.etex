@@ -192,6 +192,8 @@ arguments.
        {array type with "bigarray" attribute}
 \entree{@"hash"'('fun-name')'@ }
        {"typedef" }
+\entree{@"hidden"@        }
+       {function declaration }
 \entree{@"ignore"@        }
        {any pointer type  }
 \entree{@"in"@            }
@@ -993,6 +995,14 @@ If the string is returned as an "out" parameter instead, we would write:
 A function can be given the attribute "blocking" to indicate that it
 may block on an input/output operation.  The generated code will then
 allow other Caml threads to execute concurrently with the operation.
+
+\paragraph{Hidden functions:}
+A function can be given the attribute @"hidden"@ to indicate that it
+will not be exposed in the generated ".mli" file.  The function will
+still be generated in the ".ml" file and the C stubs, but will not
+appear in the module's interface.  This is useful for functions that
+will not be exposed directly, but will be used to implement other
+functions that will be exposed in the public module signature.
 
 \subsection{Interfaces}
 
