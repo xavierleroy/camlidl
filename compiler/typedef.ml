@@ -33,7 +33,8 @@ type type_decl =
     td_hash: string option;
     td_errorcode: bool;
     td_errorcheck: string option;
-    td_mltype: string option }
+    td_mltype: string option;
+    td_hidden: bool }
 
 (* Record typedefs by name *)
 

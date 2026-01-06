@@ -46,6 +46,7 @@ let rec eval_constants intf =
 (* Generate the ML interface *)
 
 (* Generate the type definitions common to the .ml and the .mli *)
+(* When generating_mli is true, skip hidden typedefs *)
 
 let gen_type_def oc intf =
   let first = ref true in
@@ -54,7 +55,9 @@ let gen_type_def oc intf =
     first := false in
   let emit_typedef = function
       Comp_typedecl td ->
-        start_decl(); Typedef.ml_declaration oc td
+        if not (!generating_mli && td.Typedef.td_hidden) then begin
+          start_decl(); Typedef.ml_declaration oc td
+        end
     | Comp_structdecl s ->
         if s.sd_fields <> [] then begin
           start_decl(); Structdecl.ml_declaration oc s
@@ -76,6 +79,7 @@ let gen_type_def oc intf =
 (* Generate the .mli file *)
 
 let gen_mli_file oc intf =
+  generating_mli := true;
   fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
   gen_type_def oc intf;
   (* Generate the function declarations *)
@@ -93,6 +97,7 @@ let gen_mli_file oc intf =
 (* Generate the .ml file *)
 
 let gen_ml_file oc intf =
+  generating_mli := false;
   fprintf oc "(* File generated from %s.idl *)\n\n" !module_name;
   gen_type_def oc intf;
   (* Generate the function declarations and class definitions *)

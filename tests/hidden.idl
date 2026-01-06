@@ -1,4 +1,10 @@
-/* Test hidden attribute for function declarations */
+/* Test hidden attribute for typedefs and function declarations */
+
+/* Regular public typedef */
+typedef int public_type;
+
+/* Hidden typedef - should not appear in .mli */
+typedef [hidden] int hidden_type;
 
 /* Regular public function */
 int public_func([in] int x);

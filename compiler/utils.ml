@@ -61,6 +61,9 @@ let end_diversion oc =
 let module_name = ref "Mod"
 let current_function = ref ""
 
+(* Currently generating the .mli file? *)
+let generating_mli = ref false
+
 (* Emit error messages *)
 
 exception Error

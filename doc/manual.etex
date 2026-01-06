@@ -193,7 +193,7 @@ arguments.
 \entree{@"hash"'('fun-name')'@ }
        {"typedef" }
 \entree{@"hidden"@        }
-       {function declaration }
+       {"typedef", function declaration }
 \entree{@"ignore"@        }
        {any pointer type  }
 \entree{@"in"@            }
@@ -800,6 +800,12 @@ the \var{ty} value for values indicating an error condition, and raise the
 appropriate exception.  If in addition the @"errorcode"@ attribute is
 provided, the conversion from C to Caml is suppressed: values of type
 \var{ty} are only passed to @fn@ for error checking, then discarded.
+
+If the @"hidden"@ attribute is provided, the typedef will not be exposed
+in the generated ".mli" file.  The type will still be generated in the
+".ml" file, but will not appear in the module's interface.  This is
+useful when there are @"hidden"@ functions whose types involve
+@"hidden"@ types.
 
 \subsection{Functions}
 

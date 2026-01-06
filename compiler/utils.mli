@@ -23,6 +23,7 @@ val end_diversion : out_channel -> unit
 
 val module_name : string ref
 val current_function : string ref
+val generating_mli : bool ref
 
 val error : string -> 'a
 exception Error
