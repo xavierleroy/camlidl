@@ -1,3 +1,10 @@
+* Allow `length_is` on output arrays to reference output values (#33)
+
+CamlIDL 1.14:
+------------
+
+* Use `Bytes_val` instead of `String_val` where appropriate (#30)
+
 CamlIDL 1.13:
 -------------
 
