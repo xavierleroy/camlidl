@@ -379,7 +379,10 @@ let tostr pref e =
     | e -> ts9 e
 
   and ts9 = function
-      Expr_ident s ->
+      Expr_ident "_return" ->
+        (* Special identifier for function return value *)
+        add_string b "_res"
+    | Expr_ident s ->
         begin try
           match Hashtbl.find const_val s with
             Cst_int n ->

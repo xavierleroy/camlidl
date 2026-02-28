@@ -189,7 +189,7 @@ let array_c_to_ml c_to_ml oc pref attr ty_elt c v =
     end
   end
 
-(* Determine the output size of an array *)
+(* Determine the output size of an array (for ML array creation - valid count) *)
 
 let array_output_size attr =
   match attr with
@@ -198,12 +198,21 @@ let array_output_size attr =
   | {bound = Some le} -> le
   | _ -> error "Cannot determine array size for C -> ML conversion"
 
+(* Determine the allocation size of an array (buffer capacity) *)
+
+let array_alloc_size attr =
+  match attr with
+    {size = Some re} -> re
+  | {length = Some re} -> re
+  | {bound = Some le} -> le
+  | _ -> error "Cannot determine array size for allocation"
+
 (* Allocate room for an out array *)
 
 let array_allocate_output_space oc pref attr ty_elt c =
   if attr.bound = None then begin
     iprintf oc "%s = camlidl_malloc(%a * sizeof(%a), _ctx);\n"
-               c Lexpr.output (pref, array_output_size attr)
+               c Lexpr.output (pref, array_alloc_size attr)
                out_c_type ty_elt;
     need_context := true
   end

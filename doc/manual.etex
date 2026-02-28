@@ -536,6 +536,39 @@ of the array.  For instance, "[size_is(*dimx, *dimy)] double d[][]"
 specifies a matrix of "double" whose first dimension has size
 "*dimx" and the second has size "*dimy".
 
+For "[out]" arrays, "size_is" and "length_is" have distinct meanings:
+"size_is" specifies the allocation size (buffer capacity), while
+"length_is" specifies the valid element count.  When both are given,
+"size_is" determines how much memory to allocate for the C array, and
+"length_is" determines how many elements to copy to the resulting ML
+array.  When only one is given, it is used for both purposes.
+
+On "[out]" or "[in,out]" arrays, "length_is" can reference output
+values: the special identifier "_return" refers to the function's
+return value, and dereferenced "[out]" parameters (e.g., "*n") can
+also be used.  When "length_is" references an output value, that value
+is omitted from the ML function's result since it is encoded in the
+array length.  For example, consider a C function:
+\begin{alltt}
+unsigned int fill_upto(int n, int a[]);
+\end{alltt}
+that takes an array "a" of size "n", fills a prefix of the array with at
+most "n" values, and returns the number of values stored. The IDL
+declaration:
+\begin{alltt}
+unsigned int fill_upto([in] int n, [out,size_is(n),length_is(_return)] int a[]);
+\end{alltt}
+expresses that "a" is allocated enough space for "n" elements, and upon
+return only the prefix of length given by the return value contains valid
+values. This compiles to an ML function:
+\begin{alltt}
+fill_upto : int -> int array
+\end{alltt}
+where the array length equals the C function's return value. Crucially, the
+unfilled portion of the array is not converted from C to ML.
+
+Using "length_is" with output expressions on "[in]" arrays is an error.
+
 \subsection{Big arrays}
 
 IDL arrays of integers or floats that carry the "[bigarray]" attribute
@@ -564,6 +597,11 @@ Finally, the "[unique]" attribute applies to bigarrays as to arrays,
 that is, it maps a null C pointer to "None", and a non-null C pointer
 \var{p} to "Some("\var{v}")" where \var{v} is the ML bigarray
 resulting from the translation of \var{p}.
+
+Note that "[length_is]" with output expressions does not apply to bigarrays,
+since bigarrays are not copied during conversion---they share memory with
+the underlying C array---and therefore cannot be resized based on an output
+length.
 
 \subsection{Structs}
 
@@ -845,6 +883,17 @@ void n([in] int inputlen, [out] int * outputlen,
 \begin{quote} The two parameters "inputlen" and "outputlen" are
 dependent, hence ignored.  The "double" array is both an input
 and an output. \end{quote}
+\begin{alltt}
+unsigned int o([in] int maxlen,
+               [out,size_is(maxlen),length_is(_return)] int r[])
+                                                o : int -> int array
+\end{alltt}
+\begin{quote} The "length_is(_return)" attribute indicates that the
+function's return value determines the valid length of the output array.
+The return value is omitted from the Caml function's result since it is
+encoded in the array length.  The "size_is" attribute specifies the
+allocated buffer size, while "length_is" specifies the valid element count.
+\end{quote}
 \begin{alltt}
 void p([in] int dimx, [in] int dimy,
        [in,out,bigarray,size_is(dimx,dimy)] double d[][])

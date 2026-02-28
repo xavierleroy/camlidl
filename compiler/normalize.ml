@@ -187,6 +187,57 @@ and enter_enum en =
     (fun en ->
       all_comps := Comp_enumdecl en :: !all_comps)
 
+(* Check if an expression references output values (_return or out parameters) *)
+let rec expr_references_output params = function
+  | Expr_ident "_return" -> true
+  | Expr_ident name ->
+      List.exists
+        (fun (pname, mode, _) -> pname = name && (mode = Out || mode = InOut))
+        params
+  | Expr_deref e | Expr_addressof e | Expr_neg e
+  | Expr_lognot e | Expr_boolnot e | Expr_cast (_, e) ->
+      expr_references_output params e
+  | Expr_cond (e1, e2, e3) ->
+      expr_references_output params e1 ||
+      expr_references_output params e2 ||
+      expr_references_output params e3
+  | Expr_sequand (e1, e2) | Expr_sequor (e1, e2)
+  | Expr_logor (e1, e2) | Expr_logxor (e1, e2) | Expr_logand (e1, e2)
+  | Expr_eq (e1, e2) | Expr_ne (e1, e2)
+  | Expr_lt (e1, e2) | Expr_gt (e1, e2) | Expr_le (e1, e2) | Expr_ge (e1, e2)
+  | Expr_lshift (e1, e2) | Expr_rshift (e1, e2) | Expr_rshift_unsigned (e1, e2)
+  | Expr_plus (e1, e2) | Expr_minus (e1, e2)
+  | Expr_times (e1, e2) | Expr_div (e1, e2) | Expr_mod (e1, e2)
+  | Expr_subscript (e1, e2) ->
+      expr_references_output params e1 || expr_references_output params e2
+  | Expr_field (e, _) | Expr_dereffield (e, _) ->
+      expr_references_output params e
+  | Expr_int _ | Expr_string _ | Expr_sizeof _ -> false
+
+(* Validate that length_is with output expressions is only on [out] arrays.
+   For bigarrays, output expressions are never valid. *)
+let rec validate_length_is params mode = function
+  | Type_array (attr, ty) ->
+      if mode = In then
+        begin match attr.length with
+        | Some expr when expr_references_output params expr ->
+            error "length_is references output value but array is [in]"
+        | _ -> ()
+        end;
+      validate_length_is params mode ty
+  | Type_bigarray (attr, ty) ->
+      List.iter
+        (function
+         | {length = Some expr} when expr_references_output params expr ->
+             error "length_is cannot reference output values on bigarrays"
+         | _ -> ())
+        attr.dims;
+      validate_length_is params mode ty
+  | Type_pointer (_, ty)
+  | Type_const ty ->
+      validate_length_is params mode ty
+  | _ -> ()
+
 let normalize_fundecl fd =
   current_function := fd.fun_name;
   in_fundecl := true;
@@ -197,6 +248,8 @@ let normalize_fundecl fd =
       fun_params =
         List.map (fun (n, io, ty) -> (n,io, normalize_type ty)) fd.fun_params }
   in
+  List.iter (fun (_, mode, ty) -> validate_length_is res.fun_params mode ty)
+    res.fun_params;
   in_fundecl := false;
   current_function := "";
   res

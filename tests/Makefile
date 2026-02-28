@@ -6,7 +6,7 @@ INCLUDES=-DCAML_NAME_SPACE -I.. -I$(OCAMLLIB)
 CCPP?=$(CC)
 CPPFLAGS=$(CFLAGS)
 
-TESTS=basics.idl arrays.idl structs.idl unions.idl typedefs.idl $(TESTS_$(OSTYPE)) multi_import.idl stdint.idl
+TESTS=basics.idl arrays.idl structs.idl unions.idl typedefs.idl $(TESTS_$(OSTYPE)) multi_import.idl stdint.idl array_length.idl
 TESTS_unix=unix.idl
 COMLIBS=$(COMLIBS_$(OSTYPE))
 COMLIBS_win32=advapi32.lib ole32.lib oleaut32.lib

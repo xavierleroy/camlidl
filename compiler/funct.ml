@@ -36,21 +36,22 @@ type function_decl =
     fun_blocking: bool }
 
 (* Remove dependent parameters (parameters that are size_is, length_is,
-   or switch_is of another parameter).
+   or switch_is of another parameter, or length_is of the return type).
    Note: an "in" parameter that is size_is of an "out" parameter
    cannot be removed.
    Also remove ignored pointers. *)
 
-let is_dependent_parameter name mode params =
+let is_dependent_parameter name mode params res =
   List.exists
     (fun (_, mode', ty) ->
       Lexpr.is_dependent name ty && (mode' <> Out || mode = Out))
     params
+  || (mode = Out && Lexpr.is_dependent name res)
 
-let remove_dependent_parameters params =
+let remove_dependent_parameters params res =
   list_filter
     (fun (name, mode, ty) ->
-      not (is_dependent_parameter name mode params || is_ignored ty))
+      not (is_dependent_parameter name mode params res || is_ignored ty))
     params
 
 (* Split parameters into in parameters and out parameters.
@@ -78,17 +79,32 @@ let rec is_errorcode = function
   | Type_const ty -> is_errorcode ty
   | _ -> false
 
+(* Check if return value is used as length_is(_return) in any parameter *)
+
+let rec return_is_out_length = function
+    Type_array({length = Some (Expr_ident "_return")}, _) -> true
+  | Type_array(_, ty)
+  | Type_pointer(_, ty)
+  | Type_const ty -> return_is_out_length ty
+  | _ -> false
+
+let return_is_dependent params =
+  List.exists (fun (_, _, ty) -> return_is_out_length ty) params
+
 (* Convert the C view of parameters and result into the ML view:
     - remove dependent parameters
     - turn out and in/out parameters into extra results
     - remove void and errorcode return values *)
 
 let ml_view fundecl =
-  let true_params = remove_dependent_parameters fundecl.fun_params in
+  let true_params = remove_dependent_parameters fundecl.fun_params fundecl.fun_res in
   let (ins, outs) = split_in_out true_params in
-  (* Add return value as an out if it's not void and not an error code *)
+  (* Add return value as an out if it's not void, not an error code,
+     and not used as length_is(_return) *)
   let outs2 =
-    if fundecl.fun_res = Type_void || is_errorcode fundecl.fun_res
+    if fundecl.fun_res = Type_void
+       || is_errorcode fundecl.fun_res
+       || return_is_dependent fundecl.fun_params
     then outs
     else ("_res", fundecl.fun_res) :: outs in
   (* Remove out parameters that are error codes *)
@@ -202,7 +218,7 @@ let emit_function oc fundecl ins outs locals emit_call =
   List.iter
     (function (name, _,
                (Type_pointer(_, ty_arg) | Type_const(Type_pointer(_, ty_arg))))
-              when is_dependent_parameter name In fundecl.fun_params ->
+              when is_dependent_parameter name In fundecl.fun_params fundecl.fun_res ->
                   let c = new_c_variable ty_arg in
                   iprintf pc "%s = &%s;\n" name c
             | _ -> ())

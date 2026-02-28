@@ -1,0 +1,55 @@
+/* length_is with output parameter */
+void
+fill_array(
+  [in] int max_size,
+  [out] int *actual_size,
+  [out, size_is(max_size), length_is(*actual_size)] int results[]);
+
+/* length_is with return value */
+unsigned int
+get_results(
+  [in] int max_size,
+  [out, size_is(max_size), length_is(_return)] int results[]);
+
+/* combined with input array */
+int
+process(
+  [in] int n,
+  [in, length_is(n)] int input[],
+  [out, size_is(n), length_is(_return)] int output[]);
+
+/* 2D array - first dim from return, second from size_is */
+unsigned int
+get_matrix_rows(
+  [in] int max_rows,
+  [in] int cols,
+  [out, size_is(max_rows, cols), length_is(_return,)] int matrix[][]);
+
+/* 2D array - first dim from size_is, second from output param */
+void
+get_sparse_rows(
+  [in] int num_rows,
+  [in] int max_cols,
+  [out] int *actual_cols,
+  [out, size_is(num_rows, max_cols), length_is(, *actual_cols)] int data[][]);
+
+/* 2D array - both dims from output params */
+void
+get_variable_matrix(
+  [in] int max_rows,
+  [in] int max_cols,
+  [out] int *actual_rows,
+  [out] int *actual_cols,
+  [out, size_is(max_rows, max_cols), length_is(*actual_rows, *actual_cols)] int matrix[][]);
+
+/* return value and output param for different dims */
+unsigned int
+get_result_matrix(
+  [in] int max_rows,
+  [in] int max_cols,
+  [out] int *actual_cols,
+  [out, size_is(max_rows, max_cols), length_is(_return, *actual_cols)] int matrix[][]);
+
+/* 2D return pointer with multiple out params for dimensions */
+[length_is(*rows, *cols)] int **
+get_matrix([out] unsigned int *rows, [out] unsigned int *cols);
