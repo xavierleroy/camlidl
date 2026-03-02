@@ -42,3 +42,10 @@ val scrape_const: idltype -> idltype
 
 (* Determine if a type is an ignored pointer *)
 val is_ignored: idltype -> bool
+
+(** [findopt_hidden_typedef ty] is [Some (mltype_option, expanded_type)]
+    if [ty] is hidden, [None] otherwise. In the first case, [ty] expands
+    to [expanded_type], and [mltype_option] is optionally an ML type that
+    should override [expanded_type] (such as specified with an [mltype]
+    annotation on the type declaration). *)
+val findopt_hidden_typedef: (string -> (string option * idltype) option) ref

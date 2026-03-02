@@ -262,6 +262,7 @@ normalize.cmo : \
     funct.cmi \
     fixlabels.cmi \
     file.cmi \
+    cvttyp.cmi \
     constdecl.cmi \
     normalize.cmi
 normalize.cmx : \
@@ -275,6 +276,7 @@ normalize.cmx : \
     funct.cmx \
     fixlabels.cmx \
     file.cmx \
+    cvttyp.cmx \
     constdecl.cmx \
     normalize.cmi
 normalize.cmi : \

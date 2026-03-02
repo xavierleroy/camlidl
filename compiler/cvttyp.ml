@@ -153,6 +153,10 @@ let rec ml_bigarray_kind ty =
 
 (* Convert an IDL type to an ML type *)
 
+let findopt_hidden_typedef =
+  ref ((fun _ -> invalid_arg "Cvttyp.findopt_hidden_typedef")
+       : string -> (string option * idltype) option)
+
 let rec out_ml_type oc ty =
   match ty with
     Type_int(Boolean, _) -> output_string oc "bool"
@@ -163,7 +167,14 @@ let rec out_ml_type oc ty =
   | Type_int(_, I64) -> output_string oc "int64"
   | Type_float | Type_double -> output_string oc "float"
   | Type_void -> output_string oc "void"
-  | Type_named(modl, name) -> out_mltype_name oc (modl, name)
+  | Type_named(modl, name) ->
+      if !generating_mli then
+        match !findopt_hidden_typedef name with
+        | Some (Some mltype_str, _) -> output_string oc mltype_str
+        | Some (None, ty) -> out_ml_type oc ty
+        | None -> out_mltype_name oc (modl, name)
+      else
+        out_mltype_name oc (modl, name)
   | Type_struct sd ->
       out_mltype_stamp oc "struct" sd.sd_mod sd.sd_name sd.sd_stamp
   | Type_union(ud, discr) ->

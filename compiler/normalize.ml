@@ -37,9 +37,15 @@ let find_typedef s =
 
 let expand_typedef s = (find_typedef s).td_type
 
+let findopt_hidden_typedef s =
+  match Hashtbl.find typedefs s with
+  | td when td.td_hidden -> Some (td.td_mltype, td.td_type)
+  | _ | exception Not_found -> None
+
 let _ =
   Typedef.find := find_typedef;
-  Lexpr.expand_typedef := expand_typedef
+  Lexpr.expand_typedef := expand_typedef;
+  Cvttyp.findopt_hidden_typedef := findopt_hidden_typedef
 
 let all_comps = ref ([] : component list)
 

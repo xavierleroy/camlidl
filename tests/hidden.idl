@@ -1,0 +1,27 @@
+/* Test hidden attribute for typedefs and function declarations */
+
+/* Regular public typedef */
+typedef int public_type;
+
+/* Hidden typedef - should not appear in .mli */
+typedef [hidden] int hidden_type;
+
+/* Regular public function */
+int public_func([in] int x);
+
+/* Hidden typedef with mltype - uses should be expanded in .mli */
+typedef [hidden, mltype("int option")] int hidden_opt;
+
+/* Hidden function - should not appear in .mli */
+[hidden]
+int hidden_func([in] int x);
+
+/* Hidden with other attributes */
+[hidden, blocking]
+int hidden_blocking_func([in] int x);
+
+/* Uses hidden_opt - should be expanded to "int option" in .mli */
+int use_hidden_opt([in] hidden_opt x);
+
+/* Uses hidden_type - should be expanded to "int" in .mli */
+int use_hidden_type([in] hidden_type x);

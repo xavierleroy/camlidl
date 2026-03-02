@@ -27,7 +27,8 @@ type function_decl =
     fun_mlname: string option;
     fun_call: string option;
     fun_dealloc: string option;
-    fun_blocking: bool }
+    fun_blocking: bool;
+    fun_hidden: bool }
 
 val ml_view :
       function_decl -> (string * idltype) list * (string * idltype) list

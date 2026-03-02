@@ -238,7 +238,8 @@ let make_fun_declaration attrs ty_res name params quotes =
   and mlname = ref None
   and call = ref None
   and dealloc = ref None
-  and blocking = ref false in
+  and blocking = ref false
+  and hidden = ref false in
   let parse_quote (label, text) =
     match String.lowercase_ascii label with
       "call" -> call := Some text
@@ -253,6 +254,8 @@ let make_fun_declaration attrs ty_res name params quotes =
           mlname := Some s; merge_attributes ty rem
     | ("blocking", _) :: rem ->
           blocking := true; merge_attributes ty rem
+    | ("hidden", _) :: rem ->
+          hidden := true; merge_attributes ty rem
     | (("callback" | "local"), _) :: rem ->
           merge_attributes ty rem
     | ("propget", _) :: rem ->
@@ -271,7 +274,8 @@ let make_fun_declaration attrs ty_res name params quotes =
     fun_mlname = !mlname;
     fun_call = !call;
     fun_dealloc = !dealloc;
-    fun_blocking = !blocking }
+    fun_blocking = !blocking;
+    fun_hidden = !hidden }
 
 let make_field attrs tybase decl =
   let rec merge_attributes name ty = function
@@ -330,6 +334,8 @@ let make_typedef attrs tybase decls =
       merge_attributes ty {td with td_errorcode = true} rem
   | ("errorcheck", [Expr_ident f]) :: rem ->
       merge_attributes ty {td with td_errorcheck = Some f} rem
+  | ("hidden", _) :: rem ->
+      merge_attributes ty {td with td_hidden = true} rem
   | (("handle" | "transmit_as" | "context_handle"), _) :: rem ->
       merge_attributes ty td rem
   | attr :: rem ->
@@ -342,7 +348,8 @@ let make_typedef attrs tybase decls =
               td_abstract = false; td_mltype = None;
               td_c2ml = None; td_ml2c = None;
               td_finalize = None; td_compare = None; td_hash = None;
-              td_errorcode = false; td_errorcheck = None} in
+              td_errorcode = false; td_errorcheck = None;
+              td_hidden = false} in
     let (ty', td') = merge_attributes ty td attrs in
     {td' with td_type = ty'} in
   (* If one of the decls is just a name, generate it first,

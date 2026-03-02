@@ -33,7 +33,8 @@ type function_decl =
     fun_mlname: string option;
     fun_call: string option;
     fun_dealloc: string option;
-    fun_blocking: bool }
+    fun_blocking: bool;
+    fun_hidden: bool }
 
 (* Remove dependent parameters (parameters that are size_is, length_is,
    or switch_is of another parameter, or length_is of the return type).
